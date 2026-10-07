@@ -242,9 +242,9 @@ export function Drawer({
     }
   }, [isOpen, onClose])
 
-  return createPortal(
+  return (
     <AnimatePresence>
-      {isOpen && (
+      {isOpen && createPortal(
         <div className="fixed inset-0 z-[60]">
           {/* 遮罩 */}
           <motion.div
@@ -281,10 +281,10 @@ export function Drawer({
             <div className="dd-drawer__body custom-scrollbar">{children}</div>
             {footer && <div className="dd-drawer__foot">{footer}</div>}
           </motion.aside>
-        </div>
+        </div>,
+        document.body
       )}
-    </AnimatePresence>,
-    document.body
+    </AnimatePresence>
   )
 }
 

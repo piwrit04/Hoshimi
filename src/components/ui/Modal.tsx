@@ -31,8 +31,6 @@ export const Modal = ({ isOpen, onClose, title, children, footer, className, sho
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
-
   return ReactDOM.createPortal(
     <AnimatePresence>
       {isOpen && (
