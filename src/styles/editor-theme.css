@@ -1,0 +1,84 @@
+/* ============================================================
+   editor-theme —— ⚠️ 这个文件以前**从未被 import 过**。
+
+   后果：src/styles/alert.css 里引用的 --ed-bg-primary / --ed-border-normal /
+   --ed-text-primary / --ed-success / --ed-warning / --ed-danger 六个变量
+   全都是未定义的，`.ed-alert` 等于没有背景、没有边框、没有文字色。
+
+   现在两个处理：
+     1. 把值全部换成 theme.css 的语义变量 —— 深浅模式自动成立
+        （原来是写死的浅色，配一个 [data-theme='dark'] 覆盖块，
+         而本项目的深色是挂 .dark 类和 :root 的，那套选择器根本命中不了）；
+     2. 在 index.css 里补上 @import。
+
+   如果哪天确定没人再用 .ed-* 了，这个文件和 alert.css 可以一起删。
+   ============================================================ */
+:root {
+  --ed-bg-primary: hsl(var(--card));
+  --ed-bg-secondary: hsl(var(--secondary));
+  --ed-bg-tertiary: hsl(var(--muted));
+  --ed-bg-quaternary: hsl(var(--border));
+
+  --ed-text-primary: hsl(var(--foreground));
+  --ed-text-secondary: hsl(var(--muted-foreground));
+  --ed-text-tertiary: hsl(var(--muted-foreground));
+  --ed-text-inverse: hsl(var(--background));
+
+  --ed-border-normal: hsl(var(--border));
+  --ed-border-active: var(--brand-hex);
+  --ed-border-focus: var(--brand-hex);
+
+  --ed-primary: var(--brand-hex);
+  --ed-primary-fg: var(--on-brand-hex);
+  --ed-primary-hover: rgb(var(--brand-deep-rgb));
+
+  /* ⚠️ 原来 --ed-danger / --ed-warning 也是粉色 #EE7093，--ed-success 是蓝色。
+     语义色相被主色污染，等于「失败」和「正常」一个颜色。改成真语义色。 */
+  --ed-danger: rgb(var(--danger-rgb));
+  --ed-success: rgb(var(--success-rgb));
+  --ed-warning: rgb(var(--warning-rgb));
+  --ed-info: rgb(var(--info-rgb));
+
+  --ed-radius: 8px;
+  --ed-radius-sm: 6px;
+  --ed-shadow: var(--shadow-2);
+  --ed-shadow-sm: var(--shadow-1);
+  --ed-transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Global Editor Classes */
+.ed-container {
+  font-family: -apple-system, BlinkMacSystemFont, "Maple UI", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
+  color: var(--ed-text-primary);
+  background-color: var(--ed-bg-primary);
+}
+
+/* Utility for disabled state */
+.ed-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  filter: grayscale(100%);
+  position: relative;
+}
+.ed-disabled::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: inherit;
+}
+
+/* Custom Scrollbar for Dropdowns */
+.ed-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.ed-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ed-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--ed-border-normal);
+  border-radius: 3px;
+}
+.ed-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--ed-text-secondary);
+}

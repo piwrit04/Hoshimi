@@ -1,0 +1,39 @@
+{
+  "name": "hoshimi",
+  "private": true,
+  "version": "0.1.0",
+  "description": "星笺 · 代肝订单管理系统（Electron 桌面应用）",
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/vite-with-local-tmp.mjs",
+    "build": "node scripts/vite-with-local-tmp.mjs build",
+    "preview": "node scripts/vite-with-local-tmp.mjs preview",
+    "typecheck": "tsc --noEmit",
+    "electron:install": "npm --prefix electron install",
+    "electron:run": "node scripts/electron-run.mjs",
+    "shell": "npm run build && npm run electron:run",
+    "pack": "npm run build && npm --prefix electron run build:win"
+  },
+  "dependencies": {
+    "clsx": "2.1.1",
+    "framer-motion": "11.18.2",
+    "lucide-react": "0.469.0",
+    "pinyin-pro": "3.29.4",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-router-dom": "7.18.4",
+    "tailwind-merge": "2.6.1",
+    "zustand": "5.0.15"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "26.6.4",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "5.2.0",
+    "sass-embedded": "1.105.1",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3",
+    "vite": "7.3.7"
+  }
+}

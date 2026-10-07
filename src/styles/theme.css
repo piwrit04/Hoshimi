@@ -1,0 +1,335 @@
+/*
+ * 主题定义 —— 只放 token 和自定义工具类，**不放 `@import "tailwindcss"`**。
+ *
+ * 为什么要拆出来：
+ *   `src/styles/*.scss` 里有 75 处 `@apply`，Tailwind 4 要求这些文件用
+ *   `@reference` 显式引用一份主题上下文。如果直接 `@reference "../index.css"`，
+ *   而 index.css 又 import 了这些 scss —— 会形成循环，报 "Can't resolve"。
+ *   所以主题单独一个文件，两边都指向它：
+ *     index.css  →  @import "tailwindcss" + @import 本文件
+ *     *.scss     →  @reference "./theme.css"
+ *
+ * 内容结构：
+ *   1. @custom-variant  —— 把 dark: 变体改成 class 策略（对应工具箱的 darkMode: ["class"]）
+ *   2. :root / [data-theme]  —— 颜色变量。**浅色和深色都是手调的**，不再用脚本生成色阶。
+ *   3. @theme            —— 把变量注册成 Tailwind 认识的 token
+ *   4. @layer utilities / components —— 工具箱原有的手写类，原样保留
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============================================================
+   1. 颜色变量
+   工具箱的做法：深色是默认（挂在 :root），浅色靠 data-theme="light" 覆盖。
+   这里保持原样 —— 少一套机制，就少一处可能不同步的地方。
+   ============================================================ */
+:root {
+  /* ---- 深色（默认） ---- */
+  --background: 222 47% 11%;
+  --foreground: 210 40% 98%;
+
+  --card: 217 33% 17%;
+  --card-foreground: 210 40% 98%;
+
+  --popover: 217 33% 17%;
+  --popover-foreground: 210 40% 98%;
+
+  --primary: 211 100% 71%;
+  --primary-foreground: 210 40% 98%;
+
+  --secondary: 217 33% 17%;
+  --secondary-soft: 217 33% 20%;
+  --secondary-foreground: 210 40% 98%;
+
+  --accent: 266 83% 58%;
+  --accent-foreground: 210 40% 98%;
+
+  --muted: 217 33% 17%;
+  --muted-foreground: 215 20.2% 65.1%;
+
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --success: 142 71% 40%;
+  --warning: 37 92% 52%;
+
+  --border: 215 19% 35%;
+  --input: 215 19% 35%;
+  --ring: 211 100% 71%;
+
+  --text-1: 210 40% 98%;
+  --text-2: 215 20% 65%;
+  --text-3: 215 20% 50%;
+
+  --brand-hex: #7eb3ff;
+  --brand-rgb: 126, 179, 255;
+  --brand-text-hex: #7eb3ff;
+  --on-brand-hex: #0f0f11;
+
+  /* ---- 语义色（RGB 三元组，给 global-components.scss 用） ----
+     为什么要单列一套：下面 global-*.scss 里的 .btn-chip / .card-panel 之类
+     原来全部写死浅色的 #EE7093 / #FFFFFF，深色模式下就是白底粉字。
+     这里给出**两套都成立**的值，组件样式只引用变量，不再写死 hex。 */
+  --brand-deep-rgb: 90, 140, 220;   /* 主色 hover，深色模式下要变暗 */
+  --success-rgb: 74, 166, 108;
+  --warning-rgb: 214, 158, 46;
+  --danger-rgb: 224, 92, 92;
+  --info-rgb: 96, 148, 224;
+
+  /* 强调色（工具箱的淡紫 C5B4E5 / 蓝 2D52B7 在这套主题里的对应值） */
+  --accent-soft-rgb: 165, 160, 190;
+  --accent-strong-rgb: 108, 132, 200;
+
+  /* 控件表面态，供 .form-input / .dd-* 使用 */
+  --surface-rgb: 36, 36, 40;
+  --surface-hover-rgb: 44, 44, 50;
+
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-pill: 999px;
+  --radius: var(--radius-md);
+
+  /* 工具箱 global-*.scss 里在用的间距 / 阴影变量，原来缺这几个会静默失效 */
+  --space-2: 4px;
+  --space-3: 8px;
+  --space-4: 12px;
+  --space-5: 16px;
+  --space-6: 20px;
+  --space-8: 32px;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-glow: 0 0 0 3px rgba(var(--brand-rgb), 0.3);
+}
+
+:root[data-theme="light"] {
+  /* ---- 浅色（手调，不是脚本算出来的） ---- */
+  --background: 222 30% 98%;
+  --foreground: 262 22% 31%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 262 22% 31%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 262 22% 31%;
+
+  --primary: 344 70% 68%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 262 10% 96%;
+  --secondary-soft: 262 10% 96%;
+  --secondary-foreground: 262 22% 31%;
+
+  --accent: 244 85% 65%;
+  --accent-foreground: 0 0% 100%;
+
+  --muted: 262 10% 96%;
+  --muted-foreground: 262 17% 58%;
+
+  /* ⚠️ 修复记录：这三个值原来是 344 70% 68% / 224 65% 48% / 344 70% 68%，
+     也就是 --destructive 和 --primary **完全相同**、--warning 也是那个品牌粉，
+     而 --success 拿的其实是 --info 的色相（224）。后果是浅色主题下
+     Tailwind 侧的 bg-success / text-warning / text-destructive 全部渲染成错的颜色 ——
+     已确认可达的一处是 TitleBar 关闭按钮的 hover:bg-destructive，会变成品牌粉。
+
+     现在改成**由对应的 RGB 三元组反算出来的 HSL**，让上面这套（给 Tailwind）
+     和下面那套（给 SCSS）色相一致：
+       --success     ← --success-rgb rgb(34,150,92)   -> hsl 150 63% 36%
+       --warning     ← --warning-rgb rgb(200,140,30)  -> hsl 39 74% 45%
+       --destructive ← --danger-rgb  rgb(210,76,76)   -> hsl 0 60% 56%
+     深色那一份本来就是对的，没有动。 */
+  --destructive: 0 60% 56%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 150 63% 36%;
+  --warning: 39 74% 45%;
+
+  --border: 262 17% 88%;
+  --input: 262 17% 88%;
+  --ring: 344 70% 68%;
+
+  --text-1: 262 22% 31%;
+  --text-2: 262 17% 58%;
+  --text-3: 262 13% 76%;
+
+  --brand-hex: #ee7093;
+  --brand-rgb: 238, 112, 147;
+  --brand-text-hex: #ee7093;
+  --on-brand-hex: #ffffff;
+
+  /* ---- 语义色（浅色一套；理由见文件上方深色那份注释） ---- */
+  --brand-deep-rgb: 214, 101, 132;
+  --success-rgb: 34, 150, 92;
+  --warning-rgb: 200, 140, 30;
+  --danger-rgb: 210, 76, 76;
+  --info-rgb: 45, 82, 183;
+  --accent-soft-rgb: 197, 180, 229;
+  --accent-strong-rgb: 45, 82, 183;
+  --surface-rgb: 255, 255, 255;
+  --surface-hover-rgb: 253, 240, 244;
+}
+
+/* ============================================================
+   2. 注册成 Tailwind token
+   ============================================================
+
+   ⚠️⚠️ 必须是 `@theme inline`，**不能**是普通的 `@theme`。
+
+   这是本项目最容易踩的一个坑，症状是"深色模式怎么切都是浅色"：
+
+     普通 `@theme` 会把 `--color-card: hsl(var(--card))` 在 `:root` 上**求值一次并冻结**。
+     于是 `bg-card` 拿到的是一个写死的浅色，
+     后面 ThemeSync 再改 `--card`（那是另一个变量名）已经影响不到它了。
+
+     `@theme inline` 不会把变量提升到 :root，而是把**原始表达式**
+     `hsl(var(--card))` 直接内联进 `background-color`。
+     这样 `--card` 一变，工具类立刻跟着变 —— 这正是"运行时换主题"需要的行为。
+
+   shadcn/ui 在 Tailwind 4 下就是用的 @theme inline，原因相同。
+   ============================================================ */
+@theme inline {
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-secondary-soft: hsl(var(--secondary-soft));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-success: hsl(var(--success));
+  --color-warning: hsl(var(--warning));
+
+  /* 品牌色必须进 @theme，否则 from-brand / to-brand 这类渐变工具类在 Tailwind 4 里生成不出来。
+     ⚠️ 下面三个半透明档原来是写死的粉 rgba(238,112,147,…)，
+     它**不跟主题走** —— 深色模式的主色是蓝 #7eb3ff，这三个却还是粉的。
+     改成引用 --brand-rgb（深浅各一份），这样 bg-brand-20 两种模式都对。 */
+  --color-brand: var(--brand-hex);
+  --color-brand-20: rgba(var(--brand-rgb), 0.2);
+  --color-brand-30: rgba(var(--brand-rgb), 0.3);
+  --color-brand-60: rgba(var(--brand-rgb), 0.6);
+  --color-on-brand: var(--on-brand-hex);
+
+  --font-sans: "Microsoft YaHei", "SimHei", "Hiragino Sans GB", "WenQuanYi Micro Hei",
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: "Microsoft YaHei", "SimHei", "Hiragino Sans GB", "WenQuanYi Micro Hei",
+    ui-sans-serif, system-ui, sans-serif;
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+  --radius-3xl: 2.5rem;
+
+  --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  --shadow-glow: 0 0 15px rgba(59, 130, 246, 0.5);
+  --shadow-inner-soft: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+  --shadow-floating: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-layer-1: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-layer-2: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-brand-soft: 0 10px 15px -3px rgba(var(--brand-rgb), 0.2), 0 4px 6px -4px rgba(var(--brand-rgb), 0.1);
+
+  --animate-fade-in: fade-in 0.5s ease-out;
+  --animate-slide-up: slide-up 0.5s ease-out;
+
+  @keyframes fade-in {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes slide-up {
+    0% { transform: translateY(20px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+}
+
+/* ============================================================
+   3. 自定义工具类（工具箱原有，原样保留）
+   ============================================================ */
+@layer utilities {
+  .text-brand { color: var(--brand-text-hex); }
+  .text-on-brand { color: var(--on-brand-hex); }
+  .text-neutral-1 { color: hsl(var(--text-1)); }
+  .text-neutral-2 { color: hsl(var(--text-2)); }
+  .text-neutral-3 { color: hsl(var(--text-3)); }
+  .bg-brand { background-color: var(--brand-hex); }
+  .border-brand { border-color: var(--brand-hex); }
+  .img-hq {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: high-quality;
+  }
+  .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(128, 128, 128, 0.2);
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(128, 128, 128, 0.4);
+  }
+}
+
+@layer components {
+  /* Electron 自绘标题栏的拖动区 */
+  .drag-region {
+    -webkit-app-region: drag;
+    user-select: none;
+    cursor: default;
+  }
+  .no-drag {
+    -webkit-app-region: no-drag;
+    user-select: auto;
+    cursor: auto;
+  }
+}
+
+/* ============================================================
+   4. 按钮基类
+   ============================================================
+
+   ⚠️ 这三个必须写成 `@utility`，**不能**留在 `@layer components` 里。
+
+   Tailwind 4 有一处破坏性变更：`@apply` 不再能引用 `@layer base` / `@layer components`
+   里定义的类，只认 `@utility` 注册过的。工具箱的 global-button.scss 里有
+   `@apply btn-base;` 这种写法，在 v3 下没问题，在 v4 下直接报
+   "Cannot apply unknown utility class `btn-base`"。
+   官方迁移建议就是把这类类改成 `@utility`。
+
+   值全部照抄工具箱的 global-button.scss，没有改动。
+   ============================================================ */
+@utility btn-base {
+  @apply inline-flex items-center justify-center font-semibold select-none transition-all;
+  border-radius: var(--radius-md);
+  min-height: 40px;
+  padding: 0 var(--space-5);
+  gap: 8px;
+  position: relative;
+  outline: none;
+  font-size: 14px;
+  line-height: 20px;
+}
+@utility btn-primary {
+  @apply btn-base;
+  background-color: var(--brand-hex);
+  color: var(--on-brand-hex);
+  border: 1px solid transparent;
+  box-shadow: 0 1px 2px rgba(var(--brand-rgb), 0.1);
+}
+@utility btn-secondary {
+  @apply btn-base;
+  background-color: rgb(var(--surface-rgb));
+  color: var(--brand-text-hex);
+  border: 1px solid rgba(var(--accent-soft-rgb), 0.9);
+  box-shadow: 0 1px 2px rgba(var(--brand-rgb), 0.05);
+}
+

@@ -1,0 +1,126 @@
+/* Tailwind 4：@apply 需要显式引用主题上下文，否则报 unknown utility class。
+   这一行是迁移到 Tailwind 4 必须加的，工具箱原文没有（它用 Tailwind 3，不需要）。 */
+@reference "./styles/theme.css";
+
+/* ============================================================
+   表单控件 —— 工具箱原版配色 vs 本项目
+   ============================================================
+
+   工具箱原文件是**只按浅色写的**，写死五个色：
+     #EE7093（粉）主色 / #FFFFFF 卡片 / #FDF0F4 浅粉 / #C5B4E5 淡紫 / #2D52B7 蓝
+   本项目深色是默认，照抄的结果是深色模式下白底粉字。
+
+   所以这里做了一处**必要的替换**：把五个写死的 hex 换成语义变量，
+   值是 theme.css 里按深浅两套给的。视觉关系（谁比谁深、谁是谁的 hover）
+   和工具箱完全一致，只是不再钉死在某一种模式上。
+
+   新旧类名都保留：
+     .form-input / .form-select / .form-textarea / .form-help / .form-error
+       —— 工具箱原有的名字，已有代码在引用。
+     .dd-control / .dd-field …（在 global-components.scss）
+       —— 新组件的名字，展示页用这套。
+   两套的视觉参数（高度 44 / 圆角 / 焦点环）是一致的。
+   ============================================================ */
+
+.form-radio-group {
+  @apply inline-flex items-center gap-1;
+}
+
+.form-radio-option {
+  @apply px-3 py-1.5 rounded-lg text-xs font-bold border transition-all;
+  background-color: rgb(var(--surface-rgb));
+  color: var(--brand-text-hex);
+  border-color: rgba(var(--accent-soft-rgb), 0.9);
+}
+
+.form-radio-option--active {
+  background-color: var(--brand-hex);
+  color: var(--on-brand-hex);
+  border-color: var(--brand-hex);
+}
+
+.form-input,
+.form-select {
+  @apply w-full text-sm transition-all;
+  height: 44px;
+  border-radius: var(--radius-md);
+  padding: 0 16px;
+  background-color: rgb(var(--surface-rgb));
+  border: 1px solid rgba(var(--accent-soft-rgb), 0.9);
+  color: hsl(var(--foreground));
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.7;
+}
+
+.form-input:hover,
+.form-select:hover,
+.form-textarea:hover {
+  background-color: rgb(var(--surface-hover-rgb));
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--brand-hex);
+  box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.2);
+}
+
+.form-input:disabled,
+.form-select:disabled,
+.form-textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-textarea {
+  @apply w-full text-sm transition-all resize-none;
+  min-height: 120px;
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  background-color: rgb(var(--surface-rgb));
+  border: 1px solid rgba(var(--accent-soft-rgb), 0.9);
+  color: hsl(var(--foreground));
+}
+
+/* ⚠️ 工具箱原文的错误态用的也是主色 #EE7093 —— 和「聚焦」长得一样，
+   等于没有错误态。这里换成真危险色。 */
+.form-input--error,
+.form-select--error,
+.form-textarea--error {
+  border-color: rgb(var(--danger-rgb));
+  box-shadow: 0 0 0 2px rgba(var(--danger-rgb), 0.2);
+}
+
+.form-help {
+  @apply text-xs mt-1;
+  color: hsl(var(--muted-foreground));
+}
+
+.form-error {
+  @apply text-xs font-semibold mt-1;
+  color: rgb(var(--danger-rgb));
+}
+
+.upload-tile {
+  @apply w-full border-2 border-dashed rounded-2xl flex flex-col items-center justify-center transition-all relative overflow-hidden;
+  background-color: rgb(var(--surface-hover-rgb));
+  border-color: rgba(var(--accent-soft-rgb), 0.9);
+  color: hsl(var(--muted-foreground));
+  min-height: 140px;
+}
+
+.upload-tile:hover {
+  border-color: var(--brand-hex);
+  color: var(--brand-text-hex);
+}
+
+.tag-pill {
+  @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium;
+  background-color: rgba(var(--brand-rgb), 0.12);
+  color: var(--brand-text-hex);
+}

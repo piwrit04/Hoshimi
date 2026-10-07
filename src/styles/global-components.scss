@@ -1,0 +1,1175 @@
+/* Tailwind 4：@apply 需要显式引用主题上下文，否则报 unknown utility class。
+   ⚠️ 路径是相对 **src/index.css**（Tailwind 解析 @reference 的基准），不是相对本文件。
+   所以必须是 "./styles/theme.css" —— 与 global-button / global-form / global-page 三个文件保持一致。
+   写成 "./theme.css" 会去找 src/theme.css，构建直接失败。 */
+@reference "./styles/theme.css";
+
+/* ============================================================
+   组件库样式层 —— 展示页新增组件的皮肤
+   ============================================================
+
+   这个文件**只服务于 src/pages/Components 展示的组件**，不碰产品页面。
+
+   和 global-button.scss / global-form.scss 的区别，也是它存在的理由：
+   那两个文件是工具箱原样搬过来的，里面写死了浅色的 #FFFFFF / #EE7093 /
+   #C5B4E5。深色模式下就是白底粉字。本文件**一个 hex 都不写**，
+   全部走 theme.css 的变量（--brand-rgb / --surface-rgb / --success-rgb …），
+   于是深色浅色自动都成立。
+
+   命名前缀 dd- （daigan design）。为什么不用 @utility 而用普通类：
+   这些类之间互相 @apply 不了（Tailwind 4 只允许 @apply @utility 注册过的），
+   所以需要复用的地方直接写全量声明，或者用逗号选择器。
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   1. 控件外壳：输入框 / 文本域 / 选择器 / 数字输入
+   ------------------------------------------------------------
+   统一高度 40px（和 .btn-base 齐平），焦点态是品牌色描边 + 3px 柔光。
+*/
+.dd-control {
+  @apply w-full text-sm transition-colors;
+  min-height: 40px;
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-4);
+  background-color: rgb(var(--surface-rgb));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+  outline: none;
+}
+.dd-control::placeholder {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.7;
+}
+.dd-control:hover:not(:disabled):not(:focus) {
+  background-color: rgb(var(--surface-hover-rgb));
+}
+.dd-control:focus,
+.dd-control[data-open="true"] {
+  border-color: var(--brand-hex);
+  box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.2);
+}
+.dd-control:disabled {
+  @apply cursor-not-allowed;
+  opacity: 0.55;
+}
+.dd-control--error {
+  border-color: rgb(var(--danger-rgb));
+}
+.dd-control--error:focus {
+  border-color: rgb(var(--danger-rgb));
+  box-shadow: 0 0 0 3px rgba(var(--danger-rgb), 0.2);
+}
+.dd-control--textarea {
+  min-height: 96px;
+  padding: 10px var(--space-4);
+  line-height: 1.6;
+}
+
+/* 控件容器：用于把前后缀图标塞进输入框内部 */
+.dd-control-wrap {
+  @apply relative flex items-center w-full;
+}
+.dd-control-wrap--prefix > .dd-control {
+  padding-left: 36px;
+}
+.dd-control-wrap--suffix > .dd-control {
+  padding-right: 36px;
+}
+.dd-control-icon {
+  @apply absolute flex items-center justify-center pointer-events-none;
+  color: hsl(var(--muted-foreground));
+}
+.dd-control-icon--prefix { left: 12px; }
+.dd-control-icon--suffix { right: 12px; }
+/* 带单位的输入框：右侧留出的宽度由内联 style 给（见 FormNumberInput），
+   因为「分」和「元 / 单」宽度差很多，写死一个值总会有一边难看。 */
+.dd-control-icon--unit { right: 0; }
+.dd-control-icon--button {
+  @apply pointer-events-auto cursor-pointer rounded;
+  padding: 2px;
+}
+.dd-control-icon--button:hover {
+  color: var(--brand-hex);
+  background-color: rgba(var(--brand-rgb), 0.1);
+}
+
+/* ------------------------------------------------------------
+   1b. 按钮组：拼成一条，中间的圆角抹平
+   ------------------------------------------------------------ */
+.dd-btn-group {
+  @apply inline-flex items-stretch;
+}
+.dd-btn-group > .btn-base {
+  border-radius: 0;
+  margin-left: -1px;
+}
+.dd-btn-group > .btn-base:first-child {
+  border-top-left-radius: var(--radius-md);
+  border-bottom-left-radius: var(--radius-md);
+  margin-left: 0;
+}
+.dd-btn-group > .btn-base:last-child {
+  border-top-right-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+}
+/* 让被覆盖的那条描边在悬停/聚焦时回到最上层 */
+.dd-btn-group > .btn-base:hover,
+.dd-btn-group > .btn-base:focus-visible {
+  z-index: 1;
+}
+
+/* ------------------------------------------------------------
+   2. 表单排版：字段 / 标签 / 帮助文字 / 错误文字
+   ------------------------------------------------------------ */
+.dd-field {
+  @apply flex flex-col;
+  gap: 6px;
+}
+.dd-label {
+  @apply text-sm font-semibold flex items-center gap-1;
+  color: hsl(var(--foreground));
+}
+.dd-label__required {
+  color: rgb(var(--danger-rgb));
+}
+.dd-help {
+  @apply text-xs;
+  color: hsl(var(--muted-foreground));
+}
+.dd-error-text {
+  @apply text-xs font-semibold flex items-center gap-1;
+  color: rgb(var(--danger-rgb));
+}
+.dd-fieldset {
+  @apply flex flex-col;
+  gap: var(--space-5);
+}
+
+/* ------------------------------------------------------------
+   3. 勾选 / 单选 / 开关 / 滑块
+   ------------------------------------------------------------ */
+.dd-check {
+  @apply inline-flex items-center gap-2 cursor-pointer select-none text-sm;
+  color: hsl(var(--foreground));
+}
+.dd-check input[type="checkbox"],
+.dd-check input[type="radio"] {
+  @apply appearance-none shrink-0 transition-colors cursor-pointer;
+  width: 18px;
+  height: 18px;
+  border: 1px solid hsl(var(--border));
+  background-color: rgb(var(--surface-rgb));
+}
+.dd-check input[type="checkbox"] { border-radius: var(--radius-sm); }
+.dd-check input[type="radio"] { border-radius: 50%; }
+.dd-check input:hover:not(:disabled) {
+  border-color: var(--brand-hex);
+}
+.dd-check input:checked {
+  background-color: var(--brand-hex);
+  border-color: var(--brand-hex);
+}
+/* 勾：用 background-image 画的对勾（不引外部图标，避免多一层依赖） */
+.dd-check input[type="checkbox"]:checked {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8.5l3 3 6-6'/%3E%3C/svg%3E");
+  background-size: 14px 14px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+/* 点：单选选中后的小圆 */
+.dd-check input[type="radio"]:checked {
+  box-shadow: inset 0 0 0 3px rgb(var(--surface-rgb));
+}
+.dd-check input:focus-visible {
+  box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.25);
+}
+.dd-check input:disabled {
+  @apply cursor-not-allowed;
+  opacity: 0.5;
+}
+.dd-check:has(input:disabled) {
+  @apply cursor-not-allowed;
+  opacity: 0.5;
+}
+
+/* 裸复选框：表格的勾选列直接放一个 <input>，外面没有 .dd-check 包裹。
+   样式和 .dd-check input 保持一致。 */
+.dd-check-input {
+  @apply appearance-none shrink-0 transition-colors cursor-pointer align-middle;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-sm);
+  border: 1px solid hsl(var(--border));
+  background-color: rgb(var(--surface-rgb));
+}
+.dd-check-input:hover:not(:disabled) {
+  border-color: var(--brand-hex);
+}
+.dd-check-input:checked {
+  background-color: var(--brand-hex);
+  border-color: var(--brand-hex);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8.5l3 3 6-6'/%3E%3C/svg%3E");
+  background-size: 14px 14px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.dd-check-input:indeterminate {
+  background-color: var(--brand-hex);
+  border-color: var(--brand-hex);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' stroke='white' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M4 8h8'/%3E%3C/svg%3E");
+  background-size: 14px 14px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.dd-check-input:focus-visible {
+  box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.25);
+}
+
+/* 开关（Mantine/Naive 一致的 44×24 胶囊） */
+.dd-switch {
+  @apply relative inline-flex items-center shrink-0 cursor-pointer transition-colors;
+  width: 44px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background-color: hsl(var(--border));
+  border: none;
+  padding: 0;
+}
+.dd-switch[data-checked="true"] {
+  background-color: var(--brand-hex);
+}
+.dd-switch:focus-visible {
+  box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.25);
+}
+.dd-switch:disabled {
+  @apply cursor-not-allowed;
+  opacity: 0.5;
+}
+.dd-switch__thumb {
+  @apply absolute rounded-full bg-white transition-transform;
+  width: 18px;
+  height: 18px;
+  left: 3px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+.dd-switch[data-checked="true"] .dd-switch__thumb {
+  transform: translateX(20px);
+}
+
+/* 滑块 */
+.dd-slider {
+  @apply appearance-none w-full bg-transparent cursor-pointer;
+  height: 20px;
+}
+.dd-slider::-webkit-slider-runnable-track {
+  height: 5px;
+  border-radius: var(--radius-pill);
+  background-color: hsl(var(--border));
+}
+.dd-slider::-webkit-slider-thumb {
+  @apply appearance-none;
+  width: 16px;
+  height: 16px;
+  margin-top: -5.5px;
+  border-radius: 50%;
+  background-color: var(--brand-hex);
+  border: 2px solid rgb(var(--surface-rgb));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+.dd-slider:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px rgba(var(--brand-rgb), 0.25);
+}
+
+/* ------------------------------------------------------------
+   4. 标签 / 徽标 / 头像
+   ------------------------------------------------------------ */
+.dd-tag {
+  @apply inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap;
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  border: 1px solid transparent;
+  line-height: 18px;
+}
+.dd-tag--default {
+  background-color: rgba(var(--accent-soft-rgb), 0.18);
+  color: hsl(var(--muted-foreground));
+  border-color: rgba(var(--accent-soft-rgb), 0.35);
+}
+.dd-tag--brand {
+  background-color: rgba(var(--brand-rgb), 0.14);
+  color: var(--brand-text-hex);
+  border-color: rgba(var(--brand-rgb), 0.35);
+}
+.dd-tag--success {
+  background-color: rgba(var(--success-rgb), 0.14);
+  color: rgb(var(--success-rgb));
+  border-color: rgba(var(--success-rgb), 0.35);
+}
+.dd-tag--warning {
+  background-color: rgba(var(--warning-rgb), 0.16);
+  color: rgb(var(--warning-rgb));
+  border-color: rgba(var(--warning-rgb), 0.38);
+}
+.dd-tag--danger {
+  background-color: rgba(var(--danger-rgb), 0.14);
+  color: rgb(var(--danger-rgb));
+  border-color: rgba(var(--danger-rgb), 0.35);
+}
+.dd-tag--info {
+  background-color: rgba(var(--info-rgb), 0.14);
+  color: rgb(var(--info-rgb));
+  border-color: rgba(var(--info-rgb), 0.35);
+}
+.dd-tag__close {
+  @apply cursor-pointer opacity-60 transition-opacity;
+}
+.dd-tag__close:hover { opacity: 1; }
+
+/* 徽标（数字角标，绝对定位在子元素右上角） */
+.dd-badge-wrap {
+  @apply relative inline-flex;
+}
+.dd-badge-dot {
+  @apply absolute flex items-center justify-center text-[10px] font-bold pointer-events-none;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: var(--radius-pill);
+  background-color: rgb(var(--danger-rgb));
+  color: #fff;
+  border: 2px solid hsl(var(--background));
+}
+.dd-badge-dot--brand { background-color: var(--brand-hex); color: var(--on-brand-hex); }
+.dd-badge-dot--success { background-color: rgb(var(--success-rgb)); }
+.dd-badge-dot--warning { background-color: rgb(var(--warning-rgb)); }
+.dd-badge-dot--info { background-color: rgb(var(--info-rgb)); }
+.dd-badge-dot--plain {
+  background-color: transparent;
+  border: none;
+  width: 8px;
+  height: 8px;
+  min-width: 0;
+  padding: 0;
+  top: 0;
+  right: 0;
+}
+
+/* 头像 */
+.dd-avatar {
+  @apply inline-flex items-center justify-center shrink-0 font-semibold overflow-hidden select-none;
+  border-radius: 50%;
+  background-color: rgba(var(--brand-rgb), 0.16);
+  color: var(--brand-text-hex);
+}
+.dd-avatar--square { border-radius: var(--radius-md); }
+.dd-avatar--sm { width: 24px; height: 24px; font-size: 11px; }
+.dd-avatar--md { width: 32px; height: 32px; font-size: 13px; }
+.dd-avatar--lg { width: 44px; height: 44px; font-size: 16px; }
+.dd-avatar img { @apply w-full h-full object-cover; }
+.dd-avatar__stack {
+  @apply flex items-center;
+}
+.dd-avatar__stack > * + * {
+  margin-left: -10px;
+}
+.dd-avatar__stack .dd-avatar {
+  border: 2px solid hsl(var(--background));
+}
+
+/* ------------------------------------------------------------
+   5. 卡片 / 分割线 / 折叠面板
+   ------------------------------------------------------------ */
+.dd-card {
+  @apply flex flex-col transition-shadow;
+  border-radius: var(--radius-lg);
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+}
+.dd-card--hoverable:hover {
+  box-shadow: var(--shadow-2);
+}
+.dd-card__header {
+  @apply flex items-center justify-between gap-3 font-semibold;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid hsl(var(--border));
+}
+.dd-card__body {
+  padding: var(--space-5);
+  @apply text-sm;
+}
+.dd-card__footer {
+  @apply flex items-center gap-2;
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid hsl(var(--border));
+}
+
+.dd-divider {
+  border: none;
+  border-top: 1px solid hsl(var(--border));
+  margin: 0;
+}
+.dd-divider--vertical {
+  border-top: none;
+  border-left: 1px solid hsl(var(--border));
+  width: 0;
+  align-self: stretch;
+  min-height: 1em;
+}
+.dd-divider--dashed {
+  border-top-style: dashed;
+}
+.dd-divider-with-text {
+  @apply flex items-center gap-3 text-xs;
+  color: hsl(var(--muted-foreground));
+}
+.dd-divider-with-text::before,
+.dd-divider-with-text::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid hsl(var(--border));
+}
+
+.dd-collapse {
+  @apply overflow-hidden;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-lg);
+}
+.dd-collapse__item + .dd-collapse__item {
+  border-top: 1px solid hsl(var(--border));
+}
+.dd-collapse__head {
+  @apply w-full flex items-center justify-between gap-3 text-sm font-semibold transition-colors text-left;
+  padding: var(--space-4) var(--space-5);
+  background-color: transparent;
+  color: hsl(var(--foreground));
+}
+.dd-collapse__head:hover {
+  background-color: rgb(var(--surface-hover-rgb));
+}
+.dd-collapse__chevron {
+  @apply transition-transform shrink-0;
+  color: hsl(var(--muted-foreground));
+}
+.dd-collapse__chevron[data-open="true"] {
+  transform: rotate(90deg);
+}
+.dd-collapse__panel {
+  @apply text-sm;
+  padding: 0 var(--space-5) var(--space-5);
+  color: hsl(var(--muted-foreground));
+}
+
+/* ------------------------------------------------------------
+   6. 数据表
+   ------------------------------------------------------------ */
+.dd-table-wrap {
+  @apply w-full overflow-x-auto;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-lg);
+}
+.dd-table {
+  @apply w-full text-sm border-collapse;
+}
+.dd-table th {
+  @apply text-left font-semibold whitespace-nowrap;
+  padding: 10px var(--space-4);
+  background-color: rgb(var(--surface-hover-rgb));
+  color: hsl(var(--muted-foreground));
+  border-bottom: 1px solid hsl(var(--border));
+}
+.dd-table td {
+  padding: 10px var(--space-4);
+  color: hsl(var(--foreground));
+  border-bottom: 1px solid hsl(var(--border));
+}
+.dd-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.dd-table tbody tr:hover td {
+  background-color: rgba(var(--brand-rgb), 0.05);
+}
+.dd-table__sort {
+  @apply inline-flex items-center gap-1 cursor-pointer select-none;
+}
+.dd-table__sort:hover { color: var(--brand-hex); }
+.dd-table__num {
+  @apply text-right tabular-nums;
+}
+.dd-table--compact th,
+.dd-table--compact td {
+  padding: 6px var(--space-3);
+}
+/* 斑马纹 */
+.dd-table--striped tbody tr:nth-child(even) td {
+  background-color: rgba(var(--accent-soft-rgb), 0.07);
+}
+
+/* ------------------------------------------------------------
+   7. 列表 / 描述列表 / 时间线
+   ------------------------------------------------------------ */
+.dd-list {
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.dd-list__item {
+  @apply flex items-center justify-between gap-3 text-sm transition-colors;
+  padding: var(--space-4) var(--space-5);
+}
+.dd-list__item + .dd-list__item {
+  border-top: 1px solid hsl(var(--border));
+}
+.dd-list__item:hover {
+  background-color: rgba(var(--brand-rgb), 0.05);
+}
+
+.dd-desc {
+  @apply grid gap-px overflow-hidden text-sm;
+  grid-template-columns: max-content 1fr;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-lg);
+  background-color: hsl(var(--border));
+}
+.dd-desc__label,
+.dd-desc__value {
+  padding: 10px var(--space-5);
+  background-color: hsl(var(--card));
+}
+.dd-desc__label {
+  @apply font-medium whitespace-nowrap;
+  color: hsl(var(--muted-foreground));
+}
+.dd-desc__value {
+  color: hsl(var(--foreground));
+}
+
+.dd-timeline {
+  @apply relative flex flex-col;
+  padding-left: 22px;
+}
+.dd-timeline::before {
+  content: "";
+  @apply absolute;
+  left: 5px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background-color: hsl(var(--border));
+}
+.dd-timeline__item {
+  @apply relative text-sm;
+  padding-bottom: var(--space-6);
+}
+.dd-timeline__item:last-child {
+  padding-bottom: 0;
+}
+.dd-timeline__dot {
+  @apply absolute rounded-full;
+  left: -22px;
+  top: 5px;
+  width: 11px;
+  height: 11px;
+  background-color: hsl(var(--muted-foreground));
+  border: 2px solid hsl(var(--background));
+}
+.dd-timeline__dot--brand { background-color: var(--brand-hex); }
+.dd-timeline__dot--success { background-color: rgb(var(--success-rgb)); }
+.dd-timeline__dot--warning { background-color: rgb(var(--warning-rgb)); }
+.dd-timeline__dot--danger { background-color: rgb(var(--danger-rgb)); }
+.dd-timeline__time {
+  @apply text-xs mb-0.5;
+  color: hsl(var(--muted-foreground));
+}
+.dd-timeline__title {
+  @apply font-semibold;
+  color: hsl(var(--foreground));
+}
+.dd-timeline__desc {
+  @apply text-xs mt-0.5;
+  color: hsl(var(--muted-foreground));
+}
+
+/* ------------------------------------------------------------
+   8. 树
+   ------------------------------------------------------------ */
+.dd-tree {
+  @apply text-sm select-none;
+}
+.dd-tree__row {
+  @apply flex items-center gap-1.5 rounded transition-colors cursor-pointer;
+  padding: 5px var(--space-3);
+  color: hsl(var(--foreground));
+}
+.dd-tree__row:hover {
+  background-color: rgb(var(--surface-hover-rgb));
+}
+.dd-tree__row[data-selected="true"] {
+  background-color: rgba(var(--brand-rgb), 0.14);
+  color: var(--brand-text-hex);
+  font-weight: 600;
+}
+.dd-tree__toggle {
+  @apply flex items-center justify-center shrink-0 transition-transform;
+  width: 16px;
+  height: 16px;
+  color: hsl(var(--muted-foreground));
+}
+.dd-tree__toggle[data-open="true"] { transform: rotate(90deg); }
+.dd-tree__toggle--leaf { visibility: hidden; }
+.dd-tree__children {
+  margin-left: 14px;
+  border-left: 1px dashed hsl(var(--border));
+  padding-left: 4px;
+}
+
+/* ------------------------------------------------------------
+   9. 标签页
+   ------------------------------------------------------------ */
+.dd-tabs__list {
+  @apply flex items-center gap-1 overflow-x-auto;
+  border-bottom: 1px solid hsl(var(--border));
+}
+.dd-tabs__tab {
+  @apply relative inline-flex items-center gap-1.5 text-sm font-semibold whitespace-nowrap transition-colors;
+  padding: 9px var(--space-4);
+  background: transparent;
+  border: none;
+  color: hsl(var(--muted-foreground));
+}
+.dd-tabs__tab:hover:not(:disabled) {
+  color: var(--brand-text-hex);
+}
+.dd-tabs__tab[data-active="true"] {
+  color: var(--brand-text-hex);
+}
+.dd-tabs__tab[data-active="true"]::after {
+  content: "";
+  @apply absolute left-0 right-0;
+  bottom: -1px;
+  height: 2px;
+  background-color: var(--brand-hex);
+}
+.dd-tabs__tab:disabled {
+  @apply cursor-not-allowed;
+  opacity: 0.45;
+}
+.dd-tabs__panel {
+  padding-top: var(--space-5);
+}
+/* 胶囊型标签页 */
+.dd-tabs--pill .dd-tabs__list {
+  border-bottom: none;
+  gap: 4px;
+  background-color: rgb(var(--surface-hover-rgb));
+  padding: 4px;
+  border-radius: var(--radius-lg);
+  @apply w-fit;
+}
+.dd-tabs--pill .dd-tabs__tab {
+  border-radius: var(--radius-md);
+  padding: 6px var(--space-4);
+}
+.dd-tabs--pill .dd-tabs__tab[data-active="true"] {
+  background-color: hsl(var(--card));
+  box-shadow: var(--shadow-1);
+}
+.dd-tabs--pill .dd-tabs__tab[data-active="true"]::after {
+  display: none;
+}
+
+/* ------------------------------------------------------------
+   10. 面包屑 / 分页 / 步骤条
+   ------------------------------------------------------------ */
+.dd-breadcrumb {
+  @apply flex items-center flex-wrap gap-1.5 text-sm;
+  color: hsl(var(--muted-foreground));
+}
+.dd-breadcrumb__link {
+  @apply transition-colors cursor-pointer;
+}
+.dd-breadcrumb__link:hover {
+  color: var(--brand-text-hex);
+}
+.dd-breadcrumb__sep {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.5;
+}
+.dd-breadcrumb__current {
+  @apply font-semibold;
+  color: hsl(var(--foreground));
+}
+
+.dd-pagination {
+  @apply flex items-center gap-1 flex-wrap;
+}
+.dd-pagination__item {
+  @apply inline-flex items-center justify-center text-sm font-medium transition-colors;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 6px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: transparent;
+  color: hsl(var(--foreground));
+}
+.dd-pagination__item:hover:not(:disabled):not([data-active="true"]) {
+  background-color: rgb(var(--surface-hover-rgb));
+}
+.dd-pagination__item[data-active="true"] {
+  background-color: var(--brand-hex);
+  color: var(--on-brand-hex);
+}
+.dd-pagination__item:disabled {
+  @apply cursor-not-allowed;
+  opacity: 0.4;
+}
+.dd-pagination__ellipsis {
+  @apply inline-flex items-center justify-center;
+  min-width: 24px;
+  height: 32px;
+  color: hsl(var(--muted-foreground));
+}
+
+.dd-steps {
+  @apply flex items-start w-full;
+}
+.dd-steps__item {
+  @apply flex-1 flex flex-col items-center text-center relative;
+}
+/* 连接线：从本项圆心拉到下一项 */
+.dd-steps__item:not(:last-child)::after {
+  content: "";
+  @apply absolute;
+  top: 13px;
+  left: calc(50% + 20px);
+  right: calc(-50% + 20px);
+  height: 1px;
+  background-color: hsl(var(--border));
+}
+.dd-steps__item[data-done="true"]:not(:last-child)::after {
+  background-color: var(--brand-hex);
+}
+.dd-steps__dot {
+  @apply inline-flex items-center justify-center text-xs font-bold shrink-0 relative z-10;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--card));
+  color: hsl(var(--muted-foreground));
+}
+.dd-steps__item[data-done="true"] .dd-steps__dot {
+  background-color: var(--brand-hex);
+  border-color: var(--brand-hex);
+  color: var(--on-brand-hex);
+}
+.dd-steps__item[data-active="true"] .dd-steps__dot {
+  border-color: var(--brand-hex);
+  color: var(--brand-text-hex);
+}
+.dd-steps__title {
+  @apply text-sm font-semibold mt-2;
+  color: hsl(var(--foreground));
+}
+.dd-steps__item[data-active="false"][data-done="false"] .dd-steps__title {
+  color: hsl(var(--muted-foreground));
+}
+.dd-steps__desc {
+  @apply text-xs mt-0.5;
+  color: hsl(var(--muted-foreground));
+}
+/* 竖向步骤条 */
+.dd-steps--vertical {
+  @apply flex-col;
+}
+.dd-steps--vertical .dd-steps__item {
+  @apply flex-row items-start text-left flex-none w-full;
+  padding-bottom: var(--space-5);
+}
+.dd-steps--vertical .dd-steps__item:last-child { padding-bottom: 0; }
+.dd-steps--vertical .dd-steps__item::after {
+  top: 30px;
+  bottom: 2px;
+  left: 13px;
+  right: auto;
+  width: 1px;
+  height: auto;
+}
+.dd-steps--vertical .dd-steps__title { margin-top: 0; }
+.dd-steps--vertical .dd-steps__body { margin-left: var(--space-4); }
+
+/* ------------------------------------------------------------
+   11. 浮层（下拉菜单 / 气泡卡片 / 抽屉 / 通知）
+   ------------------------------------------------------------ */
+.dd-popover {
+  @apply text-sm;
+  background-color: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2);
+  padding: var(--space-4);
+  max-width: 300px;
+}
+.dd-popover--plain {
+  padding: 0;
+  overflow: hidden;
+}
+
+.dd-menu {
+  @apply flex flex-col py-1;
+  min-width: 176px;
+}
+.dd-menu__item {
+  @apply w-full flex items-center gap-2.5 text-sm text-left transition-colors;
+  padding: 8px var(--space-4);
+  background: transparent;
+  border: none;
+  color: hsl(var(--popover-foreground));
+}
+.dd-menu__item:hover:not(:disabled) {
+  background-color: rgba(var(--brand-rgb), 0.1);
+  color: var(--brand-text-hex);
+}
+.dd-menu__item:disabled {
+  @apply cursor-not-allowed;
+  opacity: 0.45;
+}
+.dd-menu__item--danger {
+  color: rgb(var(--danger-rgb));
+}
+.dd-menu__item--danger:hover:not(:disabled) {
+  background-color: rgba(var(--danger-rgb), 0.1);
+  color: rgb(var(--danger-rgb));
+}
+.dd-menu__shortcut {
+  @apply ml-auto text-xs;
+  color: hsl(var(--muted-foreground));
+}
+.dd-menu__sep {
+  border-top: 1px solid hsl(var(--border));
+  margin: 4px 0;
+}
+.dd-menu__label {
+  @apply text-xs font-semibold;
+  padding: 6px var(--space-4) 2px;
+  color: hsl(var(--muted-foreground));
+}
+
+.dd-drawer-panel {
+  @apply fixed top-0 bottom-0 flex flex-col z-[60];
+  width: min(420px, 92vw);
+  background-color: hsl(var(--card));
+  box-shadow: var(--shadow-2);
+}
+.dd-drawer-panel--right { right: 0; border-left: 1px solid hsl(var(--border)); }
+.dd-drawer-panel--left { left: 0; border-right: 1px solid hsl(var(--border)); }
+.dd-drawer__head {
+  @apply flex items-center justify-between gap-3 font-semibold;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid hsl(var(--border));
+}
+.dd-drawer__body {
+  @apply flex-1 overflow-y-auto text-sm;
+  padding: var(--space-5);
+}
+.dd-drawer__foot {
+  @apply flex items-center justify-end gap-3;
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid hsl(var(--border));
+}
+
+/* 通知条（右上角堆叠） */
+.dd-notice {
+  @apply flex items-start gap-3 w-full max-w-sm;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--card));
+  box-shadow: var(--shadow-2);
+  border-left-width: 3px;
+}
+.dd-notice--success { border-left-color: rgb(var(--success-rgb)); }
+.dd-notice--warning { border-left-color: rgb(var(--warning-rgb)); }
+.dd-notice--error { border-left-color: rgb(var(--danger-rgb)); }
+.dd-notice--info { border-left-color: rgb(var(--info-rgb)); }
+.dd-notice__title {
+  @apply text-sm font-semibold;
+  color: hsl(var(--foreground));
+}
+.dd-notice__desc {
+  @apply text-xs mt-0.5;
+  color: hsl(var(--muted-foreground));
+}
+.dd-notice__icon { @apply shrink-0 mt-0.5; }
+.dd-notice__icon--success { color: rgb(var(--success-rgb)); }
+.dd-notice__icon--warning { color: rgb(var(--warning-rgb)); }
+.dd-notice__icon--error { color: rgb(var(--danger-rgb)); }
+.dd-notice__icon--info { color: rgb(var(--info-rgb)); }
+
+/* 进度条斜纹（Naive 的 striped）。用重复线性渐变画，不加图片依赖。 */
+.dd-progress-striped {
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.25) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.25) 50%,
+    rgba(255, 255, 255, 0.25) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 16px 16px;
+}
+
+/* ------------------------------------------------------------
+   12. 统计数值 / 数字动画 / 金额
+   ------------------------------------------------------------ */
+.dd-stat {
+  @apply flex flex-col gap-1;
+}
+.dd-stat__label {
+  @apply text-xs font-medium;
+  color: hsl(var(--muted-foreground));
+}
+.dd-stat__value {
+  @apply text-2xl font-bold tabular-nums leading-tight;
+  color: hsl(var(--foreground));
+}
+.dd-stat__value--brand { color: var(--brand-text-hex); }
+.dd-stat__value--success { color: rgb(var(--success-rgb)); }
+.dd-stat__value--warning { color: rgb(var(--warning-rgb)); }
+.dd-stat__value--danger { color: rgb(var(--danger-rgb)); }
+.dd-stat__suffix {
+  @apply text-sm font-medium ml-1;
+  color: hsl(var(--muted-foreground));
+}
+.dd-stat__trend {
+  @apply inline-flex items-center gap-0.5 text-xs font-semibold;
+}
+.dd-stat__trend--up { color: rgb(var(--success-rgb)); }
+.dd-stat__trend--down { color: rgb(var(--danger-rgb)); }
+
+/* 金额：和 src/ui 里的 Money 保持一致的等宽数字 */
+.dd-money {
+  @apply tabular-nums font-semibold whitespace-nowrap;
+}
+.dd-money--income { color: rgb(var(--success-rgb)); }
+.dd-money--expense { color: rgb(var(--danger-rgb)); }
+.dd-money--fee { color: rgb(var(--warning-rgb)); }
+.dd-money--muted { color: hsl(var(--muted-foreground)); }
+.dd-money--unsigned::before { content: ""; }
+.dd-money--plus::before { content: "+"; }
+.dd-money--minus::before { content: "−"; }
+
+/* ------------------------------------------------------------
+   13. 加载 / 骨架屏 / 空状态
+   ------------------------------------------------------------ */
+.dd-spin {
+  @apply inline-block rounded-full animate-spin;
+  border: 2px solid hsl(var(--border));
+  border-top-color: var(--brand-hex);
+}
+.dd-spin--sm { width: 14px; height: 14px; }
+.dd-spin--md { width: 20px; height: 20px; }
+.dd-spin--lg { width: 32px; height: 32px; border-width: 3px; }
+
+@keyframes dd-shimmer {
+  0% { opacity: 0.55; }
+  50% { opacity: 0.9; }
+  100% { opacity: 0.55; }
+}
+.dd-skeleton {
+  @apply block;
+  border-radius: var(--radius-sm);
+  background-color: rgba(var(--accent-soft-rgb), 0.35);
+  animation: dd-shimmer 1.6s ease-in-out infinite;
+}
+
+/* ------------------------------------------------------------
+   14. 提示条（Alert）—— 补上 alert.css 里那批从未定义的 --ed-* 变量
+   ------------------------------------------------------------ */
+.dd-alert {
+  @apply flex items-start gap-3 text-sm;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--card));
+  border-left-width: 3px;
+}
+.dd-alert__icon { @apply shrink-0 mt-0.5; }
+.dd-alert__title { @apply font-semibold; color: hsl(var(--foreground)); }
+.dd-alert__desc { @apply text-xs mt-0.5; color: hsl(var(--muted-foreground)); }
+.dd-alert--success { border-left-color: rgb(var(--success-rgb)); }
+.dd-alert--success .dd-alert__icon { color: rgb(var(--success-rgb)); }
+.dd-alert--warning { border-left-color: rgb(var(--warning-rgb)); }
+.dd-alert--warning .dd-alert__icon { color: rgb(var(--warning-rgb)); }
+.dd-alert--error { border-left-color: rgb(var(--danger-rgb)); }
+.dd-alert--error .dd-alert__icon { color: rgb(var(--danger-rgb)); }
+.dd-alert--info { border-left-color: rgb(var(--info-rgb)); }
+.dd-alert--info .dd-alert__icon { color: rgb(var(--info-rgb)); }
+
+/* ------------------------------------------------------------
+   15. 上传 / 结果页 / 二维码占位
+   ------------------------------------------------------------ */
+.dd-upload-tile {
+  @apply flex flex-col items-center justify-center gap-2 transition-colors cursor-pointer text-center;
+  min-height: 132px;
+  border: 2px dashed hsl(var(--border));
+  border-radius: var(--radius-lg);
+  background-color: rgb(var(--surface-rgb));
+  color: hsl(var(--muted-foreground));
+}
+.dd-upload-tile:hover,
+.dd-upload-tile[data-dragging="true"] {
+  border-color: var(--brand-hex);
+  color: var(--brand-text-hex);
+  background-color: rgba(var(--brand-rgb), 0.06);
+}
+.dd-upload-item {
+  @apply flex items-center gap-3 text-sm;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-md);
+  background-color: hsl(var(--card));
+}
+
+.dd-result {
+  @apply flex flex-col items-center text-center gap-3;
+  padding: var(--space-8) var(--space-5);
+}
+.dd-result__icon {
+  @apply inline-flex items-center justify-center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+}
+.dd-result__icon--success { background-color: rgba(var(--success-rgb), 0.14); color: rgb(var(--success-rgb)); }
+.dd-result__icon--warning { background-color: rgba(var(--warning-rgb), 0.16); color: rgb(var(--warning-rgb)); }
+.dd-result__icon--error { background-color: rgba(var(--danger-rgb), 0.14); color: rgb(var(--danger-rgb)); }
+.dd-result__icon--info { background-color: rgba(var(--info-rgb), 0.14); color: rgb(var(--info-rgb)); }
+.dd-result__title { @apply text-lg font-bold; color: hsl(var(--foreground)); }
+.dd-result__desc { @apply text-sm max-w-md; color: hsl(var(--muted-foreground)); }
+
+/* 扫码占位（真二维码要引库，一期不做；这里只是尺寸和留白正确的占位） */
+.dd-qr {
+  @apply inline-flex items-center justify-center;
+  width: 132px;
+  height: 132px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-md);
+  background-color: rgb(var(--surface-rgb));
+  color: hsl(var(--muted-foreground));
+}
+
+/* ------------------------------------------------------------
+   16. 悬浮按钮 / 回到顶部 / 文本省略
+   ------------------------------------------------------------ */
+.dd-float-btn {
+  @apply inline-flex items-center justify-center rounded-full transition-all;
+  width: 44px;
+  height: 44px;
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  box-shadow: var(--shadow-2);
+}
+.dd-float-btn:hover {
+  color: var(--brand-text-hex);
+  border-color: var(--brand-hex);
+}
+.dd-float-btn--brand {
+  background-color: var(--brand-hex);
+  color: var(--on-brand-hex);
+  border-color: transparent;
+}
+.dd-float-btn--brand:hover {
+  color: var(--on-brand-hex);
+  background-color: rgb(var(--brand-deep-rgb));
+}
+
+.dd-ellipsis {
+  @apply block truncate;
+}
+
+/* ------------------------------------------------------------
+   17. 差异条（余额/进度双段条，账本用得上）
+   ------------------------------------------------------------ */
+.dd-diffbar {
+  @apply flex w-full overflow-hidden;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background-color: hsl(var(--border));
+}
+.dd-diffbar__seg {
+  height: 100%;
+  transition: width 0.4s ease;
+}
+.dd-diffbar__seg--brand { background-color: var(--brand-hex); }
+.dd-diffbar__seg--success { background-color: rgb(var(--success-rgb)); }
+.dd-diffbar__seg--warning { background-color: rgb(var(--warning-rgb)); }
+.dd-diffbar__seg--danger { background-color: rgb(var(--danger-rgb)); }
+.dd-diffbar__seg--muted { background-color: rgb(var(--accent-soft-rgb)); }
+
+/* ------------------------------------------------------------
+   18. 展示页专用：目录高亮 / 组件状态徽标
+   ------------------------------------------------------------ */
+.dd-index-link {
+  @apply block text-sm transition-colors;
+  padding: 5px var(--space-3);
+  border-radius: var(--radius-md);
+  color: hsl(var(--muted-foreground));
+  border-left: 2px solid transparent;
+}
+.dd-index-link:hover {
+  background-color: hsl(var(--secondary));
+  color: hsl(var(--foreground));
+}
+.dd-index-link[data-active="true"] {
+  background-color: rgba(var(--brand-rgb), 0.12);
+  color: var(--brand-text-hex);
+  border-left-color: var(--brand-hex);
+  font-weight: 600;
+}
+.dd-index-group {
+  @apply text-[11px] font-bold tracking-wide mb-1.5 mt-4 first:mt-0;
+  color: hsl(var(--muted-foreground));
+  opacity: 0.75;
+}
+/* 「计划中」角标：声明这个组件还没实现 */
+.dd-soon {
+  @apply inline-flex items-center gap-1 text-[10px] font-bold whitespace-nowrap;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  border: 1px dashed hsl(var(--muted-foreground));
+  color: hsl(var(--muted-foreground));
+  opacity: 0.8;
+}
+/* 「已实现」角标 */
+.dd-done {
+  @apply inline-flex items-center text-[10px] font-bold whitespace-nowrap;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  background-color: rgba(var(--success-rgb), 0.14);
+  color: rgb(var(--success-rgb));
+}
+/* 示例区里放样品的浅底托盘 */
+.dd-tray {
+  @apply flex flex-wrap items-center gap-3;
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  border: 1px solid hsl(var(--border));
+  background-color: rgba(var(--surface-hover-rgb), 0.5);
+}
+.dd-tray--block {
+  @apply flex-col items-stretch;
+}
+.dd-spec {
+  @apply grid gap-x-6 gap-y-1 text-xs;
+  grid-template-columns: max-content 1fr;
+}
+.dd-spec dt { color: hsl(var(--muted-foreground)); }
+.dd-spec dd { color: hsl(var(--foreground)); font-family: ui-monospace, monospace; }

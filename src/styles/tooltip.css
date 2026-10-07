@@ -1,0 +1,143 @@
+/* 全局 Tooltip 样式 */
+
+/* 基础 tooltip */
+.ed-tooltip {
+  position: absolute;
+  z-index: 1000;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  background-color: var(--brand-hex);
+  color: var(--on-brand-hex);
+  box-shadow: 0 4px 16px rgba(var(--brand-rgb), 0.35);
+  pointer-events: none;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* 显示状态 */
+.ed-tooltip--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 默认箭头在底部（朝下指）- 用于 position="top" */
+.ed-tooltip::before {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 16px;
+  width: 10px;
+  height: 10px;
+  background-color: var(--brand-hex);
+  transform: rotate(45deg);
+  border-radius: 2px;
+}
+
+/* 变体：底部 tooltip（显示在元素下方，箭头朝上指向元素）- 用于 position="bottom" */
+.ed-tooltip--bottom {
+  transform: translateY(4px);
+}
+
+/* 底部 tooltip 箭头在顶部，朝上指向输入框 */
+.ed-tooltip--bottom::before {
+  top: -5px;
+  bottom: auto;
+}
+
+/* 变体：左侧 tooltip（显示在元素左侧，箭头朝右指向元素） */
+.ed-tooltip--left {
+  transform: translateX(-4px);
+}
+
+/* 左侧 tooltip 箭头在右侧，朝右指向输入框 */
+.ed-tooltip--left::before {
+  top: 50%;
+  left: auto;
+  right: -5px;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+/* 变体：右侧 tooltip（显示在元素右侧，箭头朝左指向元素） */
+.ed-tooltip--right {
+  transform: translateX(4px);
+}
+
+/* 右侧 tooltip 箭头在左侧，朝左指向输入框 */
+.ed-tooltip--right::before {
+  top: 50%;
+  left: -5px;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+/* 变体：深色 tooltip */
+.ed-tooltip--dark {
+  background-color: #4A425C;
+  box-shadow: 0 4px 16px rgba(74, 66, 92, 0.25);
+}
+
+.ed-tooltip--dark::before {
+  background-color: #4A425C;
+}
+
+/* 变体：信息 tooltip */
+.ed-tooltip--info {
+  background-color: #60a5fa;
+  box-shadow: 0 4px 16px rgba(96, 165, 250, 0.35);
+}
+
+.ed-tooltip--info::before {
+  background-color: #60a5fa;
+}
+
+/* 变体：成功 tooltip */
+.ed-tooltip--success {
+  background-color: #4ade80;
+  box-shadow: 0 4px 16px rgba(74, 222, 128, 0.35);
+}
+
+.ed-tooltip--success::before {
+  background-color: #4ade80;
+}
+
+/* 变体：警告 tooltip */
+.ed-tooltip--warning {
+  background-color: #fbbf24;
+  box-shadow: 0 4px 16px rgba(251, 191, 36, 0.35);
+  color: #4A425C;
+}
+
+.ed-tooltip--warning::before {
+  background-color: #fbbf24;
+}
+
+/* 多行 tooltip */
+.ed-tooltip--multiline {
+  white-space: normal;
+  max-width: 240px;
+  text-align: center;
+}
+
+/* 变体：箭头居中 */
+/* 用于 top/bottom 位置，箭头水平居中 */
+.ed-tooltip--center-arrow::before {
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+/* 用于 bottom + 箭头居中 */
+.ed-tooltip--bottom.ed-tooltip--center-arrow::before {
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+/* 用于 left/right 位置，箭头垂直居中（已经默认居中，但显式定义） */
+.ed-tooltip--left.ed-tooltip--center-arrow::before,
+.ed-tooltip--right.ed-tooltip--center-arrow::before {
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+}

@@ -1,0 +1,52 @@
+/*
+ * 全局样式入口。
+ *
+ * 结构：
+ *   @import "tailwindcss"   —— Tailwind 4 本体（含 preflight）
+ *   @import "./styles/theme.css"  —— 我们自己的 token 和自定义类
+ *   @import 三个 scss       —— 工具箱的按钮 / 表单 / 页面组件样式
+ *
+ * ⚠️ 顺序不能颠倒：theme.css 里的 token 要先就位，scss 里的 @apply 才能解析。
+ *    （scss 内部还会各自 @reference 一次 theme.css，那是给 PostCSS 单文件处理时用的。）
+ */
+@import "tailwindcss";
+
+@import "./styles/theme.css";
+/* ⚠️ editor-theme.css 以前漏了 import，导致 alert.css 引用的 6 个 --ed-* 变量
+   全部未定义（.ed-alert 没有背景/边框/文字色）。这里补上，**必须在 alert.css 之前**。 */
+@import "./styles/editor-theme.css";
+@import "./styles/alert.css";
+@import "./styles/tooltip.css";
+@import "./styles/global-button.scss";
+@import "./styles/global-form.scss";
+@import "./styles/global-page.scss";
+/* 展示页新增组件的皮肤。**必须排在最后**：它要能盖住上面三个文件里
+   写死浅色的老样式（那些是工具箱原样搬来的，深色模式下不成立）。 */
+@import "./styles/global-components.scss";
+
+/* ============================================================
+   基础层
+   ============================================================ */
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    margin: 0;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(128, 128, 128, 0.2);
+    border-radius: 10px;
+    transition: background 0.3s ease;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(128, 128, 128, 0.4);
+  }
+}

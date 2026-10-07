@@ -1,0 +1,495 @@
+/* Tailwind 4：@apply 需要显式引用主题上下文，否则报 unknown utility class。
+   这一行是迁移到 Tailwind 4 必须加的，工具箱原文没有（它用 Tailwind 3，不需要）。 */
+@reference "./styles/theme.css";
+
+/* ============================================   
+
+   全局按钮设计系统 - 按页面场景分类   
+
+   浅色模式配色方案（5种核心颜色）：
+
+   - #EE7093（粉色）- 主色
+
+   - #FFFFFF（白色）- 背景/卡片
+
+   - #FDF0F4（浅粉色）- 页面背景
+
+   - #C5B4E5（淡紫色）- 强调色
+
+   - #2D52B7（蓝色）- 次要强调   ============================================ */
+
+/* ⚠️ 本文件原来有一个 :root 块，里面重新定义了一遍浅色变量。
+   它是一个**无条件**的 :root 块，而本文件在 theme.css 之后加载，
+   于是把 theme.css 里的深色变量整个盖掉 —— 症状是「怎么切都是浅色」。
+   那个块整个删掉了（连空壳一起），颜色现在只留 theme.css 一处定义：
+
+     深色 → :root              浅色 → :root[data-theme="light"]
+
+   块里那些「兼容旧变量」（--bg-level-group / --btn-*-bg / --text-* / --primary-hover）
+   已确认全项目无人引用；--brand-hex / --brand-rgb / --brand-text-hex / --on-brand-hex
+   移到 theme.css（两套主题各一份，深色是 #7eb3ff，浅色是 #ee7093）。
+   原来这里还重新定义过 --space-* / --radius-* / --shadow-*，
+   那些值跟 theme.css 不一致（会互相打架），也一并去掉。 */
+
+/* ============================================
+   基础按钮样式
+   ============================================ */
+
+.btn-base {
+  @apply inline-flex items-center justify-center font-semibold select-none transition-all;
+  border-radius: var(--radius-md);
+  min-height: 40px;
+  padding: 0 var(--space-5);
+  gap: 8px;
+  position: relative;
+  outline: none;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.btn-base:focus-visible {
+  box-shadow: var(--shadow-glow);
+}
+
+.btn-base:disabled {
+  @apply cursor-not-allowed;
+  opacity: 0.5;
+  filter: grayscale(0.5);
+}
+
+.btn-with-icon {
+  @apply inline-flex items-center gap-2;
+}
+
+/* ============================================
+   通用按钮变体
+   ============================================ */
+
+/* Primary Button - 主要操作按钮 */
+.btn-primary {
+  @apply btn-base;
+  background-color: var(--brand-hex);
+  color: var(--on-brand-hex);
+  border: 1px solid transparent;
+  box-shadow: 0 1px 2px rgba(var(--brand-rgb), 0.1);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: rgb(var(--brand-deep-rgb));
+  transform: translateY(-1px);
+}
+
+.btn-primary:active:not(:disabled) {
+  filter: brightness(0.9);
+  transform: translateY(0);
+}
+
+/* Secondary Button - 次要操作按钮 */
+.btn-secondary {
+  @apply btn-base;
+  background-color: rgb(var(--surface-rgb));
+  color: var(--brand-text-hex);
+  border: 1px solid rgba(var(--accent-soft-rgb), 0.9);
+  box-shadow: 0 1px 2px rgba(var(--brand-rgb), 0.05);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: rgb(var(--surface-hover-rgb));
+  border-color: var(--brand-hex);
+  color: var(--brand-text-hex);
+}
+
+.btn-secondary:active:not(:disabled) {
+  background-color: rgb(var(--surface-hover-rgb));
+}
+
+/* Ghost Button - 幽灵按钮 */
+.btn-ghost {
+  @apply btn-base;
+  background-color: transparent;
+  color: var(--brand-text-hex);
+  padding: 8px 12px;
+  border: 1px solid transparent;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background-color: rgba(var(--brand-rgb), 0.08);
+}
+
+.btn-ghost:active:not(:disabled) {
+  background-color: rgba(var(--brand-rgb), 0.16);
+}
+
+.btn-ghost--muted {
+  color: hsl(var(--muted-foreground));
+}
+
+.btn-ghost--muted:hover:not(:disabled) {
+  background-color: rgb(var(--surface-hover-rgb));
+  color: var(--brand-text-hex);
+}
+
+.btn-ghost--danger {
+  color: rgb(var(--danger-rgb));
+}
+
+.btn-ghost--danger:hover:not(:disabled) {
+  background-color: rgba(var(--danger-rgb), 0.08);
+}
+
+/* Danger Button - 危险操作按钮
+   ⚠️ 原来和 .btn-primary 是同一个粉色（#EE7093），
+   于是「删除订单」和「保存」长得一模一样。改成真危险色。 */
+.btn-danger {
+  @apply btn-base;
+  background-color: rgb(var(--danger-rgb));
+  color: #ffffff;
+  border: 1px solid transparent;
+}
+
+.btn-danger:hover:not(:disabled) {
+  filter: brightness(0.9);
+}
+
+.btn-danger:active:not(:disabled) {
+  filter: brightness(0.8);
+}
+
+/* Icon Text Button - 图标文字按钮 */
+.btn-icon-text {
+  @apply btn-secondary;
+  justify-content: center;
+}
+
+/* ⚠️ 这两个变体原来**根本不存在**，但 IconTextButton.tsx 一直在引用：
+     variant="ghost"  → btn-icon-text--ghost
+     variant="danger" → btn-icon-text--danger
+   结果是这两个变体渲染出来完全没有样式。这里补上。 */
+.btn-icon-text--ghost {
+  background-color: transparent;
+  border-color: transparent;
+  color: hsl(var(--muted-foreground));
+}
+.btn-icon-text--ghost:hover:not(:disabled) {
+  background-color: rgb(var(--surface-hover-rgb));
+  color: var(--brand-text-hex);
+}
+.btn-icon-text--danger {
+  background-color: transparent;
+  border-color: rgba(var(--danger-rgb), 0.5);
+  color: rgb(var(--danger-rgb));
+}
+.btn-icon-text--danger:hover:not(:disabled) {
+  background-color: rgba(var(--danger-rgb), 0.08);
+  border-color: rgb(var(--danger-rgb));
+  color: rgb(var(--danger-rgb));
+}
+
+/* ============================================
+   首页 (Home) 专用按钮
+   ============================================ */
+
+/* 快速入口卡片按钮
+   ⚠️ 原来是 linear-gradient(135deg, #FFFFFF, #FDF0F4) 的白到粉渐变，
+   浅色下勉强成立，深色下是一块白斑。设计规范里也写了「不要加渐变」，
+   这里换成实心 card 底色。 */
+.btn-home-card {
+  @apply relative overflow-hidden;
+  border-radius: var(--radius-lg);
+  background-color: hsl(var(--card));
+  border: 1px solid rgba(var(--accent-soft-rgb), 0.5);
+  transition: all 0.3s ease;
+}
+
+.btn-home-card:hover {
+  border-color: rgba(var(--brand-rgb), 0.3);
+  box-shadow: var(--shadow-card);
+  transform: translateY(-2px);
+}
+
+/* 统计面板操作按钮 */
+.btn-home-stat {
+  @apply px-3 py-1.5 text-xs font-bold rounded-lg;
+  background-color: rgb(var(--surface-hover-rgb));
+  color: var(--brand-text-hex);
+  border: 1px solid rgba(var(--accent-soft-rgb), 0.9);
+  transition: all 0.2s ease;
+}
+
+.btn-home-stat:hover {
+  background-color: rgba(var(--brand-rgb), 0.1);
+  color: var(--brand-text-hex);
+  border-color: rgba(var(--brand-rgb), 0.3);
+}
+
+/* ============================================
+   图鉴页面 (Characters/Weapons) 专用按钮
+   ============================================ */
+
+/* 筛选标签按钮 */
+.btn-chip {
+  @apply px-3 py-1.5 text-xs font-bold rounded-lg;
+  background-color: rgb(var(--surface-hover-rgb));
+  color: hsl(var(--muted-foreground));
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.btn-chip:hover {
+  background-color: rgb(var(--surface-hover-rgb));
+  color: var(--brand-text-hex);
+}
+
+.btn-chip--active {
+  background-color: var(--brand-hex);
+  color: var(--on-brand-hex);
+  border-color: var(--brand-hex);
+}
+
+.btn-chip--active:hover {
+  background-color: rgb(var(--brand-deep-rgb));
+}
+
+/* 元素筛选按钮 */
+.btn-element {
+  @apply w-8 h-8 rounded-full flex items-center justify-center;
+  background-color: rgb(var(--surface-hover-rgb));
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.btn-element:hover {
+  transform: scale(1.1);
+}
+
+.btn-element--active {
+  border-color: var(--brand-hex);
+  box-shadow: 0 0 0 2px rgba(var(--brand-rgb), 0.2);
+}
+
+/* 收藏按钮 */
+.btn-favorite {
+  @apply p-2 rounded-full transition-all;
+  background-color: transparent;
+  color: hsl(var(--muted-foreground));
+}
+
+.btn-favorite:hover {
+  background-color: rgba(var(--brand-rgb), 0.1);
+  color: var(--brand-text-hex);
+}
+
+.btn-favorite--active {
+  background-color: rgba(var(--brand-rgb), 0.1);
+  color: var(--brand-text-hex);
+}
+
+.btn-favorite--active:hover {
+  background-color: rgba(var(--brand-rgb), 0.2);
+}
+
+/* ============================================
+   编辑器页面 (Editor) 专用按钮
+   ============================================ */
+
+/* 标签页按钮 */
+.btn-tab {
+  @apply px-4 py-2 text-sm font-semibold;
+  background-color: transparent;
+  color: hsl(var(--muted-foreground));
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.btn-tab:hover {
+  color: var(--brand-text-hex);
+  background-color: rgb(var(--surface-hover-rgb));
+}
+
+.btn-tab--active {
+  color: var(--brand-text-hex);
+  border-bottom-color: var(--brand-hex);
+  background-color: transparent;
+}
+
+/* 保存按钮 */
+.btn-save {
+  @apply btn-primary gap-2;
+  min-width: 120px;
+}
+
+/* 抽屉切换按钮 */
+.btn-drawer-toggle {
+  @apply p-2 rounded-lg;
+  background-color: rgb(var(--surface-hover-rgb));
+  color: hsl(var(--muted-foreground));
+  border: 1px solid rgba(var(--accent-soft-rgb), 0.9);
+  transition: all 0.2s ease;
+}
+
+.btn-drawer-toggle:hover {
+  background-color: rgba(var(--brand-rgb), 0.1);
+  color: var(--brand-text-hex);
+}
+
+/* 属性操作按钮 */
+.btn-attr-action {
+  @apply px-2 py-1 text-xs font-medium rounded;
+  background-color: rgb(var(--surface-hover-rgb));
+  color: hsl(var(--muted-foreground));
+  border: 1px solid rgba(var(--accent-soft-rgb), 0.9);
+  transition: all 0.15s ease;
+}
+
+.btn-attr-action:hover {
+  background-color: rgba(var(--brand-rgb), 0.1);
+  color: var(--brand-text-hex);
+  border-color: rgba(var(--brand-rgb), 0.3);
+}
+
+/* ============================================
+   设置页面 (Settings) 专用按钮
+   ============================================ */
+
+/* 主题切换按钮 */
+.btn-theme {
+  @apply flex flex-col items-center gap-2 p-4 rounded-xl border transition-all;
+  background-color: rgba(var(--surface-hover-rgb), 0.5);
+  border-color: rgba(var(--accent-soft-rgb), 0.9);
+}
+
+.btn-theme:hover {
+  border-color: rgba(var(--brand-rgb), 0.5);
+  color: var(--brand-text-hex);
+}
+
+.btn-theme--active {
+  background-color: rgba(var(--brand-rgb), 0.1);
+  border-color: var(--brand-hex);
+  color: var(--brand-text-hex);
+}
+
+/* 开关按钮
+   ⚠️ 这一段和 .dd-switch 重复了。保留是为了不破坏已有引用；
+   新代码请用 .dd-switch（它带 role/aria 和键盘焦点环）。 */
+.btn-toggle {
+  @apply relative inline-flex h-6 w-11 items-center rounded-full transition-colors;
+  background-color: hsl(var(--border));
+}
+
+.btn-toggle--active {
+  background-color: var(--brand-hex);
+}
+
+.btn-toggle__thumb {
+  @apply inline-block h-4 w-4 transform rounded-full bg-white transition-transform;
+}
+
+.btn-toggle--active .btn-toggle__thumb {
+  transform: translateX(24px);
+}
+
+.btn-toggle .btn-toggle__thumb {
+  transform: translateX(4px);
+}
+
+/* 危险操作按钮（清理缓存等） */
+.btn-settings-danger {
+  @apply px-3 py-1.5 text-xs font-bold rounded border transition-all;
+  background-color: rgb(var(--danger-rgb));
+  color: #ffffff;
+}
+
+.btn-settings-danger:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.btn-settings-danger:disabled {
+  @apply cursor-not-allowed opacity-60;
+}
+
+/* 次要设置按钮 */
+.btn-settings-secondary {
+  @apply px-3 py-1.5 text-xs font-bold rounded border transition-all;
+  background-color: rgb(var(--surface-hover-rgb));
+  color: var(--brand-text-hex);
+  border-color: rgba(var(--accent-soft-rgb), 0.9);
+}
+
+.btn-settings-secondary:hover {
+  background-color: rgba(var(--brand-rgb), 0.1);
+}
+
+/* ============================================
+   模态框/弹窗按钮
+   ============================================ */
+
+/* 确认按钮 */
+.btn-modal-confirm {
+  @apply btn-primary;
+  min-width: 80px;
+}
+
+/* 取消按钮 */
+.btn-modal-cancel {
+  @apply btn-secondary;
+  min-width: 80px;
+}
+
+/* 关闭按钮 */
+.btn-close {
+  @apply p-1.5 rounded-full transition-colors;
+  background-color: transparent;
+  color: hsl(var(--muted-foreground));
+}
+
+.btn-close:hover {
+  background-color: rgb(var(--surface-hover-rgb));
+  color: var(--brand-text-hex);
+}
+
+/* ============================================
+   尺寸变体
+   ============================================ */
+
+.btn--sm {
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  font-size: 12px;
+  line-height: 16px;
+  gap: 6px;
+}
+
+.btn--lg {
+  min-height: 48px;
+  padding: 0 var(--space-6);
+  font-size: 16px;
+  line-height: 24px;
+  gap: 10px;
+}
+
+/* 圆形按钮 */
+.btn--circle {
+  @apply p-0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.btn--circle.btn--sm {
+  width: 32px;
+  height: 32px;
+}
+
+.btn--circle.btn--lg {
+  width: 48px;
+  height: 48px;
+}
+
+/* 全宽按钮 */
+.btn--full {
+  @apply w-full;
+}
+
+
+

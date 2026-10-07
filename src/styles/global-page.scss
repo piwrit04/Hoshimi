@@ -1,0 +1,314 @@
+/* Tailwind 4：@apply 需要显式引用主题上下文，否则报 unknown utility class。
+   这一行是迁移到 Tailwind 4 必须加的，工具箱原文没有（它用 Tailwind 3，不需要）。 */
+@reference "./styles/theme.css";
+
+/* ============================================================
+   ⚠️ 本文件原样来自工具箱，**只按浅色写**：下面所有 #FFFFFF / #EE7093 /
+   #C5B4E5 / #FDF0F4 / rgba(238,112,147,…) 都是写死的，深色模式下会白底粉字。
+   已全部替换成 theme.css 的语义变量，视觉关系不变，只是不再钉死模式。
+
+   顺带修掉两处设计问题：
+     · .btn-home-card 原来是白→粉**渐变**，规范里写了「不要加渐变」；
+     · .card-showcase__gradient 的粉色渐变遮罩同理，改成中性黑透明渐变
+       （它压的是背景图，中性渐变才通用）。
+   ============================================================ */
+
+/* ============================================
+   1. 通用页面标题
+   使用场景：所有页面的主标�?   示例：首页、角色图鉴、武器图鉴、设�?   ============================================ */
+
+.page-title {
+  @apply text-2xl font-bold tracking-tight text-foreground flex items-center gap-2;
+}
+
+.page-title__icon {
+  @apply text-primary w-5 h-5 shrink-0;
+}
+
+/* ============================================
+   2. 页面描述
+   使用场景：页面标题下方的辅助说明文字
+   示例�?欢迎回来，狩月人"
+   ============================================ */
+
+.page-description {
+  @apply text-sm text-muted-foreground;
+}
+
+/* ============================================
+   3. 版本号标�?   使用场景：显示应用版本号
+   示例：主页右上角、设置页关于区块
+   ============================================ */
+
+.version-badge {
+  @apply text-[10px] px-1.5 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium;
+}
+
+/* ============================================
+   4. 快速访问入口卡�?   使用场景：首页的快捷入口（角色图鉴、武器图鉴等�?   特点：背景图+渐变遮罩+图标+标题
+   ============================================ */
+
+.card-quick-access {
+  @apply block relative overflow-hidden rounded-xl shadow-sm transition-all duration-300;
+  background-color: rgb(var(--surface-rgb));
+  border: 1px solid rgba(var(--accent-soft-rgb), 0.5);
+  height: 160px;
+  
+  /* group 类需要直接添加到 HTML 元素上，不能通过 @apply 使用 */
+  
+  &:hover {
+    @apply shadow-md;
+  }
+}
+
+/* 悬停边框颜色变体 */
+.card-quick-access--primary:hover { border-color: rgba(var(--brand-rgb), 0.3); }
+.card-quick-access--purple:hover { border-color: rgba(var(--accent-soft-rgb), 0.5); }
+.card-quick-access--cyan:hover { border-color: rgba(var(--brand-rgb), 0.3); }
+
+/* 背景图片�?*/
+.card-quick-access__bg {
+  @apply absolute inset-0 z-0;
+}
+
+.card-quick-access__bg img {
+  @apply w-full h-full object-cover object-center opacity-30 transition-all duration-700 filter grayscale;
+}
+
+.card-quick-access:hover .card-quick-access__bg img {
+  @apply opacity-50 scale-105 grayscale-0;
+}
+
+/* 背景渐变遮罩 */
+.card-quick-access__overlay {
+  @apply absolute inset-0;
+  background: linear-gradient(to right, rgba(var(--brand-rgb), 0.12), rgba(var(--brand-rgb), 0.06), transparent);
+}
+
+/* 内容�?*/
+.card-quick-access__content {
+  @apply relative z-10 h-full p-5 flex flex-col justify-center;
+}
+
+/* 图标容器 */
+.card-quick-access__icon {
+  @apply p-1.5 rounded-md shrink-0;
+  background-color: rgba(var(--brand-rgb), 0.1);
+  color: var(--brand-text-hex);
+}
+
+/* 英文标签 */
+.card-quick-access__label {
+  @apply text-[10px] font-bold uppercase tracking-wider;
+  color: var(--brand-text-hex);
+}
+
+/* 中文标题 */
+.card-quick-access__title {
+  @apply text-xl font-bold tracking-tight transition-colors duration-300;
+  color: var(--brand-text-hex);
+}
+
+.card-quick-access:hover .card-quick-access__title {
+  color: rgb(var(--brand-deep-rgb));
+}
+
+/* 图标+标签�?*/
+.card-quick-access__header {
+  @apply flex items-center gap-2 mb-1 transition-transform duration-300;
+}
+
+.card-quick-access:hover .card-quick-access__header {
+  @apply translate-x-1;
+}
+
+/* 计数数字 */
+.card-quick-access__count {
+  @apply text-3xl font-black font-display transition-colors;
+  color: rgba(var(--brand-rgb), 0.1);
+}
+
+.card-quick-access:hover .card-quick-access__count {
+  color: rgba(var(--brand-rgb), 0.15);
+}
+
+/* ============================================
+   5. 新内容展示卡�?   使用场景：首页的��角色/新皮肤展�?   特点：大尺寸、底部渐变、状态标签、文字阴�?   ============================================ */
+
+.card-showcase {
+  @apply relative overflow-hidden rounded-xl shadow-sm transition-all duration-300;
+  background-color: rgb(var(--surface-rgb));
+  border: 1px solid rgba(var(--accent-soft-rgb), 0.5);
+  height: 380px;
+  min-width: 280px;
+  
+  &:hover {
+    @apply shadow-md;
+  }
+}
+
+/* 悬停边框颜色变体 */
+.card-showcase--primary:hover { border-color: rgba(var(--brand-rgb), 0.3); }
+.card-showcase--purple:hover { border-color: rgba(var(--accent-soft-rgb), 0.5); }
+
+/* 背景图片�?*/
+.card-showcase__bg {
+  @apply absolute inset-0 z-0 overflow-hidden;
+  background-color: rgba(var(--brand-rgb), 0.05);
+}
+
+.card-showcase__bg img {
+  @apply w-full h-full object-cover transition-transform duration-500;
+  transform: scale(2);
+}
+
+.card-showcase:hover .card-showcase__bg img {
+  transform: scale(2.1);
+}
+
+/* 背景渐变遮罩
+   （工具箱原文是浅粉 rgba(253,240,244,.4)。这里改成中性黑：
+   它压的是**背景图**，中性黑在两种模式下都能把图压暗、让白字读得清，
+   浅粉在深色模式下反而会糊成一层灰雾。） */
+.card-showcase__overlay {
+  @apply absolute inset-0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.1), transparent);
+}
+
+/* 底部文字区域渐变：同理，改为中性黑，不再用品牌粉。
+   原注释「底部文字区域渐变」，高度 160px 不变。 */
+.card-showcase__gradient {
+  @apply absolute bottom-0 left-0 right-0 z-0;
+  height: 160px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.45), transparent);
+}
+
+/* 内容�?*/
+.card-showcase__content {
+  @apply relative z-10 h-full flex flex-col justify-end p-5;
+}
+
+/* 状态标�?*/
+.card-showcase__badge {
+  @apply px-2 py-0.5 rounded-full border flex items-center gap-1.5 shadow-lg mb-2 w-fit;
+  background-color: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(12px);
+  border-color: rgba(255, 255, 255, 0.2);
+  font-size: 10px;
+  font-weight: bold;
+  color: #FFFFFF;
+}
+
+/* 标签圆点 */
+.card-showcase__badge-dot {
+  @apply w-1.5 h-1.5 rounded-full animate-pulse;
+}
+
+/* ⚠️ 工具箱原文四个变体全是同一个粉 #EE7093（只有 purple 是紫），
+   等于没有区分。这里按名字给真颜色 —— 和 Toast / Tag 的语义色对齐。 */
+.card-showcase__badge-dot--cyan { background-color: rgb(var(--info-rgb)); }
+.card-showcase__badge-dot--purple { background-color: rgb(var(--accent-soft-rgb)); }
+.card-showcase__badge-dot--green { background-color: rgb(var(--success-rgb)); }
+.card-showcase__badge-dot--red { background-color: rgb(var(--danger-rgb)); }
+
+/* 标题 */
+.card-showcase__title {
+  @apply text-2xl font-black leading-none mb-1;
+  color: #FFFFFF;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* 副标�?*/
+.card-showcase__subtitle {
+  @apply text-[10px] font-bold uppercase tracking-widest;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================
+   6. 通用卡片面板
+   使用场景：收集进度、统计信息等
+   特点：圆角、边框、阴影、悬停效果
+   ============================================ */
+
+.card-panel {
+  @apply rounded-xl p-5 flex flex-col shadow-sm transition-all duration-300;
+  background-color: rgb(var(--surface-rgb));
+  border: 1px solid rgba(var(--accent-soft-rgb), 0.5);
+}
+
+.card-panel:hover {
+  @apply shadow-md;
+}
+
+/* 面板标题 */
+.card-panel__title {
+  @apply text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-2;
+  color: hsl(var(--muted-foreground));
+}
+
+/* 面板标题图标 */
+.card-panel__icon {
+  color: var(--brand-text-hex);
+  @apply shrink-0;
+}
+
+/* 面板内容�?*/
+.card-panel__content {
+  @apply flex-1;
+}
+
+/* ============================================
+   7. 通用卡片面板变体 - 高型
+   使用场景：更新公告、需要更多内容空间的区块
+   特点：在 card-panel 基础上增加高�?   ============================================ */
+
+.card-panel--tall {
+  @apply rounded-xl p-5 flex flex-col shadow-sm transition-all duration-300;
+  background-color: rgb(var(--surface-rgb));
+  border: 1px solid rgba(var(--accent-soft-rgb), 0.5);
+  height: 380px;
+}
+
+.card-panel--tall:hover {
+  @apply shadow-md;
+}
+
+/* ============================================
+   页面头部容器
+   使用场景：包裹页面标题、描述、版本号
+   ============================================ */
+
+.page-header {
+  @apply flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4;
+  border-bottom: 1px solid rgba(var(--accent-soft-rgb), 0.4);
+}
+
+.page-header__left {
+  @apply space-y-1;
+}
+
+.page-header__right {
+  @apply text-right hidden md:block transition-opacity;
+  opacity: 0.6;
+}
+
+.page-header__right:hover {
+  opacity: 1;
+}
+
+/* ============================================
+   入场动画配置（配�?Framer Motion�?   
+   淡入上移动画:
+   initial: { opacity: 0, y: 10 }
+   animate: { opacity: 1, y: 0 }
+   transition: { duration: 0.3 }
+   
+   缩放淡入动画:
+   initial: { opacity: 0, scale: 0.98 }
+   animate: { opacity: 1, scale: 1 }
+   transition: { duration: 0.4 }
+   ============================================ */
+
+
+

@@ -1,0 +1,30 @@
+# 依赖
+node_modules/
+electron/node_modules/
+
+# 构建产物
+dist/
+electron/release/
+
+# Vite / esbuild 的本地临时目录（见 scripts/vite-with-local-tmp.mjs）
+.build-tmp/
+
+# 开发时的用户数据目录
+.user-data/
+
+# 无头浏览器截图时用的 user-data-dir（不要放进项目里，
+# 否则 Vite 的 watcher 会去监听被锁定的 session 文件并 EBUSY 崩掉，见 vite.config.ts）
+.chrome-tmp/
+
+# 编辑器与系统
+.vscode/*
+!.vscode/extensions.json
+.idea/
+Thumbs.db
+Desktop.ini
+*.log
+
+# 临时文件
+test-*.bat
+fix-*.bat
+
