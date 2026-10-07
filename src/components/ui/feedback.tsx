@@ -330,10 +330,13 @@ export function SpinOverlay({ label = '加载中…' }: { label?: ReactNode }) {
 /* 提示条（Alert）                                                      */
 /* ------------------------------------------------------------------ */
 
-const toneIcon: Record<Exclude<SemanticTone, 'default' | 'brand'>, ReactNode> = {
+// 反馈面使用的 tone 类型（与数据面的 SemanticTone 区分）
+export type FeedbackTone = 'success' | 'warning' | 'error' | 'info'
+
+const toneIcon: Record<FeedbackTone, ReactNode> = {
   success: <CheckCircle2 size={16} />,
   warning: <AlertTriangle size={16} />,
-  danger: <XCircle size={16} />,
+  error: <XCircle size={16} />,
   info: <InfoIcon size={16} />,
 }
 
@@ -346,7 +349,7 @@ export function Alert({
   onClose,
   className,
 }: {
-  tone?: Exclude<SemanticTone, 'default' | 'brand'>
+  tone?: FeedbackTone
   title?: ReactNode
   description?: ReactNode
   /** 右侧动作槽 */
@@ -422,7 +425,7 @@ export function Result({
 
 export interface NoticeItem {
   id: string
-  tone?: 'success' | 'warning' | 'error' | 'info'
+  tone?: FeedbackTone
   title: ReactNode
   description?: ReactNode
 }

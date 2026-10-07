@@ -82,6 +82,7 @@ export function Button({
       disabled={isDisabled}
       aria-busy={loading || undefined}
       className={cn(
+        'btn-base',  // 必须输出 btn-base 类名，否则焦点环和禁用态失效
         variantClass[variant],
         sizeClass[size],
         block && 'btn--full',

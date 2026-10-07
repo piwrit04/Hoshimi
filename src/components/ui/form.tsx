@@ -282,12 +282,15 @@ export function FormNumberInput({
   className,
 }: NumberInputProps) {
   const autoId = useId()
+  const [rawInput, setRawInput] = useState<string>('')
 
   /** 显示值：千分位只在展示层加，往外传的永远是纯数字 */
   const display = useMemo(() => {
+    // 如果正在编辑，显示原始输入
+    if (rawInput !== '') return rawInput
     if (value === null || value === undefined || Number.isNaN(value)) return ''
     return thousandSeparator ? value.toLocaleString('zh-CN') : String(value)
-  }, [value, thousandSeparator])
+  }, [value, thousandSeparator, rawInput])
 
   const clamp = (v: number) => {
     let n = v
@@ -299,6 +302,38 @@ export function FormNumberInput({
   const bump = (dir: 1 | -1) => {
     const base = value ?? 0
     onChange(clamp(base + dir * step))
+    setRawInput('') // 清空原始输入
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    /* 千分位显示时要把逗号剔掉再解析，否则 1,200 会 parse 成 1 */
+    const raw = e.target.value.replace(/,/g, '').trim()
+    setRawInput(raw)
+
+    if (raw === '') {
+      onChange(null)
+      return
+    }
+
+    // 允许中间态："-"、"2."、"-.5" 等
+    if (raw === '-' || raw === '.' || raw === '-.') {
+      return
+    }
+
+    const n = Number(raw)
+    if (Number.isNaN(n)) {
+      return
+    }
+
+    onChange(clamp(n))
+  }
+
+  const handleBlur = () => {
+    // 失焦时归一化：如果是不完整的输入，转换为有效数字
+    setRawInput('')
+    if (value !== null && value !== undefined && !Number.isNaN(value)) {
+      onChange(clamp(value))
+    }
   }
 
   return (
@@ -323,14 +358,8 @@ export function FormNumberInput({
             disabled={disabled}
             placeholder={placeholder}
             aria-invalid={error ? true : undefined}
-            onChange={(e) => {
-              /* 千分位显示时要把逗号剔掉再解析，否则 1,200 会 parse 成 1 */
-              const raw = e.target.value.replace(/,/g, '').trim()
-              if (raw === '') return onChange(null)
-              const n = Number(raw)
-              if (Number.isNaN(n)) return
-              onChange(clamp(n))
-            }}
+            onChange={handleChange}
+            onBlur={handleBlur}
             className={cn('dd-control text-right tabular-nums', error && 'dd-control--error', className)}
             style={unit ? { paddingRight: 12 + String(unit).length * 14 } : undefined}
           />

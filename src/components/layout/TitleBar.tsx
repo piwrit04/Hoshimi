@@ -52,15 +52,15 @@ export function TitleBar({ className }: TitleBarProps) {
     >
       {/* Center: Global Search Trigger - Fixed to Window Center */}
       <div className="fixed left-1/2 top-[26px] -translate-x-1/2 -translate-y-1/2 z-50 no-drag">
-        <button 
+        <button
           onClick={openSearch}
-          className="flex items-center gap-3 px-4 py-2 rounded-lg bg-white/92 border border-[#D7CDE8] shadow-[0_1px_3px_rgba(70,50,100,0.06)] hover:bg-white hover:border-[#CBBBE3] hover:shadow-[0_2px_8px_rgba(70,50,100,0.10)] focus-within:bg-white focus-within:border-[#BFA8E2] focus-within:ring-2 focus-within:ring-[#C5B4E5]/40 focus-within:shadow-[0_4px_12px_rgba(110,80,160,0.14)] transition-all group text-sm w-96"
+          className="flex items-center gap-3 px-4 py-2 rounded-lg bg-secondary/80 border border-border hover:bg-secondary hover:border-border/80 hover:shadow-md focus:bg-secondary focus:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:shadow-lg transition-all group text-sm w-96"
         >
           <div className="flex items-center gap-2">
-            <Search size={14} className="text-[#8E83A8] group-hover:text-primary group-focus-within:text-primary transition-colors" />
-            <span className="text-xs text-[#8E83A8]">搜索...</span>
+            <Search size={14} className="text-muted-foreground group-hover:text-primary group-focus:text-primary transition-colors" />
+            <span className="text-xs text-muted-foreground">搜索...</span>
           </div>
-          <kbd className="pointer-events-none inline-flex h-4 select-none items-center gap-1 rounded border border-[#D9D0EA] bg-[#FAF7FF] px-1.5 font-sans text-[10px] font-medium text-[#8E83A8] opacity-100 ml-auto">
+          <kbd className="pointer-events-none inline-flex h-4 select-none items-center gap-1 rounded border border-border bg-background px-1.5 font-sans text-[10px] font-medium text-muted-foreground opacity-100 ml-auto">
             <span className="text-[10px]">⌘</span>K
           </kbd>
         </button>
