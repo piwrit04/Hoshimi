@@ -69,14 +69,19 @@ export function Sidebar({ showLogo = true }: { showLogo?: boolean }) {
 
   const memoizedNavItems = useMemo(() => navItems, []);
 
-  // Escape 收起侧栏
+  // Escape 收起侧栏（仅在侧栏展开且无浮层打开时）
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') toggleCollapse();
+      if (e.key === 'Escape' && !isCollapsed) {
+        // 检查是否有打开的浮层（Modal/Drawer 会设置 body overflow）
+        if (document.body.style.overflow !== 'hidden') {
+          toggleCollapse();
+        }
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toggleCollapse]);
+  }, [toggleCollapse, isCollapsed]);
 
   const sidebarWidth = isCollapsed ? 'w-16' : 'w-64';
 

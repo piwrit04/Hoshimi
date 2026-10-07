@@ -227,11 +227,18 @@ export function Drawer({
   /** 覆盖默认宽度 */
   width?: number | string
 }) {
+  const onCloseRef = useRef(onClose);
+
+  // 保持 ref 同步但不触发 effect 重跑
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
   /* Esc 关闭 + 打开时锁滚动。和 Modal 用同一套处理。 */
   useEffect(() => {
     if (!isOpen) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') onCloseRef.current()
     }
     document.addEventListener('keydown', onKey)
     const prev = document.body.style.overflow
@@ -240,7 +247,7 @@ export function Drawer({
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = prev
     }
-  }, [isOpen, onClose])
+  }, [isOpen]) // 移除 onClose 依赖
 
   return (
     <AnimatePresence>

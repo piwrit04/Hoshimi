@@ -27,7 +27,6 @@ const ToastItem = ({ toast }: { toast: ToastType }) => {
     const timer = setInterval(() => {
       setProgress((prev) => {
         if (prev <= 0) {
-          clearInterval(timer);
           return 0;
         }
         return prev - (100 / (duration / 100));

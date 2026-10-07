@@ -15,9 +15,16 @@ interface ModalProps {
 }
 
 export const Modal = ({ isOpen, onClose, title, children, footer, className, showClose = true }: ModalProps) => {
+  const onCloseRef = React.useRef(onClose);
+
+  // 保持 ref 同步但不触发 effect 重跑
+  React.useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') onCloseRef.current();
     };
 
     if (isOpen) {
@@ -29,7 +36,7 @@ export const Modal = ({ isOpen, onClose, title, children, footer, className, sho
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]); // 移除 onClose 依赖
 
   return ReactDOM.createPortal(
     <AnimatePresence>
