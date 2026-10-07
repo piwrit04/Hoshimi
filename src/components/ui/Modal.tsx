@@ -41,7 +41,7 @@ export const Modal = ({ isOpen, onClose, title, children, footer, className, sho
   return ReactDOM.createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 flex items-center justify-center p-4 sm:p-6" style={{ zIndex: 'var(--z-modal)' }}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

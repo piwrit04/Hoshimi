@@ -67,8 +67,6 @@ export function Sidebar({ showLogo = true }: { showLogo?: boolean }) {
   const { isCollapsed, toggleCollapse } = useSidebarStore();
   const [isLogoHovered, setIsLogoHovered] = useState(false);
 
-  const memoizedNavItems = useMemo(() => navItems, []);
-
   // Escape 收起侧栏（仅在侧栏展开且无浮层打开时）
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -143,7 +141,7 @@ export function Sidebar({ showLogo = true }: { showLogo?: boolean }) {
       )}
 
       <nav className="flex-1 px-3 py-4 flex flex-col gap-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
-        {memoizedNavItems.map((item) => (
+        {navItems.map((item) => (
           <NavItem key={item.path} item={item} isCollapsed={isCollapsed} />
         ))}
       </nav>

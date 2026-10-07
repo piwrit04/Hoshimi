@@ -252,7 +252,7 @@ export function Drawer({
   return (
     <AnimatePresence>
       {isOpen && createPortal(
-        <div className="fixed inset-0 z-[60]">
+        <div className="fixed inset-0" style={{ zIndex: 'var(--z-modal)' }}>
           {/* 遮罩 */}
           <motion.div
             initial={{ opacity: 0 }}

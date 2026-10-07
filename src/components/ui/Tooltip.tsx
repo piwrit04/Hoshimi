@@ -34,6 +34,7 @@ export const Tooltip = ({
   const triggerRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const rafRef = useRef<number | undefined>(undefined);
 
   const calculatePosition = useCallback(() => {
     if (!triggerRef.current || !tooltipRef.current) return;
@@ -92,12 +93,13 @@ export const Tooltip = ({
     calculatePosition();
     timerRef.current = setTimeout(() => {
       setIsVisible(true);
-      requestAnimationFrame(calculatePosition);
+      rafRef.current = requestAnimationFrame(calculatePosition);
     }, delay);
   };
 
   const handleMouseLeave = () => {
     if (timerRef.current) clearTimeout(timerRef.current);
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
     setIsVisible(false);
   };
 
@@ -105,6 +107,9 @@ export const Tooltip = ({
     if (isVisible) {
       calculatePosition();
     }
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
   }, [isVisible, calculatePosition]);
 
   if (!content) return children;
@@ -152,7 +157,7 @@ export const Tooltip = ({
                 position: 'fixed',
                 top: coords.top,
                 left: coords.left,
-                zIndex: 9999,
+                zIndex: 'var(--z-tooltip)',
               }}
               className={cn(
                 "ed-tooltip",
