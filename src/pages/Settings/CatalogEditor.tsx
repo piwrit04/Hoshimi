@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { FolderTree, Plus, Trash2, Pencil } from 'lucide-react'
+import { FolderTree, Plus, Trash2, Pencil, Server } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { FormInput, FormNumberInput, FormSelect, FormSwitch } from '@/components/ui/form'
 import { Modal } from '@/components/ui/Modal'
@@ -11,13 +11,14 @@ import {
   categoriesOf,
   primaryGameId,
   productsOfCategory,
+  serversOf,
   sortedGames,
 } from '@/domain/catalog'
 import type { CatalogKind } from '@/storage/types'
 
 /**
- * 项目目录：上选游戏 → 左分类 → 右项目增删改。
- * 数据落在账本 games / categories / products。
+ * 项目目录：上选游戏 → 服务器启停增删 → 左分类 → 右项目增删改。
+ * 数据落在账本 games / categories / products / servers。
  */
 export function CatalogEditor() {
   const games = useOrdersStore((s) => s.games)
@@ -32,6 +33,10 @@ export function CatalogEditor() {
   const addProduct = useOrdersStore((s) => s.addProduct)
   const updateProduct = useOrdersStore((s) => s.updateProduct)
   const removeProduct = useOrdersStore((s) => s.removeProduct)
+  const servers = useOrdersStore((s) => s.servers)
+  const addServer = useOrdersStore((s) => s.addServer)
+  const updateServer = useOrdersStore((s) => s.updateServer)
+  const removeServer = useOrdersStore((s) => s.removeServer)
   const addToast = useToastStore((s) => s.addToast)
 
   const sorted = useMemo(() => sortedGames(games), [games])
@@ -41,6 +46,10 @@ export function CatalogEditor() {
   const cats = useMemo(
     () => categoriesOf(categories, safeGameId, true),
     [categories, safeGameId],
+  )
+  const gameServers = useMemo(
+    () => serversOf(servers, safeGameId, true),
+    [servers, safeGameId],
   )
   const [categoryId, setCategoryId] = useState<string | null>(null)
   const activeCatId =
@@ -64,6 +73,7 @@ export function CatalogEditor() {
   const [prodId, setProdId] = useState<string | null>(null)
   const [prodName, setProdName] = useState('')
   const [prodPrice, setProdPrice] = useState<number | null>(null)
+  const [serverName, setServerName] = useState('')
 
   const run = (fn: () => void) => {
     try {
@@ -137,6 +147,86 @@ export function CatalogEditor() {
             })
           }}
         />
+      </div>
+
+
+      {/* 当前游戏的服务器 */}
+      <div className="px-5 py-3 border-b border-border/50 bg-secondary/20">
+        <div className="flex items-center gap-2 mb-2">
+          <Server size={14} className="text-muted-foreground" />
+          <span className="text-xs font-semibold text-muted-foreground">服务器</span>
+          <span className="text-[10px] text-muted-foreground">停用后录单不显示；删除不影响已有订单</span>
+        </div>
+        <ul className="flex flex-wrap gap-2 mb-2">
+          {gameServers.map((item) => (
+            <li
+              key={item.id}
+              className={`flex h-9 items-center gap-2 rounded-lg border border-border/50 bg-card pr-1 pl-3 text-sm ${
+                !item.enabled ? 'opacity-55' : ''
+              }`}
+            >
+              <span className="font-medium">{item.name}</span>
+              <FormSwitch
+                checked={item.enabled}
+                onChange={(on) => run(() => updateServer(item.id, { enabled: on }))}
+              />
+              <Button
+                size="sm"
+                variant="ghost"
+                icon={Trash2}
+                iconOnly
+                aria-label={`删除服务器「${item.name}」`}
+                onClick={() => {
+                  void modalConfirm({
+                    title: `删除服务器「${item.name}」？`,
+                    content: '已保存的订单不受影响。',
+                    tone: 'danger',
+                    okText: '删除',
+                    onOk: () =>
+                      run(() => {
+                        removeServer(item.id)
+                        addToast({ type: 'success', message: '已删除服务器' })
+                      }),
+                  })
+                }}
+              />
+            </li>
+          ))}
+          {gameServers.length === 0 ? (
+            <li className="flex h-9 items-center text-xs text-muted-foreground">还没有服务器</li>
+          ) : null}
+        </ul>
+        <div className="flex gap-2 max-w-md">
+          <FormInput
+            className="flex-1"
+            placeholder="新服务器名称"
+            value={serverName}
+            onChange={(e) => setServerName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                run(() => {
+                  addServer(safeGameId, serverName)
+                  setServerName('')
+                  addToast({ type: 'success', message: '已添加服务器' })
+                })
+              }
+            }}
+          />
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() =>
+              run(() => {
+                addServer(safeGameId, serverName)
+                setServerName('')
+                addToast({ type: 'success', message: '已添加服务器' })
+              })
+            }
+          >
+            添加
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] min-h-[320px]">

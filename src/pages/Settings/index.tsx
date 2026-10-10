@@ -10,6 +10,7 @@ import {
   Upload,
   Trash2,
   FileSpreadsheet,
+  FileDown,
   Info,
 } from 'lucide-react'
 import { Dropdown } from '@/components/ui/overlay'
@@ -22,6 +23,7 @@ import { normalizeSnapshot } from '@/domain/ledger'
 import { readImportFile } from '@/domain/excel'
 import { applyImport, planImport, type ImportPlan } from '@/domain/import-plan'
 import { CatalogEditor } from './CatalogEditor'
+import { exportCsv, exportXlsx } from '@/domain/export'
 
 const themeLabels: Record<ThemeMode, string> = {
   system: '跟随系统',
@@ -209,6 +211,45 @@ export default function Settings() {
         </SettingRow>
 
         <CatalogEditor />
+
+        <SettingRow
+          icon={FileDown}
+          title="导出表格"
+          description="把当前账本导出为 Excel（普通单 / 托管单 / 客户）或 CSV。退款、取消的到手为 —。"
+        >
+          <div className="flex items-center gap-2 flex-wrap justify-end">
+            <button
+              type="button"
+              className="btn-secondary btn--sm inline-flex items-center gap-1.5"
+              onClick={() => {
+                const snap = getSnapshot()
+                void exportXlsx({ orders: snap.orders, customers: snap.customers })
+                  .then(() =>
+                    addToast({
+                      type: 'success',
+                      message: `已导出 Excel（${snap.orders.length} 单 · ${snap.customers.filter((c) => !c.mergedIntoId).length} 客户）`,
+                    }),
+                  )
+                  .catch(() => addToast({ type: 'error', message: '导出失败' }))
+              }}
+            >
+              <Download size={14} />
+              导出 Excel
+            </button>
+            <button
+              type="button"
+              className="btn-secondary btn--sm inline-flex items-center gap-1.5"
+              onClick={() => {
+                const snap = getSnapshot()
+                exportCsv(snap.orders)
+                addToast({ type: 'success', message: `已导出 CSV（${snap.orders.length} 单）` })
+              }}
+            >
+              <Download size={14} />
+              导出 CSV
+            </button>
+          </div>
+        </SettingRow>
 
         <SettingRow
           icon={FileSpreadsheet}

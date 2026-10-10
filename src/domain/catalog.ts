@@ -307,3 +307,53 @@ export function removeProduct(slice: CatalogSlice, productId: string): CatalogSl
 
 /** @deprecated 兼容旧 import；请用 seed / store */
 export const SERVERS = ['官服', '国际服', 'B服']
+
+/* ---- 服务器增删改 ---- */
+
+export function addServer(slice: CatalogSlice, gameId: string, name: string): CatalogSlice {
+  const label = name.trim()
+  if (!label) throw new Error('请填写服务器名称')
+  if (!slice.games.some((g) => g.id === gameId)) throw new Error('游戏不存在')
+  if (slice.servers.some((s) => s.gameId === gameId && s.name === label)) {
+    throw new Error(`已有服务器「${label}」`)
+  }
+  return {
+    ...slice,
+    servers: [
+      ...slice.servers,
+      { id: crypto.randomUUID(), gameId, name: label, enabled: true },
+    ],
+  }
+}
+
+export function updateServer(
+  slice: CatalogSlice,
+  serverId: string,
+  patch: { name?: string; enabled?: boolean },
+): CatalogSlice {
+  const current = slice.servers.find((s) => s.id === serverId)
+  if (!current) return slice
+  const name = patch.name === undefined ? current.name : patch.name.trim() || current.name
+  if (
+    name !== current.name &&
+    slice.servers.some(
+      (s) => s.gameId === current.gameId && s.id !== serverId && s.name === name,
+    )
+  ) {
+    throw new Error(`已有服务器「${name}」`)
+  }
+  const enabled = patch.enabled ?? current.enabled
+  return {
+    ...slice,
+    servers: slice.servers.map((s) =>
+      s.id === serverId ? { ...s, name, enabled } : s,
+    ),
+  }
+}
+
+export function removeServer(slice: CatalogSlice, serverId: string): CatalogSlice {
+  return {
+    ...slice,
+    servers: slice.servers.filter((s) => s.id !== serverId),
+  }
+}

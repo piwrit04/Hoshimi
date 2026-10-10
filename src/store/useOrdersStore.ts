@@ -7,12 +7,15 @@ import {
   addCategory as catAdd,
   addGame as gameAdd,
   addProduct as prodAdd,
+  addServer as srvAdd,
   removeCategory as catRemove,
   removeGame as gameRemove,
   removeProduct as prodRemove,
+  removeServer as srvRemove,
   updateCategory as catUpdate,
   updateGame as gameUpdate,
   updateProduct as prodUpdate,
+  updateServer as srvUpdate,
   type CatalogSlice,
 } from '@/domain/catalog'
 import { loadSnapshot, saveSnapshot } from '@/storage/persist'
@@ -72,6 +75,9 @@ interface OrdersState {
     patch: { name?: string; price?: number | null; enabled?: boolean },
   ) => void
   removeProduct: (id: string) => void
+  addServer: (gameId: string, name: string) => void
+  updateServer: (id: string, patch: { name?: string; enabled?: boolean }) => void
+  removeServer: (id: string) => void
   /** 当前账本快照（导出备份） */
   getSnapshot: () => Snapshot
   /** 整本替换（导入用）；hydrate 后会落盘 */
@@ -387,6 +393,18 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
   },
   removeProduct: (id) => {
     applyCatalog(set, prodRemove(get().catalogSlice(), id))
+    schedulePersist(get)
+  },
+  addServer: (gameId, name) => {
+    applyCatalog(set, srvAdd(get().catalogSlice(), gameId, name))
+    schedulePersist(get)
+  },
+  updateServer: (id, patch) => {
+    applyCatalog(set, srvUpdate(get().catalogSlice(), id, patch))
+    schedulePersist(get)
+  },
+  removeServer: (id) => {
+    applyCatalog(set, srvRemove(get().catalogSlice(), id))
     schedulePersist(get)
   },
 
