@@ -48,6 +48,8 @@ export interface Order {
   amountLocked?: boolean
   /** 示例数据；有正式单时统计会排除 */
   isTest?: boolean
+  /** 导入去重键 */
+  dedupeKey?: string
 }
 
 /** 给旧快照 / 缺字段补默认 */
@@ -86,6 +88,7 @@ export function normalizeOrder(raw: Partial<Order> & Pick<Order, 'id' | 'orderNo
     completedAt: raw.completedAt,
     amountLocked: Boolean(raw.amountLocked),
     isTest: Boolean(raw.isTest),
+    dedupeKey: typeof raw.dedupeKey === 'string' ? raw.dedupeKey : undefined,
   }
 }
 

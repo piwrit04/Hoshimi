@@ -78,3 +78,22 @@ export const PLATFORM_FEE: Record<Platform, number> = {
 }
 
 /** OrderStatus / OrderType 见 @/domain/order；状态机见 @/domain/status */
+
+export function parseMoney(input: unknown): number | null {
+  if (typeof input === 'number') {
+    if (!Number.isFinite(input)) return null
+    return fromCents(toCents(input))
+  }
+  const s = String(input ?? '')
+    .trim()
+    .replace(/[,，\s]/g, '')
+    .replace(/[¥￥元]/g, '')
+  if (!s || s === '-' || s === '.') return null
+  const n = Number(s)
+  if (!Number.isFinite(n)) return null
+  return fromCents(toCents(n))
+}
+
+export function round2(n: number): number {
+  return fromCents(toCents(n))
+}
