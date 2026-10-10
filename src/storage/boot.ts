@@ -1,5 +1,6 @@
 import { loadingBar } from '@/components/ui/LoadingBar'
 import { useOrdersStore } from '@/store/useOrdersStore'
+import { useAuthStore } from '@/store/useAuthStore'
 
 /**
  * 启动时 hydrate 账本：顶条 LoadingBar + HTML 启动画面进度。
@@ -11,6 +12,8 @@ export async function bootPersist(): Promise<void> {
   loadingBar.start()
   try {
     await useOrdersStore.getState().hydrate()
+    window.updateLoadingProgress?.(55, '检查云同步…')
+    await useAuthStore.getState().init()
     window.updateLoadingProgress?.(72, '整理账本…')
     await minSplash
     window.updateLoadingProgress?.(90, '账本已就绪')
@@ -21,6 +24,7 @@ export async function bootPersist(): Promise<void> {
     if (!s.hydrated) {
       await s.hydrate().catch(() => undefined)
     }
+    await useAuthStore.getState().init().catch(() => undefined)
     await minSplash
   }
 }

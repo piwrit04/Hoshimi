@@ -54,6 +54,7 @@ interface OrdersState {
   settings: AppSettings
   channelFees: ChannelFee[]
   orderSeq: number
+  updatedAt: string
   hydrated: boolean
   hydrate: () => Promise<void>
   addOrder: (o: OrderInput) => Order
@@ -96,11 +97,16 @@ interface OrdersState {
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null
 
-function schedulePersist(get: () => OrdersState) {
+function schedulePersist(
+  get: () => OrdersState,
+  set?: (partial: Partial<OrdersState>) => void,
+) {
   if (!get().hydrated) return
   if (saveTimer) clearTimeout(saveTimer)
   saveTimer = setTimeout(() => {
     const s = get()
+    const updatedAt = new Date().toISOString()
+    set?.({ updatedAt })
     const snap: Snapshot = {
       version: SCHEMA_VERSION,
       orders: s.orders,
@@ -112,7 +118,7 @@ function schedulePersist(get: () => OrdersState) {
       settings: s.settings,
       channelFees: s.channelFees,
       orderSeq: s.orderSeq,
-      updatedAt: new Date().toISOString(),
+      updatedAt,
     }
     void saveSnapshot(snap)
   }, 200)
@@ -157,6 +163,7 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
   settings: initial.settings,
   channelFees: initial.channelFees,
   orderSeq: 0,
+  updatedAt: initial.updatedAt,
   hydrated: false,
 
   hydrate: async () => {
@@ -196,11 +203,12 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
       settings: snap.settings,
       channelFees: snap.channelFees,
       orderSeq: snap.orderSeq,
+      updatedAt: snap.updatedAt,
       hydrated: true,
     })
     // 若补了关联，落盘一次
     if (orders.some((o, i) => o.customerId !== snap.orders[i]?.customerId) || customers.length !== snap.customers.length) {
-      schedulePersist(get)
+      schedulePersist(get, set)
     }
   },
 
@@ -235,7 +243,7 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
       set((s) => ({
         customers: s.customers.map((c) => (c.id === found!.id ? next : c)),
       }))
-      schedulePersist(get)
+      schedulePersist(get, set)
       return next
     }
 
@@ -247,7 +255,7 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
       createdAt: new Date().toISOString(),
     }
     set((s) => ({ customers: [created, ...s.customers] }))
-    schedulePersist(get)
+    schedulePersist(get, set)
     return created
   },
 
@@ -271,7 +279,7 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
           : o,
       ),
     }))
-    schedulePersist(get)
+    schedulePersist(get, set)
     return next
   },
 
@@ -281,7 +289,7 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
       return { ok: false, reason: `该客户还有 ${count} 张订单，不能删除` }
     }
     set((s) => ({ customers: s.customers.filter((c) => c.id !== id) }))
-    schedulePersist(get)
+    schedulePersist(get, set)
     return { ok: true }
   },
 
@@ -306,7 +314,7 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
           : o,
       ),
     }))
-    schedulePersist(get)
+    schedulePersist(get, set)
     return { ok: true }
   },
 
@@ -314,7 +322,7 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
     const cur = get().orders.find((o) => o.id === id)
     if (!cur) return null
     set((s) => ({ orders: s.orders.filter((o) => o.id !== id) }))
-    schedulePersist(get)
+    schedulePersist(get, set)
     return cur
   },
 
@@ -324,7 +332,7 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
       const at = Math.min(Math.max(index ?? 0, 0), others.length)
       return { orders: [...others.slice(0, at), { ...order }, ...others.slice(at)] }
     })
-    schedulePersist(get)
+    schedulePersist(get, set)
   },
 
   setChannelFee: (platform, rate) => {
@@ -336,12 +344,12 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
         : [...s.channelFees, { platform, rate: safe }]
       return { channelFees }
     })
-    schedulePersist(get)
+    schedulePersist(get, set)
   },
 
   updateSettings: (patch) => {
     set((s) => ({ settings: { ...s.settings, ...patch } }))
-    schedulePersist(get)
+    schedulePersist(get, set)
   },
 
   addOrder: (data) => {
@@ -376,7 +384,7 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
       orders: [order, ...s.orders],
       orderSeq: seq,
     }))
-    schedulePersist(get)
+    schedulePersist(get, set)
     return order
   },
 
@@ -407,7 +415,7 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
     set((s) => ({
       orders: s.orders.map((o) => (o.id === id ? next : o)),
     }))
-    schedulePersist(get)
+    schedulePersist(get, set)
     return next
   },
 
@@ -419,7 +427,7 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
       set((s) => ({
         orders: s.orders.map((o) => (o.id === id ? next : o)),
       }))
-      schedulePersist(get)
+      schedulePersist(get, set)
       return next
     } catch (e) {
       if (e instanceof StatusFlowError) return null
@@ -435,7 +443,7 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
       set((s) => ({
         orders: s.orders.map((o) => (o.id === id ? next : o)),
       }))
-      schedulePersist(get)
+      schedulePersist(get, set)
       return next
     } catch (e) {
       if (e instanceof StatusFlowError) return null
@@ -446,52 +454,52 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
   addGame: (name, prefix) => {
     const { slice, gameId } = gameAdd(get().catalogSlice(), name, prefix)
     applyCatalog(set, slice)
-    schedulePersist(get)
+    schedulePersist(get, set)
     return gameId
   },
   updateGame: (id, patch) => {
     applyCatalog(set, gameUpdate(get().catalogSlice(), id, patch))
-    schedulePersist(get)
+    schedulePersist(get, set)
   },
   removeGame: (id) => {
     applyCatalog(set, gameRemove(get().catalogSlice(), id))
-    schedulePersist(get)
+    schedulePersist(get, set)
   },
   addCategory: (gameId, name, kind) => {
     applyCatalog(set, catAdd(get().catalogSlice(), gameId, name, kind))
-    schedulePersist(get)
+    schedulePersist(get, set)
   },
   updateCategory: (id, patch) => {
     applyCatalog(set, catUpdate(get().catalogSlice(), id, patch))
-    schedulePersist(get)
+    schedulePersist(get, set)
   },
   removeCategory: (id) => {
     applyCatalog(set, catRemove(get().catalogSlice(), id))
-    schedulePersist(get)
+    schedulePersist(get, set)
   },
   addProduct: (categoryId, name, price = null) => {
     applyCatalog(set, prodAdd(get().catalogSlice(), categoryId, name, price))
-    schedulePersist(get)
+    schedulePersist(get, set)
   },
   updateProduct: (id, patch) => {
     applyCatalog(set, prodUpdate(get().catalogSlice(), id, patch))
-    schedulePersist(get)
+    schedulePersist(get, set)
   },
   removeProduct: (id) => {
     applyCatalog(set, prodRemove(get().catalogSlice(), id))
-    schedulePersist(get)
+    schedulePersist(get, set)
   },
   addServer: (gameId, name) => {
     applyCatalog(set, srvAdd(get().catalogSlice(), gameId, name))
-    schedulePersist(get)
+    schedulePersist(get, set)
   },
   updateServer: (id, patch) => {
     applyCatalog(set, srvUpdate(get().catalogSlice(), id, patch))
-    schedulePersist(get)
+    schedulePersist(get, set)
   },
   removeServer: (id) => {
     applyCatalog(set, srvRemove(get().catalogSlice(), id))
-    schedulePersist(get)
+    schedulePersist(get, set)
   },
 
   getSnapshot: () => {
@@ -507,11 +515,15 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
       settings: s.settings,
       channelFees: s.channelFees,
       orderSeq: s.orderSeq,
-      updatedAt: new Date().toISOString(),
+      updatedAt: s.updatedAt || new Date().toISOString(),
     }
   },
 
   replaceSnapshot: (partial) => {
+    const nextUpdated =
+      partial.updatedAt ??
+      ('updatedAt' in partial ? partial.updatedAt : undefined) ??
+      new Date().toISOString()
     set((s) => ({
       orders: partial.orders ?? s.orders,
       customers: partial.customers ?? s.customers,
@@ -522,7 +534,12 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
       settings: partial.settings ?? s.settings,
       channelFees: partial.channelFees ?? s.channelFees,
       orderSeq: partial.orderSeq ?? s.orderSeq,
+      updatedAt: nextUpdated || s.updatedAt || new Date().toISOString(),
     }))
-    schedulePersist(get)
+    // 导入/拉取后立即落盘，但不强制把 updatedAt 刷新成 now（保留传入值）
+    if (get().hydrated) {
+      const snap = get().getSnapshot()
+      void saveSnapshot(snap)
+    }
   },
 }))

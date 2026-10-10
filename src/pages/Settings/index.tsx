@@ -15,6 +15,10 @@ import {
   Info,
   RefreshCw,
   Percent,
+  Cloud,
+  LogIn,
+  LogOut,
+  CloudOff,
 } from 'lucide-react'
 import { Dropdown } from '@/components/ui/overlay'
 import { FormSwitch } from '@/components/ui/form'
@@ -29,6 +33,8 @@ import { CatalogEditor } from './CatalogEditor'
 import { feePercentLabel } from '@/domain/money'
 import type { Platform } from '@/domain/order'
 import { exportCsv, exportXlsx } from '@/domain/export'
+import { AuthModal } from '@/components/auth/AuthModal'
+import { useAuthStore } from '@/store/useAuthStore'
 
 const themeLabels: Record<ThemeMode, string> = {
   system: '跟随系统',
@@ -203,6 +209,8 @@ export default function Settings() {
           <FormSwitch checked={devMode} onChange={setDevMode} />
         </SettingRow>
         </SettingGroup>
+
+        <CloudSyncSection />
 
         <CatalogEditor />
 
@@ -529,6 +537,102 @@ function SettingGroup({ title, children }: { title: string; children: React.Reac
     </section>
   )
 }
+
+function CloudSyncSection() {
+  const configured = useAuthStore((s) => s.configured)
+  const user = useAuthStore((s) => s.user)
+  const syncing = useAuthStore((s) => s.syncing)
+  const lastSyncAt = useAuthStore((s) => s.lastSyncAt)
+  const lastSyncError = useAuthStore((s) => s.lastSyncError)
+  const syncNow = useAuthStore((s) => s.syncNow)
+  const signOut = useAuthStore((s) => s.signOut)
+  const addToast = useToastStore((s) => s.addToast)
+  const [authOpen, setAuthOpen] = useState(false)
+
+  if (!configured) {
+    return (
+      <SettingGroup title="云同步">
+        <SettingRow
+          icon={CloudOff}
+          title="未配置云端"
+          description="缺少 VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY，当前仅本机存储。"
+        >
+          <span className="text-xs text-muted-foreground">本地模式</span>
+        </SettingRow>
+      </SettingGroup>
+    )
+  }
+
+  const syncLabel = lastSyncError
+    ? `同步出错：${lastSyncError}`
+    : lastSyncAt
+      ? `上次同步：${new Date(lastSyncAt).toLocaleString('zh-CN', { hour12: false })}`
+      : user
+        ? '登录后可手动同步，或改动账本后自动推送'
+        : '登录后可跨设备同步账本；也可继续仅用本机'
+
+  return (
+    <SettingGroup title="云同步">
+      <SettingRow
+        icon={Cloud}
+        title={user ? `已登录 · ${user.email ?? user.id.slice(0, 8)}` : '邮箱登录'}
+        description={syncLabel}
+      >
+        <div className="flex items-center gap-2 justify-end">
+          {user ? (
+            <>
+              <button
+                type="button"
+                className="btn-base btn-secondary btn--sm"
+                disabled={syncing}
+                onClick={() => {
+                  void syncNow().then((res) => {
+                    if (res.ok) {
+                      const map: Record<string, string> = {
+                        pulled: '已从云端拉取较新账本',
+                        pushed: '已推送到云端',
+                        noop: '已与云端一致',
+                      }
+                      addToast({ type: 'success', message: map[res.action] ?? '同步完成' })
+                    } else {
+                      addToast({ type: 'error', message: res.error })
+                    }
+                  })
+                }}
+              >
+                <RefreshCw size={14} className={syncing ? 'animate-spin' : undefined} />
+                {syncing ? '同步中…' : '立即同步'}
+              </button>
+              <button
+                type="button"
+                className="btn-base btn-ghost btn--sm"
+                onClick={() => {
+                  void signOut().then(() =>
+                    addToast({ type: 'info', message: '已退出登录，本机数据保留' }),
+                  )
+                }}
+              >
+                <LogOut size={14} />
+                退出
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              className="btn-base btn-primary btn--sm"
+              onClick={() => setAuthOpen(true)}
+            >
+              <LogIn size={14} />
+              登录 / 注册
+            </button>
+          )}
+        </div>
+      </SettingRow>
+      <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
+    </SettingGroup>
+  )
+}
+
 
 function ChannelFeesSection() {
   const fees = useOrdersStore((s) => s.channelFees)

@@ -15,10 +15,15 @@ export async function loadSnapshot(): Promise<Snapshot> {
 /** 写入失败返回 false（配额满等），界面可提示备份 */
 export async function saveSnapshot(snapshot: Snapshot): Promise<boolean> {
   try {
-    await idbSet(SNAPSHOT_KEY, {
+    const stamped: Snapshot = {
       ...snapshot,
-      updatedAt: new Date().toISOString(),
-    })
+      updatedAt: snapshot.updatedAt || new Date().toISOString(),
+    }
+    await idbSet(SNAPSHOT_KEY, stamped)
+    // 登录态下延迟推云（动态 import，避免循环依赖）
+    void import('@/store/useAuthStore')
+      .then(({ pushCloudIfLoggedIn }) => pushCloudIfLoggedIn())
+      .catch(() => undefined)
     return true
   } catch {
     return false
