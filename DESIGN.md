@@ -11,6 +11,44 @@
 
 ---
 
+## 0. 设计系统 v2（2026-10 视觉重构，以本节为准）
+
+**参考：shadcn/ui Dashboard（blocks/dashboard-01）**，配色保留本项目粉色。规格写在 `src/styles/ds.css`（最后引入，覆盖工具箱遗留尺寸）。
+
+| 项 | 规格 |
+|---|---|
+| 间距 | 只用 4 / 8 / 12 / 16 / 24 / 32；页面 `ds-page`：内边距 24/32，区块间距 24，卡片间距 16 |
+| 字号 | 页面标题 20/28 semibold（`ds-page-title`）· 区块标题 14/20 semibold（`ds-section-title`）· 正文 14/20 · 辅助 12/16（`ds-caption`） |
+| 控件高度 | md 36（按钮 / 输入 / 选择器 / 分段控件）· sm 32（表格行内、设置行、工具条） |
+| 按钮 | 只有 `sm` / `md`。页头操作 = md；表格行内操作 = sm；弹窗底部 = md（取消 secondary + 确认 primary） |
+| 圆角 | 控件 8 · 卡片 12 · 标签 6 |
+| 卡片 | 唯一样式 `ds-card` / `<Card>`：1px 边框 + bg-card + 极轻阴影；头 16/24，体 16/24/24；hover 不跳动 |
+| 统计卡 | `ds-stat`：标签 13 → 数值 28/36 tabular → 脚注 12 |
+| 表格 | `table-layout: fixed` + `<colgroup>`，表头与表体共用列宽；表头 40 / 行 48；单元格左右 12，首末列 24（与卡片头对齐）；数字列右对齐 + tabular-nums；金额统一两位小数 |
+| 动效 | 进场 `ds-rise`（4px 上浮 + 淡入 320ms，ease-out-expo），页面切换 200ms；尊重 reduce-motion |
+
+### 组件对照（我们 vs 成熟组件库）
+
+| 组件 | 改了什么 | 参考 |
+|---|---|---|
+| Button | 40px 胶囊 → 36/32 两档、8px 圆角、500 字重；secondary 改中性描边；去掉 hover 上浮；lg 移除 | shadcn Button / Ant Button（middle 32） |
+| 输入框 / 选择器 | 40–44px → 36px；边框走 `--input`；hover 只变边框色；focus 3px 柔光环 | shadcn Input / Arco Input |
+| 分段控件（日/周/月等） | 胶囊按钮组 → 底色槽 + 白色滑块，36/32 两档 | Ant Segmented / shadcn Tabs |
+| 单选组 | 行高对齐控件高度（min-h 36），与同排输入框齐平 | Element Plus Radio |
+| DataTable | 加 colgroup + fixed 布局；表头 / 单元格同 padding；右对齐列表头同向；首末列 24 | Ant Table / shadcn Data Table |
+| Tag | 22px 高、6px 圆角、12px 字 | Arco Tag（small） |
+| Card / SectionCard | 统一为 `<Card>`，去掉左侧色条和 hover 阴影 | shadcn Card |
+| PageHeader | 30px 大标题 + 图标块 → 20px 标题 + 一行说明 + 右侧 md 操作 | Ant Pro PageHeader / shadcn |
+| Modal | 头 56 / 底 64、标题 16 semibold、关闭按钮 32 方形、进场 0.98 缩放 | shadcn Dialog |
+| Dropdown 菜单 | 菜单项 32px、内边距 4、项圆角 6 | shadcn DropdownMenu |
+| 侧栏 | 64→60 宽，顶部主操作「新建订单」，分组标题，选中态浅底而非实心 | shadcn Sidebar（dashboard-01） |
+| 标题栏 / 搜索 | 52→56 高与侧栏头齐平；搜索框 36 高 | shadcn / Vercel dashboard |
+| 404 | 渐变大字 + 旋转装饰 → 极简空状态 | shadcn 404 block |
+
+演示 / 截图数据：`src/domain/fixtures.ts`，项目只从 `seedCatalog` 取，**不要编项目名**。
+
+---
+
 ## ⛔ 组件库使用规约（最高优先级，没有例外）
 
 **所有界面设计必须使用组件库里已有的组件。** 四条硬规定：
@@ -60,9 +98,11 @@
 
 | | 深色（默认） | 浅色 |
 |---|---|---|
-| `--brand-hex` | `#7eb3ff` 蓝 | `#ee7093` 粉 |
-| `--on-brand-hex` | `#0f0f11` 近黑 | `#ffffff` |
-| `--brand-rgb` | `126, 179, 255` | `238, 112, 147` |
+| `--brand-hex` | `#f0819f` 粉（2026-10 重做，原来是蓝 `#7eb3ff`） | `#ee7093` 粉 |
+| `--on-brand-hex` | `#1c0a10` 近黑 | `#ffffff` |
+| `--brand-rgb` | `240, 129, 159` | `238, 112, 147` |
+
+深色底改为中性炭灰阶梯（参照 shadcn zinc dark）：背景 7% → 卡片 10% → 次级 16% → 边框 20%。
 
 ⚠️ **深色主题是"亮主色 + 深字"，不是"深主色 + 白字"。** 浅色主题反过来。
 用品牌色时一律走 `bg-brand` / `text-on-brand` 这类工具类，别自己配对。
