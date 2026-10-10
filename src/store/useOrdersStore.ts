@@ -1,7 +1,7 @@
 import { create } from 'zustand'
-import type { Order } from '@/domain/order'
+import { sanitizeOrderPatch, type Order } from '@/domain/order'
 import { emptySnapshot } from '@/domain/ledger'
-import { applyStatus, StatusFlowError } from '@/domain/status'
+import { applyComplete, applyStatus, StatusFlowError } from '@/domain/status'
 import { mergedNote, normalizePhone } from '@/domain/customers'
 import {
   addCategory as catAdd,
@@ -59,6 +59,8 @@ interface OrdersState {
   addOrder: (o: OrderInput) => Order
   updateOrder: (id: string, patch: Partial<OrderInput>) => Order | null
   setOrderStatus: (id: string, to: Order['status']) => Order | null
+  /** 完成订单；待处理会先开始再完成 */
+  completeOrder: (id: string) => Order | null
   upsertCustomer: (data: { nickname: string; contact: string; note?: string }) => Customer
   updateCustomer: (
     id: string,
@@ -381,21 +383,7 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
   updateOrder: (id, patch) => {
     const cur = get().orders.find((o) => o.id === id)
     if (!cur) return null
-    const locked =
-      Boolean(cur.amountLocked) ||
-      cur.status === '已完成' ||
-      cur.status === '已退款' ||
-      cur.status === '已取消'
-    const moneyKeys = [
-      'amount', 'feeRate', 'feeAmount', 'payout',
-      'transferEnabled', 'transferMode', 'transferRatio', 'transferAmount',
-      'items', 'type',
-    ] as const
-    const safe: Partial<OrderInput> = { ...patch }
-    if (locked) {
-      for (const k of moneyKeys) delete safe[k]
-    }
-    delete (safe as { status?: Order['status'] }).status
+    const safe = sanitizeOrderPatch(cur, patch) as Partial<OrderInput>
 
     let customerId = cur.customerId
     if (safe.nickname !== undefined || safe.contact !== undefined) {
@@ -428,6 +416,22 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
     if (!cur) return null
     try {
       const next = applyStatus(cur, to)
+      set((s) => ({
+        orders: s.orders.map((o) => (o.id === id ? next : o)),
+      }))
+      schedulePersist(get)
+      return next
+    } catch (e) {
+      if (e instanceof StatusFlowError) return null
+      throw e
+    }
+  },
+
+  completeOrder: (id) => {
+    const cur = get().orders.find((o) => o.id === id)
+    if (!cur) return null
+    try {
+      const next = applyComplete(cur)
       set((s) => ({
         orders: s.orders.map((o) => (o.id === id ? next : o)),
       }))

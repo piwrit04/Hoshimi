@@ -29,7 +29,7 @@ import { useNewOrderStore } from '@/store/useNewOrderStore'
 import { toastUndo, useToastStore } from '@/store/useToastStore'
 import {
   actionLabel,
-  canMove,
+  canBulkComplete,
   nextStatuses,
   NO_PAYOUT,
   payoutVoid,
@@ -129,6 +129,7 @@ export default function Orders() {
   const openNewOrder = useNewOrderStore((s) => s.open)
   const openEdit = useNewOrderStore((s) => s.openEdit)
   const setOrderStatus = useOrdersStore((s) => s.setOrderStatus)
+  const completeOrder = useOrdersStore((s) => s.completeOrder)
   const addToast = useToastStore((s) => s.addToast)
 
   const [type, setTypeState] = useState<OrderType | 'all'>(ordersListState.type)
@@ -228,15 +229,20 @@ export default function Orders() {
     [rows, selectedKeys],
   )
   const completeEligible = useMemo(
-    () => chosen.filter((o) => canMove(o.status, '已完成') && o.status !== '已完成'),
+    () => chosen.filter((o) => canBulkComplete(o.status)),
     [chosen],
   )
+  const pendingInBatch = completeEligible.filter((o) => o.status === '待处理').length
 
   const bulkComplete = () => {
     if (!completeEligible.length) return
+    const tip =
+      pendingInBatch > 0
+        ? `其中 ${pendingInBatch} 张待处理会先开始再完成。`
+        : ''
     void modalConfirm({
       title: '批量完成？',
-      content: `将把选中的 ${completeEligible.length} 张未完成订单标为已完成。`,
+      content: `将把选中的 ${completeEligible.length} 张未完成订单标为已完成。${tip}`,
       okText: '完成',
       onOk: () => {
         const slices = completeEligible
@@ -245,8 +251,8 @@ export default function Orders() {
         let n = 0
         for (const order of completeEligible) {
           const cur = useOrdersStore.getState().orders.find((o) => o.id === order.id)
-          if (!cur || !canMove(cur.status, '已完成')) continue
-          if (setOrderStatus(order.id, '已完成')) n += 1
+          if (!cur || !canBulkComplete(cur.status)) continue
+          if (completeOrder(order.id)) n += 1
         }
         if (n > 0) {
           toastUndo(`已完成 ${n} 张订单`, () => {
@@ -497,6 +503,33 @@ export default function Orders() {
         ) : null}
       </motion.div>
 
+      {selectedKeys.length > 0 ? (
+        <div className="ds-toolbar items-center">
+          <span className="ds-caption">已选 {selectedKeys.length} 单</span>
+          <Button
+            variant="primary"
+            size="sm"
+            icon={Check}
+            disabled={!completeEligible.length}
+            onClick={bulkComplete}
+          >
+            批量完成{completeEligible.length ? ` (${completeEligible.length})` : ''}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => setSelectedKeys([])}>
+            取消选择
+          </Button>
+          {!completeEligible.length ? (
+            <span className="ds-caption text-muted-foreground">
+              仅待处理 / 进行中可批量完成
+            </span>
+          ) : pendingInBatch > 0 ? (
+            <span className="ds-caption text-muted-foreground">
+              待处理会先开始再完成
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+
       <motion.div
         {...fade}
         transition={{ duration: 0.25, delay: 0.04 }}
@@ -506,6 +539,8 @@ export default function Orders() {
           columns={columns}
           data={rows}
           rowKey={(r) => r.id}
+          selectedKeys={selectedKeys}
+          onSelectedKeysChange={setSelectedKeys}
           onRowClick={(r) => openEdit(r.id)}
           empty={
             <div className="py-16 text-center text-muted-foreground">

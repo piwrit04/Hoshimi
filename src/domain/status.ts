@@ -76,6 +76,28 @@ export function applyStatus(order: Order, to: OrderStatus, at = new Date()): Ord
   }
 }
 
+
+/** 批量完成：待处理可「先开始再完成」，进行中直接完成 */
+export function canBulkComplete(status: OrderStatus): boolean {
+  return status === '待处理' || status === '进行中'
+}
+
+/**
+ * 标为已完成。待处理会先走到进行中再完成（同一时刻）。
+ * 非法状态抛 StatusFlowError。
+ */
+export function applyComplete(order: Order, at = new Date()): Order {
+  if (order.status === '已完成') return order
+  if (!canBulkComplete(order.status)) {
+    throw new StatusFlowError(`「${order.status}」不能完成`)
+  }
+  let next = order
+  if (next.status === '待处理') {
+    next = applyStatus(next, '进行中', at)
+  }
+  return applyStatus(next, '已完成', at)
+}
+
 export function countsAsIncome(order: Pick<Order, 'status'>): boolean {
   return order.status === '已完成'
 }

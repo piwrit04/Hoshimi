@@ -80,7 +80,10 @@ function isYes(value: string): boolean {
 function isTransferYes(value: string): boolean {
   const s = value.trim().toLowerCase()
   if (!s || ['否', 'no', 'false', '0', 'n', '无', '不转'].includes(s)) return false
-  return ['是', 'yes', 'true', '1', 'y', '转', '转单', '已转'].includes(s)
+  if (['是', 'yes', 'true', '1', 'y', '转', '转单', '已转'].includes(s)) return true
+  // 导出写的「80%」或固定金额文案
+  if (/^\d+(\.\d+)?%?$/.test(s)) return true
+  return false
 }
 
 function dedupeKeyOf(

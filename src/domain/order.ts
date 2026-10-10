@@ -98,3 +98,43 @@ export function normalizeOrder(raw: Partial<Order> & Pick<Order, 'id' | 'orderNo
 function isOrderStatus(v: unknown): v is OrderStatus {
   return v === '待处理' || v === '进行中' || v === '已完成' || v === '已退款' || v === '已取消'
 }
+
+/** 已完成 / 退款 / 取消后金额锁定，不能再改价 */
+export function isAmountLocked(order: Pick<Order, 'amountLocked' | 'status'>): boolean {
+  return (
+    Boolean(order.amountLocked) ||
+    order.status === '已完成' ||
+    order.status === '已退款' ||
+    order.status === '已取消'
+  )
+}
+
+export const ORDER_MONEY_KEYS = [
+  'amount',
+  'feeRate',
+  'feeAmount',
+  'payout',
+  'transferEnabled',
+  'transferMode',
+  'transferRatio',
+  'transferAmount',
+  'items',
+  'type',
+] as const
+
+/** 编辑时剥掉不允许改的字段（金额锁 + 状态须走 setOrderStatus） */
+export function sanitizeOrderPatch(
+  order: Order,
+  patch: Partial<Order>,
+): Partial<Order> {
+  const safe: Partial<Order> = { ...patch }
+  if (isAmountLocked(order)) {
+    for (const k of ORDER_MONEY_KEYS) delete safe[k]
+  }
+  delete safe.status
+  delete safe.id
+  delete safe.orderNo
+  delete safe.createdAt
+  return safe
+}
+

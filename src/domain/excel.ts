@@ -100,7 +100,7 @@ function recordToRow(
     server: asText(pick(record, ['服务器'])),
     platform: asText(pick(record, ['下单平台', '平台'])),
     note: asText(pick(record, ['备注'])),
-    transferAmount: pick(record, ['转单金额']),
+    transferAmount: pick(record, ['转单金额', '转出']),
     sheetNet: pick(record, ['实收金额', '实收', '到手金额']),
     orderedAt: asDate(pick(record, ['下单时间', '创建时间'])),
     completedAt: asDate(pick(record, ['完成时间'])),
