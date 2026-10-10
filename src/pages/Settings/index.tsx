@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import {
   Palette,
   Code2,
@@ -12,7 +12,11 @@ import {
 } from 'lucide-react'
 import { Dropdown } from '@/components/ui/overlay'
 import { FormSwitch } from '@/components/ui/form'
+import { Modal } from '@/components/ui/Modal'
 import { useThemeStore, type ThemeMode } from '@/store/useThemeStore'
+import { useOrdersStore } from '@/store/useOrdersStore'
+import { useToastStore } from '@/store/useToastStore'
+import { normalizeSnapshot } from '@/domain/ledger'
 import { CatalogEditor } from './CatalogEditor'
 
 const themeLabels: Record<ThemeMode, string> = {
@@ -21,10 +25,87 @@ const themeLabels: Record<ThemeMode, string> = {
   light: '浅色模式',
 }
 
+const BACKUP_KEY = 'hoshimi.lastBackupAt'
+
 export default function Settings() {
   const theme = useThemeStore((s) => s.mode)
   const setTheme = useThemeStore((s) => s.setMode)
   const [devMode, setDevMode] = useState(false)
+  const getSnapshot = useOrdersStore((s) => s.getSnapshot)
+  const replaceSnapshot = useOrdersStore((s) => s.replaceSnapshot)
+  const addToast = useToastStore((s) => s.addToast)
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [lastBackup, setLastBackup] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem(BACKUP_KEY)
+    } catch {
+      return null
+    }
+  })
+
+  const downloadBackup = () => {
+    const snap = getSnapshot()
+    const blob = new Blob([JSON.stringify({ ledger: snap }, null, 2)], {
+      type: 'application/json',
+    })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')
+    a.href = url
+    a.download = `hoshimi-backup-${stamp}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+    const now = new Date().toISOString()
+    try {
+      localStorage.setItem(BACKUP_KEY, now)
+    } catch {
+      /* ignore */
+    }
+    setLastBackup(now)
+    addToast({
+      type: 'success',
+      message: `已下载备份（${snap.orders.length} 单 · ${snap.customers.length} 客户）`,
+    })
+  }
+
+  const onPickRestore = async (file: File | null) => {
+    if (!file) return
+    try {
+      const text = await file.text()
+      const parsed = JSON.parse(text) as { ledger?: unknown } | unknown
+      const raw =
+        parsed && typeof parsed === 'object' && 'ledger' in (parsed as object)
+          ? (parsed as { ledger: unknown }).ledger
+          : parsed
+      const next = normalizeSnapshot(raw)
+      if (!next) {
+        addToast({ type: 'error', message: '无法读取该备份文件' })
+        return
+      }
+      const ok = await Modal.confirm({
+        title: '从备份还原？',
+        content: `此备份包含 ${next.orders.length} 单、${next.customers.length} 位客户，将覆盖本设备当前的账本。此操作无法撤销。`,
+        okText: '还原',
+        tone: 'danger',
+      })
+      if (!ok) return
+      replaceSnapshot(next)
+      addToast({ type: 'success', message: '已从备份还原' })
+    } catch {
+      addToast({ type: 'error', message: '无法读取该备份文件' })
+    } finally {
+      if (fileRef.current) fileRef.current.value = ''
+    }
+  }
+
+  const lastLabel = lastBackup
+    ? new Date(lastBackup).toLocaleString('zh-CN', {
+        month: 'numeric',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : null
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-10 px-4 md:px-8 pt-4">
@@ -79,17 +160,46 @@ export default function Settings() {
 
         <CatalogEditor />
 
-        <SettingRow icon={Database} title="缓存与数据" description="管理本地数据和缓存文件">
+        <SettingRow
+          icon={Database}
+          title="缓存与数据"
+          description={
+            lastLabel
+              ? `上次备份：${lastLabel}。更换设备前请先下载备份。`
+              : '账本仅保存在本设备。更换设备或清缓存前请先下载备份。'
+          }
+        >
           <div className="flex items-center gap-2 flex-wrap justify-end">
-            <button type="button" className="btn-primary btn--sm inline-flex items-center gap-1.5">
+            <button
+              type="button"
+              className="btn-primary btn--sm inline-flex items-center gap-1.5"
+              onClick={downloadBackup}
+            >
               <Download size={14} />
               备份数据
             </button>
-            <button type="button" className="btn-secondary btn--sm inline-flex items-center gap-1.5">
+            <button
+              type="button"
+              className="btn-secondary btn--sm inline-flex items-center gap-1.5"
+              onClick={() => fileRef.current?.click()}
+            >
               <Upload size={14} />
               恢复数据
             </button>
-            <button type="button" className="btn-ghost btn--sm inline-flex items-center gap-1.5">
+            <input
+              ref={fileRef}
+              type="file"
+              accept="application/json,.json"
+              className="hidden"
+              onChange={(e) => void onPickRestore(e.target.files?.[0] ?? null)}
+            />
+            <button
+              type="button"
+              className="btn-ghost btn--sm inline-flex items-center gap-1.5"
+              onClick={() =>
+                addToast({ type: 'info', message: '缓存清理暂未接入，账本请用备份/还原' })
+              }
+            >
               <Trash2 size={14} />
               清理缓存
             </button>
@@ -120,7 +230,7 @@ function SettingRow({
         <div className="min-w-0">
           <h3 className="text-sm font-bold text-foreground">{title}</h3>
           {description && (
-            <p className="text-xs text-muted-foreground mt-0.5 truncate">{description}</p>
+            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{description}</p>
           )}
         </div>
       </div>

@@ -1,164 +1,310 @@
+import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import {
   ClipboardList,
   Users,
-  Sword,
+  ListTodo,
   Wallet,
   TrendingUp,
-  Bell,
+  ArrowUpRight,
   type LucideIcon,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+} from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { useOrdersStore } from '@/store/useOrdersStore'
+import { dashboard } from '@/domain/dashboard'
+import { useMemo } from 'react'
 
-/*
- * 概览页（Dashboard）
- *
- * 卡片布局参考 RhythmToolbox 首页：
- *   - 左侧 8 列：快捷入口卡片 × 4（2×2 网格）
- *   - 右侧 4 列：统计面板 + 公告面板
- *
- * 内容是占位数据，等业务层接好了再替换。
- */
+const fade = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0 },
+}
+
+function money(n: number) {
+  return `¥${n.toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`
+}
 
 export default function Dashboard() {
+  const orders = useOrdersStore((s) => s.orders)
+  const customers = useOrdersStore((s) => s.customers)
+  const settings = useOrdersStore((s) => s.settings)
+
+  const m = useMemo(
+    () => dashboard({ orders, customers, settings }),
+    [orders, customers, settings],
+  )
+  const k = m.kpis
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-10 px-4 md:px-8 pt-4">
-      {/* 页头 */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-border/40">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <TrendingUp size={20} className="text-brand" />
-            <span>概览</span>
+            <span>{m.hello}</span>
           </h1>
           <p className="text-sm text-muted-foreground">
-            欢迎回来，今天也辛苦啦
+            {m.todayLabel}
+            {m.usingTest ? ' · 当前为示例数据' : ''}
+            {orders.length === 0 ? ' · 还没有订单，去记第一单吧' : ''}
           </p>
         </div>
       </header>
 
-      {/* 主内容网格 */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* 左列：快捷入口（8 列） */}
         <div className="lg:col-span-8 space-y-6">
           <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <motion.div {...fade} transition={{ duration: 0.25, delay: 0.02 }}>
+              <HeroCard
+                label="本月到手"
+                value={money(k.payoutThisMonth)}
+                sub={
+                  <>
+                    上月 {money(k.payoutLastMonth)}
+                    <span className="mx-1.5 opacity-40">·</span>
+                    营收 {money(k.revenueThisMonth)} · 完成 {k.completedThisMonth} 单
+                  </>
+                }
+                tip="仅统计本月「已完成」订单的到手（金额 − 手续费），不含退款/取消"
+              />
+            </motion.div>
+            <motion.div {...fade} transition={{ duration: 0.25, delay: 0.06 }}>
+              <Link to="/todo" className="block h-full">
+                <HeroCard
+                  label="未完成订单"
+                  value={String(k.openCount)}
+                  link
+                  sub={
+                    <>
+                      <span className="inline-flex items-center gap-1.5">
+                        <i className="size-1.5 rounded-full bg-amber-500" />
+                        待处理 <b className="text-foreground font-semibold">{k.waiting}</b>
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 ml-3">
+                        <i className="size-1.5 rounded-full bg-brand" />
+                        进行中 <b className="text-foreground font-semibold">{k.inProgress}</b>
+                      </span>
+                    </>
+                  }
+                />
+              </Link>
+            </motion.div>
+          </section>
+
+          <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <QuickAccessCard
+              to="/orders"
               title="ORDERS"
               subtitle="订单管理"
               icon={ClipboardList}
-              count={12}
+              count={k.total}
+              delay={0.1}
             />
             <QuickAccessCard
+              to="/customers"
               title="CLIENTS"
               subtitle="客户管理"
               icon={Users}
-              count={8}
+              count={k.customers}
+              delay={0.14}
             />
             <QuickAccessCard
-              title="WORKERS"
-              subtitle="打手管理"
-              icon={Sword}
-              count={5}
+              to="/todo"
+              title="TODO"
+              subtitle="待办工作台"
+              icon={ListTodo}
+              count={k.openCount}
+              delay={0.18}
             />
             <QuickAccessCard
-              title="SETTLEMENT"
-              subtitle="结算统计"
+              to="/settings"
+              title="SETTLE"
+              subtitle="设置与备份"
               icon={Wallet}
-              count={3}
+              count={k.custodyActive}
+              delay={0.22}
             />
           </section>
         </div>
 
-        {/* 右列：统计面板（4 列） */}
         <div className="lg:col-span-4 space-y-6">
-          <DashboardPanel title="本月收入">
-            <div className="flex flex-col h-full justify-center gap-3">
-              <div className="flex justify-between items-end">
-                <span className="text-3xl font-black text-foreground">¥12,865</span>
-                <span className="text-xs text-muted-foreground font-medium mb-1">
-                  共 62 单
+          <motion.div {...fade} transition={{ duration: 0.25, delay: 0.08 }}>
+            <DashboardPanel
+              title="托管快到期"
+              action={
+                <Link to="/todo" className="text-xs font-semibold text-brand hover:underline">
+                  查看全部 →
+                </Link>
+              }
+            >
+              <div className="flex items-baseline gap-2 mb-3">
+                <span
+                  className={cn(
+                    'text-4xl font-black tracking-tight tabular-nums',
+                    m.expiring.length ? 'text-foreground' : 'text-muted-foreground',
+                  )}
+                >
+                  {m.expiring.length}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  单 · {m.remindDays} 天内
                 </span>
               </div>
-              <div className="h-1.5 w-full bg-secondary/50 rounded-full overflow-hidden">
-                <div className="h-full bg-brand rounded-full w-[72%]" />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                目标 ¥18,000 · 已完成 72%
-              </p>
-            </div>
-          </DashboardPanel>
+              {m.expiring.length === 0 ? (
+                <p className="rounded-lg bg-secondary/50 px-4 py-6 text-center text-sm text-muted-foreground">
+                  近期没有要到期的托管单
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {m.expiring.slice(0, 5).map(({ order, days }) => (
+                    <li
+                      key={order.id}
+                      className="flex items-center gap-3 rounded-lg border border-border/50 bg-secondary/30 px-3 py-2.5"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-semibold">{order.nickname || '未命名'}</div>
+                        <div
+                          className={cn(
+                            'text-xs font-medium mt-0.5',
+                            days < 0 ? 'text-destructive' : 'text-amber-600 dark:text-amber-400',
+                          )}
+                        >
+                          {days < 0
+                            ? `已过期 ${-days} 天`
+                            : days === 0
+                              ? '今天到期'
+                              : `还有 ${days} 天`}
+                          {order.endDate ? ` · ${order.endDate}` : ''}
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                  {m.expiring.length > 5 ? (
+                    <li className="text-xs text-muted-foreground px-1">
+                      还有 {m.expiring.length - 5} 单，见「待办」
+                    </li>
+                  ) : null}
+                </ul>
+              )}
+            </DashboardPanel>
+          </motion.div>
 
-          <DashboardPanel title="更新公告">
-            <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
-              <Bell size={36} className="mb-2 opacity-40" />
-              <p className="text-sm">暂无更新公告</p>
-              <p className="text-xs mt-1 opacity-60">有新公告会在这里显示</p>
-            </div>
-          </DashboardPanel>
+          <motion.div {...fade} transition={{ duration: 0.25, delay: 0.12 }}>
+            <DashboardPanel title="近 30 天活跃客户">
+              <div className="flex items-end justify-between">
+                <span className="text-3xl font-black tabular-nums text-foreground">
+                  {k.activeCustomers}
+                </span>
+                <span className="text-xs text-muted-foreground mb-1">位</span>
+              </div>
+            </DashboardPanel>
+          </motion.div>
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-/* ------------------------------------------------------------------ */
-/* 快捷入口卡片：图标 + 英文标签 + 中文标题 + 右下角大数字              */
-/* ------------------------------------------------------------------ */
+function HeroCard({
+  label,
+  value,
+  sub,
+  tip,
+  link,
+}: {
+  label: string
+  value: string
+  sub: React.ReactNode
+  tip?: string
+  link?: boolean
+}) {
+  return (
+    <div
+      className={cn(
+        'relative flex min-h-[9rem] flex-col rounded-xl border border-border/50 bg-card p-5 shadow-sm transition-all duration-300',
+        link && 'hover:shadow-md hover:border-brand/30 group',
+      )}
+      title={tip}
+    >
+      <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground">
+        <span>{label}</span>
+        {link ? (
+          <ArrowUpRight
+            size={14}
+            className="text-muted-foreground group-hover:text-brand transition-colors"
+          />
+        ) : null}
+      </div>
+      <div className="mt-3 text-3xl sm:text-4xl font-black tracking-tight tabular-nums text-foreground">
+        {value}
+      </div>
+      <div className="mt-auto pt-3 text-xs text-muted-foreground border-t border-border/40">
+        {sub}
+      </div>
+    </div>
+  )
+}
 
 function QuickAccessCard({
+  to,
   title,
   subtitle,
   icon: Icon,
   count,
+  delay = 0,
 }: {
-  title: string;
-  subtitle: string;
-  icon: LucideIcon;
-  count?: number;
+  to: string
+  title: string
+  subtitle: string
+  icon: LucideIcon
+  count?: number
+  delay?: number
 }) {
   return (
-    <button
-      type="button"
-      className="block group relative h-36 overflow-hidden rounded-xl bg-card border border-border/50 shadow-sm transition-all duration-300 hover:shadow-md hover:border-brand/30 text-left w-full p-5 flex flex-col justify-between"
-    >
-      <div className="flex items-center gap-2 transition-transform duration-300 group-hover:translate-x-1">
-        <div className="p-1.5 rounded-md bg-brand/10 text-brand transition-transform duration-300 group-hover:scale-110">
-          <Icon size={16} />
+    <motion.div {...fade} transition={{ duration: 0.22, delay }}>
+      <Link
+        to={to}
+        className="block group relative h-32 overflow-hidden rounded-xl bg-card border border-border/50 shadow-sm transition-all duration-300 hover:shadow-md hover:border-brand/30 text-left w-full p-5 flex flex-col justify-between"
+      >
+        <div className="flex items-center gap-2 transition-transform duration-300 group-hover:translate-x-1">
+          <div className="p-1.5 rounded-md bg-brand/10 text-brand transition-transform duration-300 group-hover:scale-110">
+            <Icon size={16} />
+          </div>
+          <span className="text-[10px] font-bold text-brand uppercase tracking-wider">{title}</span>
         </div>
-        <span className="text-[10px] font-bold text-brand uppercase tracking-wider">
-          {title}
-        </span>
-      </div>
-      <div className="flex justify-between items-end">
-        <h3 className="text-lg font-bold text-foreground tracking-tight group-hover:text-brand transition-colors duration-300">
-          {subtitle}
-        </h3>
-        {count !== undefined && (
-          <span className="text-3xl font-black text-muted-foreground/10 group-hover:text-brand/15 transition-colors">
-            {count}
-          </span>
-        )}
-      </div>
-    </button>
-  );
+        <div className="flex justify-between items-end">
+          <h3 className="text-lg font-bold text-foreground tracking-tight group-hover:text-brand transition-colors duration-300">
+            {subtitle}
+          </h3>
+          {count !== undefined && (
+            <span className="text-3xl font-black text-muted-foreground/15 group-hover:text-brand/20 transition-colors tabular-nums">
+              {count}
+            </span>
+          )}
+        </div>
+      </Link>
+    </motion.div>
+  )
 }
-
-/* ------------------------------------------------------------------ */
-/* 统计面板：小图标 + 标题 + 内容区                                     */
-/* ------------------------------------------------------------------ */
 
 function DashboardPanel({
   title,
+  action,
   children,
 }: {
-  title: string;
-  children: React.ReactNode;
+  title: string
+  action?: React.ReactNode
+  children: React.ReactNode
 }) {
   return (
     <div className="bg-card border border-border/50 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-300">
-      <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-        <TrendingUp size={12} className="text-brand/70" />
-        {title}
-      </h3>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+          <TrendingUp size={12} className="text-brand/70" />
+          {title}
+        </h3>
+        {action}
+      </div>
       <div>{children}</div>
     </div>
-  );
+  )
 }

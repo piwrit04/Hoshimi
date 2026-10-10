@@ -1,6 +1,6 @@
 import { useEffect, memo, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Boxes, Settings, Menu, PlusCircle, LayoutList, Users } from 'lucide-react';
+import { Home, Boxes, Settings, Menu, PlusCircle, LayoutList, Users, ListTodo } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSidebarStore } from '@/store/useSidebarStore';
 import { useNewOrderStore } from '@/store/useNewOrderStore';
@@ -21,6 +21,7 @@ type NavItemType =
 const navItems: NavItemType[] = [
   { icon: Home, label: '概览', path: '/dashboard' },
   { icon: LayoutList, label: '订单', path: '/orders' },
+  { icon: ListTodo, label: '待办', path: '/todo' },
   { icon: Users, label: '客户', path: '/customers' },
   { icon: PlusCircle, label: '新建订单', modal: true },
   { icon: Boxes, label: '组件预览', path: '/components' },

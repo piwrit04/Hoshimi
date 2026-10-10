@@ -72,8 +72,10 @@ interface OrdersState {
     patch: { name?: string; price?: number | null; enabled?: boolean },
   ) => void
   removeProduct: (id: string) => void
+  /** 当前账本快照（导出备份） */
+  getSnapshot: () => Snapshot
   /** 整本替换（导入用）；hydrate 后会落盘 */
-  replaceSnapshot: (partial: Partial<Snapshot>) => void
+  replaceSnapshot: (snap: Snapshot | Partial<Snapshot>) => void
 }
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null
@@ -386,6 +388,23 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
   removeProduct: (id) => {
     applyCatalog(set, prodRemove(get().catalogSlice(), id))
     schedulePersist(get)
+  },
+
+  getSnapshot: () => {
+    const s = get()
+    return {
+      version: SCHEMA_VERSION,
+      orders: s.orders,
+      customers: s.customers,
+      games: s.games,
+      categories: s.categories,
+      products: s.products,
+      servers: s.servers,
+      settings: s.settings,
+      channelFees: s.channelFees,
+      orderSeq: s.orderSeq,
+      updatedAt: new Date().toISOString(),
+    }
   },
 
   replaceSnapshot: (partial) => {

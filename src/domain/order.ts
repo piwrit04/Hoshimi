@@ -46,6 +46,8 @@ export interface Order {
   completedAt?: string
   /** 已完成 / 终态后金额锁定 */
   amountLocked?: boolean
+  /** 示例数据；有正式单时统计会排除 */
+  isTest?: boolean
 }
 
 /** 给旧快照 / 缺字段补默认 */
@@ -83,6 +85,7 @@ export function normalizeOrder(raw: Partial<Order> & Pick<Order, 'id' | 'orderNo
     startedAt: raw.startedAt,
     completedAt: raw.completedAt,
     amountLocked: Boolean(raw.amountLocked),
+    isTest: Boolean(raw.isTest),
   }
 }
 
