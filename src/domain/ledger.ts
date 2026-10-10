@@ -1,5 +1,15 @@
+import { seedCatalog } from '@/domain/catalog'
 import { normalizeOrder, type Order } from '@/domain/order'
-import type { AppSettings, ChannelFee, Snapshot } from '@/storage/types'
+import type {
+  AppSettings,
+  CatalogCategory,
+  CatalogProduct,
+  ChannelFee,
+  Customer,
+  Game,
+  ServerEntry,
+  Snapshot,
+} from '@/storage/types'
 import { SCHEMA_VERSION } from '@/storage/types'
 
 export function defaultSettings(): AppSettings {
@@ -17,10 +27,15 @@ export function defaultChannelFees(): ChannelFee[] {
 }
 
 export function emptySnapshot(): Snapshot {
+  const catalog = seedCatalog()
   return {
     version: SCHEMA_VERSION,
     orders: [],
     customers: [],
+    games: catalog.games,
+    categories: catalog.categories,
+    products: catalog.products,
+    servers: catalog.servers,
     settings: defaultSettings(),
     channelFees: defaultChannelFees(),
     orderSeq: 0,
@@ -32,6 +47,10 @@ function isOrderLike(v: unknown): v is Partial<Order> & Pick<Order, 'id' | 'orde
   if (!v || typeof v !== 'object') return false
   const o = v as Record<string, unknown>
   return typeof o.id === 'string' && typeof o.orderNo === 'string' && Array.isArray(o.items)
+}
+
+function asArray<T>(v: unknown): T[] {
+  return Array.isArray(v) ? (v as T[]) : []
 }
 
 /**
@@ -52,22 +71,29 @@ export function normalizeSnapshot(raw: unknown): Snapshot | null {
   if (!Array.isArray(settings.recentProductIds)) settings.recentProductIds = []
 
   const orders = data.orders.filter(isOrderLike).map(normalizeOrder)
-  const customers = Array.isArray(data.customers)
-    ? data.customers.filter((c) => c && typeof (c as { id?: string }).id === 'string')
-    : []
+  const customers = asArray<Customer>(data.customers).filter(
+    (c) => c && typeof c.id === 'string' && typeof c.nickname === 'string',
+  )
   const channelFees =
     Array.isArray(data.channelFees) && data.channelFees.length > 0
       ? data.channelFees
       : base.channelFees
 
-  // v0 / 无 version → v1：合法订单保留，缺字段用默认
-  const version = typeof data.version === 'number' ? data.version : 0
-  void version // 以后在这里写 version < N 的迁移分支
+  // v1 → v2：补项目目录种子
+  const games = asArray<Game>(data.games)
+  const categories = asArray<CatalogCategory>(data.categories)
+  const products = asArray<CatalogProduct>(data.products)
+  const servers = asArray<ServerEntry>(data.servers)
+  const hasCatalog = games.length > 0 && categories.length > 0
 
   return {
     version: SCHEMA_VERSION,
     orders,
-    customers: customers as Snapshot['customers'],
+    customers,
+    games: hasCatalog ? games : base.games,
+    categories: hasCatalog ? categories : base.categories,
+    products: hasCatalog ? products : base.products,
+    servers: servers.length > 0 ? servers : base.servers,
     settings,
     channelFees,
     orderSeq:

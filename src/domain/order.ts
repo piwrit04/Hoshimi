@@ -17,6 +17,8 @@ export interface Order {
   id: string
   orderNo: string
   createdAt: string
+  /** 关联客户；旧数据可空，保存时会补 */
+  customerId?: string
   nickname: string
   contact: string
   type: OrderType
@@ -57,6 +59,7 @@ export function normalizeOrder(raw: Partial<Order> & Pick<Order, 'id' | 'orderNo
     id: raw.id,
     orderNo: raw.orderNo,
     createdAt: typeof raw.createdAt === 'string' ? raw.createdAt : new Date().toISOString(),
+    customerId: typeof raw.customerId === 'string' ? raw.customerId : undefined,
     nickname: typeof raw.nickname === 'string' ? raw.nickname : '',
     contact: typeof raw.contact === 'string' ? raw.contact : '',
     type: raw.type === '托管' ? '托管' : '普通',

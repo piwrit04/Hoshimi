@@ -13,7 +13,7 @@
 import type { Order, Platform } from '@/domain/order'
 
 /** 当前快照 schema 版本；改结构时 +1 并在 normalizeSnapshot 写迁移 */
-export const SCHEMA_VERSION = 1
+export const SCHEMA_VERSION = 2
 
 export const DB_NAME = 'hoshimi'
 export const DB_VERSION = 1
@@ -29,6 +29,43 @@ export type Customer = {
   mergedIntoId?: string
 }
 
+export type CatalogKind = 'normal' | 'custody'
+
+export type Game = {
+  id: string
+  name: string
+  /** 单号前缀，只含字母数字 */
+  orderPrefix: string
+  sort: number
+}
+
+export type CatalogCategory = {
+  id: string
+  gameId: string
+  code: string
+  name: string
+  kind: CatalogKind
+  enabled: boolean
+  sort: number
+}
+
+export type CatalogProduct = {
+  id: string
+  categoryId: string
+  name: string
+  /** 默认价（元），可空 */
+  price?: number | null
+  enabled: boolean
+  sort: number
+}
+
+export type ServerEntry = {
+  id: string
+  gameId: string
+  name: string
+  enabled: boolean
+}
+
 export type ChannelFee = {
   platform: Platform
   rate: number
@@ -37,7 +74,7 @@ export type ChannelFee = {
 export type AppSettings = {
   /** 托管到期提醒提前天数 */
   expiryOffsets: number[]
-  /** 最近用过的项目名（录单快捷） */
+  /** 最近用过的项目 id（录单快捷） */
   recentProductIds: string[]
 }
 
@@ -45,6 +82,10 @@ export type Snapshot = {
   version: number
   orders: Order[]
   customers: Customer[]
+  games: Game[]
+  categories: CatalogCategory[]
+  products: CatalogProduct[]
+  servers: ServerEntry[]
   settings: AppSettings
   channelFees: ChannelFee[]
   /** 单号序号（全局自增） */
