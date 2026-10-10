@@ -1,0 +1,103 @@
+import { LayoutList, PlusCircle } from 'lucide-react'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { Button } from '@/components/ui/Button'
+import { DataTable, Tag, type DataTableColumn } from '@/components/ui/data'
+import { useOrdersStore, type Order, type OrderStatus } from '@/store/useOrdersStore'
+import { useNewOrderStore } from '@/store/useNewOrderStore'
+
+/*
+ * 订单列表 —— 第一版只读表格，行点进去没有详情抽屉。
+ * 数据来自 useOrdersStore（内存），刷新会丢。
+ */
+
+const statusTone: Record<OrderStatus, 'default' | 'warning' | 'success' | 'danger'> = {
+  '待处理': 'warning',
+  '进行中': 'default',
+  '已完成': 'success',
+}
+
+export default function Orders() {
+  const orders = useOrdersStore((s) => s.orders)
+  const openNewOrder = useNewOrderStore((s) => s.open)
+
+  const columns: DataTableColumn<Order>[] = [
+    {
+      key: 'orderNo', title: '单号', width: '110px',
+      render: (r) => <span className="font-mono text-xs">{r.orderNo}</span>,
+    },
+    {
+      key: 'createdAt', title: '日期', width: '90px',
+      render: (r) => (
+        <span className="text-xs text-muted-foreground">
+          {new Date(r.createdAt).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}
+        </span>
+      ),
+    },
+    {
+      key: 'nickname', title: '客户',
+      render: (r) => (
+        <div>
+          <div className="font-semibold">{r.nickname}</div>
+          <div className="text-xs text-muted-foreground">{r.contact}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'items', title: '项目',
+      render: (r) =>
+        r.type === '托管' ? (
+          <span>{r.custodyKind} · {r.settleKind}</span>
+        ) : (
+          <div className="text-sm">{r.items.map((i) => i.product).join('、')}</div>
+        ),
+    },
+    {
+      key: 'platform', title: '渠道', width: '70px',
+      render: (r) => <span className="text-sm">{r.platform}</span>,
+    },
+    {
+      key: 'amount', title: '金额', width: '90px', align: 'right', sortable: true,
+      render: (r) => <span className="tabular-nums">¥{r.amount.toFixed(0)}</span>,
+    },
+    {
+      key: 'payout', title: '到手', width: '90px', align: 'right',
+      render: (r) => <span className="tabular-nums font-semibold text-brand">¥{r.payout.toFixed(0)}</span>,
+    },
+    {
+      key: 'status', title: '状态', width: '90px',
+      render: (r) => <Tag tone={statusTone[r.status]}>{r.status}</Tag>,
+    },
+  ]
+
+  const total = orders.reduce((s, o) => s + o.amount, 0)
+  const payout = orders.reduce((s, o) => s + o.payout, 0)
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 md:px-8 py-6">
+      <PageHeader
+        icon={LayoutList}
+        title={`订单 · 共 ${orders.length} 单，流水 ¥${total.toFixed(0)}，到手 ¥${payout.toFixed(0)}`}
+        actions={
+          <Button variant="primary" onClick={openNewOrder}>
+            <PlusCircle size={16} /> 新建订单
+          </Button>
+        }
+      />
+
+      <div className="bg-card border border-border/50 rounded-xl overflow-hidden">
+        <DataTable
+          columns={columns}
+          data={orders}
+          rowKey={(r) => r.id}
+          empty={
+            <div className="py-16 text-center text-muted-foreground">
+              <LayoutList size={36} className="mx-auto mb-3 opacity-30" />
+              <p className="text-sm">还没有订单</p>
+              <p className="text-xs mt-1">点右上角「新建订单」记第一单</p>
+            </div>
+          }
+        />
+      </div>
+    </div>
+  )
+}

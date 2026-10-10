@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- 内联 SVG 图标：省掉一个 favicon 404，也不用额外放图片文件 -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%237eb3ff'/%3E%3Ctext x='16' y='23' font-size='19' font-weight='bold' fill='%230f0f11' text-anchor='middle' font-family='sans-serif'%3E星%3C/text%3E%3C/svg%3E"
+    />
+    <title>星笺</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 启动画面：React 挂载前挡住白屏 -->
+    <div id="loading-screen" class="loading-screen">
+      <div class="loading-container">
+        <div class="loading-logo">
+          <svg viewBox="0 0 100 100" class="logo-spin">
+            <circle cx="50" cy="50" r="45" fill="none" stroke="#4BC0C8" stroke-width="2" opacity="0.3" />
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#C779D0" stroke-width="2" opacity="0.5" />
+            <circle cx="50" cy="50" r="25" fill="none" stroke="#FF6B9D" stroke-width="2" opacity="0.7" />
+            <circle cx="50" cy="50" r="15" fill="#FF6B9D" />
+          </svg>
+        </div>
+        <div class="loading-text">星笺</div>
+        <div class="loading-subtitle" id="loading-step">代肝订单管理</div>
+        <div class="progress-container">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progress-bar">
+              <div class="progress-bar-glow"></div>
+            </div>
+          </div>
+          <div class="progress-text"><span id="progress-percent">0%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <style>
+      :root {
+        --loading-bg-start: #0a0a0b;
+        --loading-bg-mid: #1a0a1a;
+        --loading-bg-end: #0a0a1a;
+        --loading-primary: #ff6b9d;
+        --loading-secondary: #c779d0;
+        --loading-accent: #4bc0c8;
+        --loading-text: rgba(255, 255, 255, 0.6);
+        --loading-bar-bg: rgba(255, 255, 255, 0.1);
+        --loading-bar-border: rgba(255, 255, 255, 0.1);
+        --loading-progress-text: rgba(255, 255, 255, 0.8);
+      }
+      [data-theme="light"] {
+        --loading-bg-start: #f5f5f7;
+        --loading-bg-mid: #e8e8eb;
+        --loading-bg-end: #f0f0f2;
+        --loading-primary: #e91e63;
+        --loading-secondary: #9c27b0;
+        --loading-accent: #2196f3;
+        --loading-text: rgba(0, 0, 0, 0.6);
+        --loading-bar-bg: rgba(0, 0, 0, 0.1);
+        --loading-bar-border: rgba(0, 0, 0, 0.1);
+        --loading-progress-text: rgba(0, 0, 0, 0.8);
+      }
+      .loading-screen {
+        position: fixed; inset: 0;
+        background: linear-gradient(135deg, var(--loading-bg-start) 0%, var(--loading-bg-mid) 50%, var(--loading-bg-end) 100%);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 9999; transition: opacity 0.5s ease-out;
+      }
+      .loading-screen.hidden { opacity: 0; pointer-events: none; }
+      .loading-container { text-align: center; animation: fadeIn 0.8s ease-out; max-width: 400px; width: 90%; }
+      .loading-logo { margin-bottom: 24px; filter: drop-shadow(0 0 20px rgba(255, 107, 157, 0.5)); display: flex; justify-content: center; align-items: center; }
+      .logo-spin { width: 80px; height: 80px; animation: spin 3s linear infinite; transform-origin: center center; display: block; }
+      .loading-text { font-size: 24px; font-weight: bold; color: var(--loading-primary); margin-bottom: 8px; letter-spacing: 2px; text-shadow: 0 0 10px rgba(255, 107, 157, 0.5); }
+      .loading-subtitle { font-size: 14px; color: var(--loading-text); letter-spacing: 1px; margin-bottom: 24px; min-height: 20px; }
+      .progress-container { width: 100%; }
+      .progress-bar-bg { width: 100%; height: 8px; background: var(--loading-bar-bg); border-radius: 4px; overflow: hidden; position: relative; backdrop-filter: blur(10px); border: 1px solid var(--loading-bar-border); }
+      .progress-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--loading-primary) 0%, var(--loading-secondary) 50%, var(--loading-accent) 100%); border-radius: 4px; position: relative; transition: width 0.3s ease-out; }
+      .progress-bar-glow { position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent); animation: shimmer 1.5s infinite; }
+      .progress-text { margin-top: 12px; font-size: 13px; color: var(--loading-progress-text); font-weight: 500; }
+      @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+    </style>
+
+    <div id="root"></div>
+
+    <!-- 浏览器里跑的时候顶掉 Electron API，这样 npm run dev 也能直接看界面 -->
+    <script>
+      if (!window.ipcRenderer) {
+        const mockConfig = { language: "zh", theme: "dark", dataDir: "", setupComplete: true, setupCompleted: true };
+        window.ipcRenderer = {
+          invoke: async (channel) => {
+            switch (channel) {
+              case "read-user-config": return mockConfig;
+              case "write-user-config": return true;
+              case "get-app-path": return "";
+              case "get-default-data-path": return "";
+              default: return null;
+            }
+          },
+          send: () => {},
+          on: () => () => {},
+          removeListener: () => {},
+        };
+      }
+    </script>
+
+    <!-- 主题判定必须早于 React 挂载，否则会闪一下深色再变浅色 -->
+    <script>
+      (function () {
+        const getTheme = () => {
+          try {
+            const saved = localStorage.getItem("theme-storage");
+            if (saved) {
+              const parsed = JSON.parse(saved);
+              if (parsed?.state?.mode) return parsed.state.mode;
+            }
+          } catch (e) { void e; }
+          if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) return "light";
+          return "dark";
+        };
+        const theme = getTheme();
+        if (theme === "light") document.documentElement.setAttribute("data-theme", "light");
+        else document.documentElement.removeAttribute("data-theme");
+      })();
+
+      (function () {
+        let done = false;
+        window.updateLoadingProgress = function (percent, step) {
+          if (done && percent < 100) return;
+          const bar = document.getElementById("progress-bar");
+          const pct = document.getElementById("progress-percent");
+          const st = document.getElementById("loading-step");
+          if (bar) bar.style.width = percent + "%";
+          if (pct) pct.textContent = percent + "%";
+          if (st && step) st.textContent = step;
+          if (percent >= 100) done = true;
+        };
+        window.updateLoadingProgress(10, "正在初始化...");
+      })();
+    </script>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,83 @@
+/* Tooltip 样式
+ *
+ * 底色跟随主题的品牌色（--brand-hex）：浅色主题是粉色、深色主题是蓝色，
+ * 文字用品牌色上的对比色（--on-brand-hex）。这是主题系统的一部分，
+ * 不固定成深灰（那是上一轮的误改，用户要求跟随主题）。
+ * 箭头始终指向目标元素中心：
+ *   top/bottom → 箭头水平居中
+ *   left/right → 箭头垂直居中
+ */
+
+.ed-tooltip {
+  padding: 7px 12px;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  background-color: var(--brand-hex);
+  color: var(--on-brand-hex);
+  box-shadow: var(--shadow-2);
+  pointer-events: none;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.ed-tooltip--visible {
+  opacity: 1;
+}
+
+/* top：箭头在底部，水平居中朝下 */
+.ed-tooltip--top::before {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  background-color: var(--brand-hex);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+/* bottom：箭头在顶部，水平居中朝上 */
+.ed-tooltip--bottom::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  background-color: var(--brand-hex);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+/* left：箭头在右侧，垂直居中朝右 */
+.ed-tooltip--left::before {
+  content: "";
+  position: absolute;
+  right: -5px;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  background-color: var(--brand-hex);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+/* right：箭头在左侧，垂直居中朝左 */
+.ed-tooltip--right::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  background-color: var(--brand-hex);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+/* 多行 tooltip */
+.ed-tooltip--multiline {
+  white-space: normal;
+  max-width: 260px;
+  text-align: center;
+}
