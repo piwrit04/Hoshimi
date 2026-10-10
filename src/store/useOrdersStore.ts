@@ -8,10 +8,12 @@ import {
   addGame as gameAdd,
   addProduct as prodAdd,
   addServer as srvAdd,
+  formatOrderNo,
   removeCategory as catRemove,
   removeGame as gameRemove,
   removeProduct as prodRemove,
   removeServer as srvRemove,
+  resolveOrderPrefix,
   updateCategory as catUpdate,
   updateGame as gameUpdate,
   updateProduct as prodUpdate,
@@ -108,13 +110,8 @@ function schedulePersist(get: () => OrdersState) {
   }, 200)
 }
 
-function nextOrderNo(seq: number): string {
-  const d = new Date()
-  const y = String(d.getFullYear()).slice(-2)
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  const n = String(seq).padStart(2, '0')
-  return `#NTE${y}${m}${day}${n}`
+function nextOrderNo(seq: number, games: Game[]): string {
+  return formatOrderNo(seq, resolveOrderPrefix(games))
 }
 
 function applyCatalog(
@@ -282,7 +279,7 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
       nickname: customer.nickname,
       contact: customer.contact,
       id: `o-${Date.now()}-${seq}`,
-      orderNo: nextOrderNo(seq),
+      orderNo: nextOrderNo(seq, get().games),
       createdAt: now,
       startedAt:
         data.status === '进行中' || data.status === '已完成' ? data.startedAt ?? now : data.startedAt,
@@ -303,7 +300,11 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
   updateOrder: (id, patch) => {
     const cur = get().orders.find((o) => o.id === id)
     if (!cur) return null
-    const locked = Boolean(cur.amountLocked) || cur.status === '已退款' || cur.status === '已取消'
+    const locked =
+      Boolean(cur.amountLocked) ||
+      cur.status === '已完成' ||
+      cur.status === '已退款' ||
+      cur.status === '已取消'
     const moneyKeys = [
       'amount', 'feeRate', 'feeAmount', 'payout',
       'transferEnabled', 'transferMode', 'transferRatio', 'transferAmount',

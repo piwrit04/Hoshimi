@@ -3,6 +3,7 @@
  * 不做异环项目别名全表；项目原文写入明细，分类标「导入」。
  */
 
+import { formatOrderNo, resolveOrderPrefix } from '@/domain/catalog'
 import { calcMoney, parseMoney, round2 } from '@/domain/money'
 import type { Order, OrderStatus, Platform } from '@/domain/order'
 import type { Customer, Snapshot } from '@/storage/types'
@@ -289,12 +290,8 @@ export function planImport(snap: Snapshot, raws: RawImportRow[], now = new Date(
   }
 }
 
-function nextOrderNo(seq: number, when: Date): string {
-  const y = String(when.getFullYear()).slice(-2)
-  const m = String(when.getMonth() + 1).padStart(2, '0')
-  const day = String(when.getDate()).padStart(2, '0')
-  const n = String(seq).padStart(2, '0')
-  return `#NTE${y}${m}${day}${n}`
+function nextOrderNo(seq: number, when: Date, prefix: string): string {
+  return formatOrderNo(seq, prefix, when)
 }
 
 /** 把计划合并进快照（不落盘；由 store replaceSnapshot） */
@@ -305,6 +302,7 @@ export function applyImport(snap: Snapshot, plan: ImportPlan, now = new Date()):
   let orderSeq = snap.orderSeq
   const idMap = new Map<string, string>()
   const gameId = snap.games[0]?.id ?? 'default'
+  const orderPrefix = resolveOrderPrefix(snap.games)
 
   for (const row of plan.rows) {
     if (row.disposition !== 'write') continue
@@ -353,7 +351,7 @@ export function applyImport(snap: Snapshot, plan: ImportPlan, now = new Date()):
     orderSeq += 1
     const order: Order = {
       id: `o-imp-${Date.now()}-${orderSeq}`,
-      orderNo: nextOrderNo(orderSeq, stamped),
+      orderNo: nextOrderNo(orderSeq, stamped, orderPrefix),
       createdAt: row.orderedAt,
       customerId,
       nickname: row.nickname,

@@ -30,7 +30,7 @@ import {
   serversOf,
 } from '@/domain/catalog'
 import type { SettleKind } from '@/domain/order'
-import { isTerminal } from '@/domain/status'
+import { isTerminal, payoutVoid, NO_PAYOUT } from '@/domain/status'
 
 type Line = { key: number; category: string; product: string; price: string }
 type StatusCreate = '待处理' | '进行中' | '已完成'
@@ -343,7 +343,11 @@ function Inner({
             <span className="text-muted-foreground">当前状态</span>
             <Tag tone={statusTone[editing.status]}>{editing.status}</Tag>
             {moneyLocked && (
-              <span className="text-xs text-muted-foreground">金额已锁定，可改客户与备注</span>
+              <span className="text-xs text-muted-foreground">
+                {editing && payoutVoid(editing)
+                  ? '终态订单：到手作废，金额不可改，可改客户与备注'
+                  : '金额已锁定，可改客户与备注'}
+              </span>
             )}
           </div>
         )}
@@ -539,6 +543,7 @@ function Inner({
               <Field label="开始日" required error={errors.startDate}>
                 <DatePicker
                   value={startDate}
+                  disabled={moneyLocked}
                   onChange={(d) => {
                     if (!moneyLocked) onStartChange(d)
                   }}
@@ -548,6 +553,7 @@ function Inner({
               <Field label="结束日" required error={errors.endDate}>
                 <DatePicker
                   value={endDate}
+                  disabled={moneyLocked}
                   onChange={(d) => {
                     if (!moneyLocked) setEndDate(d)
                   }}
@@ -626,21 +632,25 @@ function Inner({
         </section>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <MoneyCell label="订单金额" value={amount} />
-          {transferEnabled && <MoneyCell label="转出" value={money.transferOut} accent />}
-          <MoneyCell label={`手续费 (${feePercentLabel(feeRate)})`} value={money.feeAmount} />
+          <MoneyCell label="订单金额" value={amount} voided={Boolean(editing && payoutVoid(editing))} />
+          {transferEnabled && (
+            <MoneyCell
+              label="转出"
+              value={money.transferOut}
+              accent
+              voided={Boolean(editing && payoutVoid(editing))}
+            />
+          )}
           <MoneyCell
-            label={
-              editing && (editing.status === '已退款' || editing.status === '已取消')
-                ? '到手（已作废）'
-                : '预计到手'
-            }
-            value={
-              editing && (editing.status === '已退款' || editing.status === '已取消')
-                ? 0
-                : money.payoutAmount
-            }
+            label={`手续费 (${feePercentLabel(feeRate)})`}
+            value={money.feeAmount}
+            voided={Boolean(editing && payoutVoid(editing))}
+          />
+          <MoneyCell
+            label={editing && payoutVoid(editing) ? '到手' : '预计到手'}
+            value={money.payoutAmount}
             highlight
+            voided={Boolean(editing && payoutVoid(editing))}
           />
         </div>
 
@@ -661,11 +671,14 @@ function MoneyCell({
   value,
   accent = false,
   highlight = false,
+  voided = false,
 }: {
   label: string
   value: number
   accent?: boolean
   highlight?: boolean
+  /** 退款/取消：显示 —，不算到手 */
+  voided?: boolean
 }) {
   return (
     <div
@@ -680,9 +693,11 @@ function MoneyCell({
     >
       <div className="text-[11px] text-muted-foreground">{label}</div>
       <div
-        className={`text-base font-bold tabular-nums ${highlight ? 'text-brand' : 'text-foreground'}`}
+        className={`text-base font-bold tabular-nums ${
+          voided ? 'text-muted-foreground' : highlight ? 'text-brand' : 'text-foreground'
+        }`}
       >
-        ¥{value.toFixed(2)}
+        {voided ? NO_PAYOUT : `¥${value.toFixed(2)}`}
       </div>
     </div>
   )

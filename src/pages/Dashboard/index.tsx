@@ -29,11 +29,10 @@ export default function Dashboard() {
   const customers = useOrdersStore((s) => s.customers)
   const settings = useOrdersStore((s) => s.settings)
 
-  const games = useOrdersStore((s) => s.games)
   const [unit, setUnit] = useState<TrendUnit>('month')
   const [tipDismissed, setTipDismissed] = useState(() => {
     try {
-      return localStorage.getItem('hoshimi.firstRunTipDismissed') === '1'
+      return localStorage.getItem('hoshimi.emptyLedgerTipDismissed') === '1'
     } catch {
       return false
     }
@@ -48,7 +47,7 @@ export default function Dashboard() {
     [orders, customers, settings, unit],
   )
   const k = m.kpis
-  const showSetupTip = !tipDismissed && games.length === 0
+  const showSetupTip = !tipDismissed && orders.length === 0
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-10 px-4 md:px-8 pt-4">
@@ -69,7 +68,10 @@ export default function Dashboard() {
       {showSetupTip ? (
         <div className="flex items-start justify-between gap-3 rounded-xl border border-brand/30 bg-brand/5 px-4 py-3 text-sm">
           <p className="text-foreground/90">
-            还没有游戏目录。去「设置 → 项目目录」加一个游戏，录单会更顺手。
+            账本还是空的。可以从侧栏「新建订单」记第一单，或在「设置」里导入备份 / 调整项目目录。
+            <Link to="/orders" className="ml-2 font-semibold text-brand hover:underline">
+              去订单 →
+            </Link>
             <Link to="/settings" className="ml-2 font-semibold text-brand hover:underline">
               去设置 →
             </Link>
@@ -79,7 +81,7 @@ export default function Dashboard() {
             className="shrink-0 text-xs text-muted-foreground hover:text-foreground"
             onClick={() => {
               try {
-                localStorage.setItem('hoshimi.firstRunTipDismissed', '1')
+                localStorage.setItem('hoshimi.emptyLedgerTipDismissed', '1')
               } catch {
                 /* ignore */
               }

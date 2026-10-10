@@ -17,6 +17,8 @@ interface DatePickerProps {
   placeholder?: string
   className?: string
   error?: boolean
+  /** 整控件禁用（终态订单等） */
+  disabled?: boolean
   /** 返回 true 表示该日不可选 */
   disabledDate?: (iso: string) => boolean
 }
@@ -38,6 +40,7 @@ export function DatePicker({
   placeholder = '选择日期',
   className,
   error,
+  disabled,
   disabledDate,
 }: DatePickerProps) {
   const [open, setOpen] = useState(false)
@@ -106,10 +109,15 @@ export function DatePicker({
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        disabled={disabled}
+        onClick={() => {
+          if (disabled) return
+          setOpen((v) => !v)
+        }}
         className={cn(
           'dd-control flex items-center justify-between gap-2 text-left',
           error && 'dd-control--error',
+          disabled && 'opacity-60 cursor-not-allowed',
           className
         )}
       >

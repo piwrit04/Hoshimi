@@ -126,6 +126,23 @@ export function cleanPrefix(raw: string | null | undefined, fallback = DEFAULT_P
   return text || fallback
 }
 
+/** 订单号：#{prefix}YYMMDDNN，prefix 来自游戏的 orderPrefix */
+export function formatOrderNo(seq: number, prefix: string, when: Date = new Date()): string {
+  const p = cleanPrefix(prefix)
+  const y = String(when.getFullYear()).slice(-2)
+  const m = String(when.getMonth() + 1).padStart(2, '0')
+  const day = String(when.getDate()).padStart(2, '0')
+  const n = String(seq).padStart(2, '0')
+  return `#${p}${y}${m}${day}${n}`
+}
+
+/** 取主游戏（或第一款）的订单号前缀 */
+export function resolveOrderPrefix(games: Game[]): string {
+  if (!games.length) return DEFAULT_PREFIX
+  const id = primaryGameId(games)
+  return games.find((g) => g.id === id)?.orderPrefix ?? games[0]?.orderPrefix ?? DEFAULT_PREFIX
+}
+
 function cleanPrice(price: number | null | undefined): number | null {
   if (price == null || !Number.isFinite(price)) return null
   if (price < 0) throw new Error('价格不能为负数')

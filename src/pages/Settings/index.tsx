@@ -12,6 +12,7 @@ import {
   FileSpreadsheet,
   FileDown,
   Info,
+  RefreshCw,
 } from 'lucide-react'
 import { Dropdown } from '@/components/ui/overlay'
 import { FormSwitch } from '@/components/ui/form'
@@ -53,6 +54,7 @@ export default function Settings() {
   const [importPlan, setImportPlan] = useState<ImportPlan | null>(null)
   const [importName, setImportName] = useState('')
   const [importReading, setImportReading] = useState(false)
+  const [updateHint, setUpdateHint] = useState<string | null>(null)
 
   const downloadBackup = () => {
     const snap = getSnapshot()
@@ -324,6 +326,25 @@ export default function Settings() {
               清理缓存
             </button>
           </div>
+        </SettingRow>
+
+        <SettingRow
+          icon={RefreshCw}
+          title="检查更新"
+          description="桌面端自动更新将接入 electron-updater；当前为占位。网页版请刷新浏览器。"
+        >
+          <button
+            type="button"
+            className="btn-secondary btn--sm inline-flex items-center gap-1.5"
+            onClick={() => {
+              setUpdateHint('已是最新')
+              addToast({ type: 'success', message: `当前已是最新版本 v${APP_VERSION}` })
+              window.setTimeout(() => setUpdateHint(null), 2500)
+            }}
+          >
+            <RefreshCw size={14} />
+            {updateHint ?? '检查更新'}
+          </button>
         </SettingRow>
 
         <SettingRow

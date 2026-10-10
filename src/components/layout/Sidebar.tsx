@@ -1,9 +1,10 @@
-import { useEffect, memo, useState } from 'react';
+import { useEffect, memo, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Home, Boxes, Settings, Menu, PlusCircle, LayoutList, Users, ListTodo } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSidebarStore } from '@/store/useSidebarStore';
 import { useNewOrderStore } from '@/store/useNewOrderStore';
+import { useToastStore } from '@/store/useToastStore';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { Scrollbar } from '@/components/ui/Scrollbar';
 
@@ -93,6 +94,26 @@ const NavItem = memo(function NavItem({
 export function Sidebar({ showLogo = true }: { showLogo?: boolean }) {
   const { isCollapsed, toggleCollapse } = useSidebarStore();
   const [isLogoHovered, setIsLogoHovered] = useState(false);
+  const addToast = useToastStore((s) => s.addToast);
+  const eggClicks = useRef(0);
+  const eggTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const onLogoClick = () => {
+    // 连点 Logo：第七下弹出轻量彩蛋；平时仍折叠/展开侧栏
+    eggClicks.current += 1;
+    if (eggTimer.current) clearTimeout(eggTimer.current);
+    eggTimer.current = setTimeout(() => {
+      eggClicks.current = 0;
+    }, 1400);
+    if (eggClicks.current >= 7) {
+      eggClicks.current = 0;
+      addToast({
+        type: 'info',
+        message: `✨ 星笺 v${__APP_VERSION__} · 记好每一单，祝生意顺`,
+      });
+    }
+    toggleCollapse();
+  };
 
   // Escape 收起侧栏（仅在侧栏展开且无浮层打开时）
   useEffect(() => {
@@ -128,7 +149,7 @@ export function Sidebar({ showLogo = true }: { showLogo?: boolean }) {
           className="flex items-center justify-center shrink-0 cursor-pointer transition-colors duration-300 hover:bg-secondary/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary no-drag h-16 px-3"
           onMouseEnter={() => setIsLogoHovered(true)}
           onMouseLeave={() => setIsLogoHovered(false)}
-          onClick={toggleCollapse}
+          onClick={onLogoClick}
         >
           <div
             className={cn(
