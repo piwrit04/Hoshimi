@@ -156,8 +156,11 @@ export function DataTable<T>({
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault()
-                        setSortKey(col.key)
-                        setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+                        if (sortKey === col.key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+                        else {
+                          setSortKey(col.key)
+                          setSortDir('asc')
+                        }
                       }
                     }}
                   >

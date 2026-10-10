@@ -48,6 +48,12 @@ export function Scrollbar({
   gap = 8,
   ...rest
 }: ScrollbarProps) {
+  /* data-scroll-root 必须挂在真正滚动的 viewport 上（弹层锁滚动 / 锚点跳转都找它） */
+  const scrollRootAttr = (rest as Record<string, unknown>)['data-scroll-root']
+  const hasScrollRoot = scrollRootAttr !== undefined
+  const wrapperRest = { ...rest } as Record<string, unknown>
+  if (hasScrollRoot) delete wrapperRest['data-scroll-root']
+
   const viewportRef = useRef<HTMLDivElement>(null)
   const [thumb, setThumb] = useState({ height: 0, top: 0 })
   const dragRef = useRef<{ startY: number; startTop: number } | null>(null)
@@ -110,8 +116,12 @@ export function Scrollbar({
   }
 
   return (
-    <div className={cn('scrollbar', className)} {...rest}>
-      <div ref={viewportRef} className={cn('scrollbar-viewport', contentClassName)}>
+    <div className={cn('scrollbar', className)} {...(wrapperRest as typeof rest)}>
+      <div
+        ref={viewportRef}
+        className={cn('scrollbar-viewport', contentClassName)}
+        {...(hasScrollRoot ? { 'data-scroll-root': '' } : {})}
+      >
         {children}
       </div>
       {thumb.height > 0 && (

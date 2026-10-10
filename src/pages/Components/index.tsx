@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Scrollbar } from '@/components/ui/Scrollbar'
 import { Progress } from '@/components/ui/feedback'
 import { cn } from '@/lib/utils'
+import { getAppScrollRoot } from '@/lib/scroll-root'
 import {
   CATEGORY_ORDER,
   COMPONENTS,
@@ -65,8 +66,9 @@ const ALL_DEMOS: Record<string, ComponentType> = {
 
 /* 找页面真正的滚动容器：MainLayout 里的那个 <main data-scroll-root>。
    用属性选择器而不是 querySelector('main')，标签名容易被别的 <main> 抢走。 */
+
 function getScrollRoot(): HTMLElement | null {
-  return document.querySelector<HTMLElement>('[data-scroll-root]') ?? document.querySelector('main')
+  return getAppScrollRoot()
 }
 
 export default function ComponentsPage() {

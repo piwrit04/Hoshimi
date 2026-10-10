@@ -251,14 +251,14 @@ function Inner({
                       placeholder="分类"
                       options={categories.map((c) => ({ label: c.name, value: c.name }))}
                       value={line.category || null}
-                      onChange={(c) => updateLine(line.key, { category: c, product: '' })}
+                      onChange={(c) => updateLine(line.key, { category: c ?? '', product: '' })}
                     />
                     <FormSelect
                       placeholder={line.category ? '项目' : '先选分类'}
                       disabled={!line.category} filterable
                       options={(line.category ? productsOfCategory(line.category) : []).map((p) => ({ label: p, value: p }))}
                       value={line.product || null}
-                      onChange={(p) => updateLine(line.key, { product: p })}
+                      onChange={(p) => updateLine(line.key, { product: p ?? '' })}
                     />
                   </div>
                   <div className="w-24 shrink-0">

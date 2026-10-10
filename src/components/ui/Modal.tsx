@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import ReactDOM from 'react-dom';
 import { Scrollbar } from './Scrollbar';
+import { pushOverlay } from '@/lib/overlay-stack';
 
 interface ModalProps {
   isOpen: boolean;
@@ -19,29 +20,17 @@ export const Modal = ({ isOpen, onClose, title, children, footer, className, sho
   const onCloseRef = React.useRef(onClose);
   const panelRef = React.useRef<HTMLDivElement>(null);
 
-  // 保持 ref 同步但不触发 effect 重跑
   React.useEffect(() => {
     onCloseRef.current = onClose;
   }, [onClose]);
 
+  /* Esc + 滚动锁交给浮层栈：只关最顶一层，并锁住 data-scroll-root 真实滚动区 */
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCloseRef.current();
-    };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      const prevOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.removeEventListener('keydown', handleEscape);
-        document.body.style.overflow = prevOverflow;
-      };
-    }
+    if (!isOpen) return;
+    return pushOverlay(() => onCloseRef.current());
   }, [isOpen]);
 
-  /* 焦点陷阱（参照 Radix Dialog / Naive Modal）：打开时焦点移入弹层，
-     Tab / Shift+Tab 在弹层内循环，不逃逸到背后的页面 */
+  /* 焦点陷阱（参照 Radix Dialog / Naive Modal） */
   useEffect(() => {
     if (!isOpen) return;
     const root = panelRef.current;
@@ -54,7 +43,6 @@ export const Modal = ({ isOpen, onClose, title, children, footer, className, sho
         )
       ).filter((el) => el.offsetParent !== null);
 
-    // 打开时聚焦第一个可聚焦元素（通常是关闭按钮）
     const first = focusables()[0];
     first?.focus();
 
@@ -95,15 +83,6 @@ export const Modal = ({ isOpen, onClose, title, children, footer, className, sho
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className={cn(
-              /*
-               * ⚠️ 原来是 "glass-card chamfer-md" —— 这两个类**全项目都没有定义**
-               * （glass-card 是玻璃拟态、chamfer-md 是切角，都是早期原型里的东西，
-               * 跟着 _deprecated/ 一起没了）。所以弹窗实际上是无圆角无边框的裸块。
-               *
-               * 这里换成真实存在的类：
-               *   bg-card / border-border / rounded-lg  —— 主题 token，深浅都对
-               *   shadow-2                                —— theme.css 里的浮层阴影
-               */
               "relative w-full max-w-lg bg-card text-card-foreground border border-border rounded-lg shadow-2 overflow-hidden flex flex-col max-h-[90vh]",
               className
             )}
@@ -111,9 +90,6 @@ export const Modal = ({ isOpen, onClose, title, children, footer, className, sho
             aria-modal="true"
             ref={panelRef}
           >
-            {/* Header
-                ⚠️ 原来是 border-white/10 + bg-white/5 —— 只在深色下成立，
-                浅色模式下 header 是一块看不见的白撞白。改成 token。 */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-secondary/40">
               <h3 className="text-lg font-bold text-foreground">{title}</h3>
               {showClose && (
@@ -128,13 +104,10 @@ export const Modal = ({ isOpen, onClose, title, children, footer, className, sho
               )}
             </div>
 
-            {/* Content —— Scrollbar 自己做 flex item（flex-1 min-h-0），
-                padding 放到 viewport 上（contentClassName），否则 h-full 会被 padding 撑破 */}
             <Scrollbar className="flex-1 min-h-0" contentClassName="px-6 py-6">
               {children}
             </Scrollbar>
 
-            {/* Footer */}
             {footer && (
               <div className="px-6 py-4 border-t border-border bg-secondary/40 flex justify-end gap-3">
                 {footer}
@@ -147,3 +120,5 @@ export const Modal = ({ isOpen, onClose, title, children, footer, className, sho
     document.body
   );
 };
+
+export default Modal;

@@ -7,8 +7,7 @@ import { cn } from '@/lib/utils'
 /*
  * DatePicker —— 日历弹窗选日期（只到日，不带时分）。
  *
- * 设计：一个和 dd-control 同高的按钮，点一下弹出月历。
- * 选完日期自动关闭。今天高亮，选中日期高亮品牌色。
+ * 贴底时向上翻；disabledDate 可禁某一天。
  * value 是 'YYYY-MM-DD' 字符串，空字符串表示未选。
  */
 
@@ -18,9 +17,13 @@ interface DatePickerProps {
   placeholder?: string
   className?: string
   error?: boolean
+  /** 返回 true 表示该日不可选 */
+  disabledDate?: (iso: string) => boolean
 }
 
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六']
+const POP_H = 280
+const POP_W = 256
 
 function toISO(d: Date): string {
   const y = d.getFullYear()
@@ -29,19 +32,37 @@ function toISO(d: Date): string {
   return `${y}-${m}-${day}`
 }
 
-export function DatePicker({ value, onChange, placeholder = '选择日期', className, error }: DatePickerProps) {
+export function DatePicker({
+  value,
+  onChange,
+  placeholder = '选择日期',
+  className,
+  error,
+  disabledDate,
+}: DatePickerProps) {
   const [open, setOpen] = useState(false)
   const [viewDate, setViewDate] = useState<Date>(() => (value ? new Date(value + 'T00:00:00') : new Date()))
   const triggerRef = useRef<HTMLButtonElement>(null)
   const popRef = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState({ top: 0, left: 0 })
 
-  /* 打开时定位 + 同步视图到当前值 */
+  const updatePos = () => {
+    const el = triggerRef.current
+    if (!el) return
+    const r = el.getBoundingClientRect()
+    let top = r.bottom + 4
+    let left = r.left
+    if (top + POP_H > window.innerHeight - 8) {
+      top = Math.max(8, r.top - POP_H - 4)
+    }
+    left = Math.max(8, Math.min(left, window.innerWidth - POP_W - 8))
+    setPos({ top, left })
+  }
+
   useEffect(() => {
     if (!open) return
     if (value) setViewDate(new Date(value + 'T00:00:00'))
-    const r = triggerRef.current!.getBoundingClientRect()
-    setPos({ top: r.bottom + 4, left: r.left })
+    updatePos()
 
     const onDown = (e: MouseEvent) => {
       const t = e.target as Node
@@ -50,20 +71,24 @@ export function DatePicker({ value, onChange, placeholder = '选择日期', clas
       setOpen(false)
     }
     const onEsc = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
+    const onScroll = () => updatePos()
     document.addEventListener('mousedown', onDown)
     document.addEventListener('keydown', onEsc)
+    document.addEventListener('scroll', onScroll, true)
+    window.addEventListener('resize', updatePos)
     return () => {
       document.removeEventListener('mousedown', onDown)
       document.removeEventListener('keydown', onEsc)
+      document.removeEventListener('scroll', onScroll, true)
+      window.removeEventListener('resize', updatePos)
     }
   }, [open, value])
 
-  /* 月历格子：开头补空到周日对齐，结尾补满整周 */
   const cells = useMemo(() => {
     const y = viewDate.getFullYear()
     const m = viewDate.getMonth()
     const first = new Date(y, m, 1)
-    const startDay = first.getDay() // 0=周日
+    const startDay = first.getDay()
     const daysInMonth = new Date(y, m + 1, 0).getDate()
     const arr: (Date | null)[] = []
     for (let i = 0; i < startDay; i++) arr.push(null)
@@ -124,18 +149,23 @@ export function DatePicker({ value, onChange, placeholder = '选择日期', clas
                 const iso = toISO(d)
                 const isSel = iso === value
                 const isToday = iso === todayISO
+                const disabled = !!disabledDate?.(iso)
                 return (
                   <button
                     key={i}
                     type="button"
-                    onClick={() => { onChange(iso); setOpen(false) }}
+                    disabled={disabled}
+                    onClick={() => {
+                      if (disabled) return
+                      onChange(iso)
+                      setOpen(false)
+                    }}
                     className={cn(
                       'h-8 rounded text-sm flex items-center justify-center transition-colors',
-                      isSel
-                        ? 'bg-brand text-brand-foreground font-bold'
-                        : isToday
-                          ? 'ring-1 ring-brand/50 hover:bg-secondary'
-                          : 'hover:bg-secondary'
+                      disabled && 'opacity-30 cursor-not-allowed',
+                      !disabled && isSel && 'bg-brand text-brand-foreground font-bold',
+                      !disabled && !isSel && isToday && 'ring-1 ring-brand/50 hover:bg-secondary',
+                      !disabled && !isSel && !isToday && 'hover:bg-secondary'
                     )}
                   >
                     {d.getDate()}

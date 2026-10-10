@@ -411,7 +411,7 @@ export interface FormSelectProps {
   name?: string
   options: SelectOption[]
   value: string | null
-  onChange: (v: string) => void
+  onChange: (v: string | null) => void
   placeholder?: string
   disabled?: boolean
   /** 可搜索 */
@@ -570,7 +570,7 @@ export function FormSelect({
                 aria-label="清除"
                 onClick={(e) => {
                   e.stopPropagation()
-                  onChange('')
+                  onChange(null)
                 }}
                 className="dd-control-icon dd-control-icon--button relative"
               >
@@ -1130,6 +1130,8 @@ export interface UploadFile {
   status: 'ready' | 'uploading' | 'done' | 'error'
   /** 0-100 */
   percent?: number
+  /** 真实 File，导入 Excel / 读内容时用它。列表展示只用 name/size。 */
+  file?: File
 }
 
 export function FormUpload({
@@ -1159,6 +1161,7 @@ export function FormUpload({
       name: f.name,
       size: f.size,
       status: 'ready' as const,
+      file: f,
     }))
     onFilesChange(multiple ? [...files, ...next] : next)
   }

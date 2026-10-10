@@ -1,4 +1,5 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import {
   ChevronLeft,
   ChevronRight,
@@ -503,36 +504,55 @@ export function Popconfirm({
   className?: string
 }) {
   const [open, setOpen] = useState(false)
+  const triggerRef = useRef<HTMLSpanElement>(null)
+  const [pos, setPos] = useState({ top: 0, left: 0 })
+
+  useLayoutEffect(() => {
+    if (!open || !triggerRef.current) return
+    const r = triggerRef.current.getBoundingClientRect()
+    const width = 240
+    let left = r.left
+    let top = r.bottom + 8
+    left = Math.max(8, Math.min(left, window.innerWidth - width - 8))
+    if (top + 120 > window.innerHeight) top = Math.max(8, r.top - 128)
+    setPos({ top, left })
+  }, [open])
+
   return (
     <span className={cn('relative inline-flex', className)}>
-      <span onClick={() => setOpen((v) => !v)} className="inline-flex">
+      <span ref={triggerRef} onClick={() => setOpen((v) => !v)} className="inline-flex">
         {children}
       </span>
-      {open && (
-        <>
-          {/* 点外面关掉 */}
-          <span className="fixed inset-0 z-40" onClick={() => setOpen(false)} aria-hidden="true" />
-          <span className="dd-popover absolute z-50 top-full left-0 mt-2 w-60 block">
-            <span className="block text-sm font-semibold text-foreground">{title}</span>
-            {description && <span className="block dd-help mt-1">{description}</span>}
-            <span className="mt-3 flex items-center justify-end gap-2">
-              <button type="button" className="btn-ghost btn--sm" onClick={() => setOpen(false)}>
-                {cancelText}
-              </button>
-              <button
-                type="button"
-                className={cn('btn--sm', tone === 'danger' ? 'btn-danger' : 'btn-primary')}
-                onClick={() => {
-                  onConfirm?.()
-                  setOpen(false)
-                }}
-              >
-                {confirmText}
-              </button>
+      {open &&
+        createPortal(
+          <>
+            <span className="fixed inset-0 z-[var(--z-popover)]" onClick={() => setOpen(false)} aria-hidden="true" />
+            <span
+              className="dd-popover fixed z-[var(--z-popover)] w-60 block"
+              style={{ top: pos.top, left: pos.left }}
+              role="dialog"
+            >
+              <span className="block text-sm font-semibold text-foreground">{title}</span>
+              {description && <span className="block dd-help mt-1">{description}</span>}
+              <span className="mt-3 flex items-center justify-end gap-2">
+                <button type="button" className="btn-ghost btn--sm" onClick={() => setOpen(false)}>
+                  {cancelText}
+                </button>
+                <button
+                  type="button"
+                  className={cn('btn--sm', tone === 'danger' ? 'btn-danger' : 'btn-primary')}
+                  onClick={() => {
+                    onConfirm?.()
+                    setOpen(false)
+                  }}
+                >
+                  {confirmText}
+                </button>
+              </span>
             </span>
-          </span>
-        </>
-      )}
+          </>,
+          document.body
+        )}
     </span>
   )
 }

@@ -11,6 +11,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { QrCode, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Scrollbar } from './Scrollbar'
+import { pushOverlay } from '@/lib/overlay-stack'
 
 /*
  * ============================================================
@@ -380,20 +381,11 @@ export function Drawer({
     onCloseRef.current = onClose;
   }, [onClose]);
 
-  /* Esc 关闭 + 打开时锁滚动。和 Modal 用同一套处理。 */
+  /* Esc + 滚动锁交给浮层栈：只关最顶一层 */
   useEffect(() => {
     if (!isOpen) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCloseRef.current()
-    }
-    document.addEventListener('keydown', onKey)
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.removeEventListener('keydown', onKey)
-      document.body.style.overflow = prev
-    }
-  }, [isOpen]) // 移除 onClose 依赖
+    return pushOverlay(() => onCloseRef.current())
+  }, [isOpen])
 
   /* 焦点陷阱（参照 Radix Dialog / Naive Drawer）：Tab 在抽屉内循环 */
   useEffect(() => {

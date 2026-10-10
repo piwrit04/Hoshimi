@@ -1,6 +1,7 @@
 import React, { useState, useRef, useLayoutEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
+import { mergeRefs } from '@/lib/merge-refs';
 import '@/styles/tooltip.css';
 
 type Position = 'top' | 'bottom' | 'left' | 'right';
@@ -12,6 +13,7 @@ interface TooltipProps {
     onMouseLeave?: (e: React.MouseEvent) => void;
     onFocus?: (e: React.FocusEvent) => void;
     onBlur?: (e: React.FocusEvent) => void;
+    ref?: React.Ref<HTMLElement>;
   }>;
   position?: Position;
   className?: string;
@@ -113,11 +115,12 @@ export const Tooltip = ({
 
   if (!content) return children;
 
+  const childRef = (children as React.ReactElement & { ref?: React.Ref<HTMLElement> }).ref
+    ?? (children.props as { ref?: React.Ref<HTMLElement> }).ref;
+
   const childWithEvents = React.cloneElement(children, {
     ...children.props,
-    ref: (node: HTMLElement | null) => {
-      triggerRef.current = node;
-    },
+    ref: mergeRefs(triggerRef, childRef),
     onMouseEnter: (e: React.MouseEvent) => {
       handleMouseEnter();
       children.props.onMouseEnter?.(e);
