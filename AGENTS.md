@@ -4,7 +4,7 @@
 
 **项目**：星笺（Hoshimi）——代肝订单管理系统，Windows 桌面应用。
 **技术栈**：Electron 38 + React 19 + Vite 7 + TypeScript 5.9 + Tailwind 4。
-**当前阶段**：组件库 + 新建订单可用；**本地账本已接 IndexedDB**（`src/storage/`，刷新/重启保留）。
+**当前阶段**：组件库 + **订单新建/编辑/状态流转**已接 IndexedDB（`src/storage/`，`domain/status.ts`）。
 客户 / 待办 / 概览真实数据 / 导出备份仍待做。侧栏：概览、订单、组件预览、设置。
 
 ---

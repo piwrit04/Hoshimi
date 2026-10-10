@@ -77,6 +77,4 @@ export const PLATFORM_FEE: Record<Platform, number> = {
   闲鱼: 0.016,
 }
 
-/** 订单状态机（照搬 Cheezit） */
-export type OrderStatus = '待处理' | '进行中' | '已完成' | '已退款' | '已取消'
-export type OrderType = '普通' | '托管'
+/** OrderStatus / OrderType 见 @/domain/order；状态机见 @/domain/status */

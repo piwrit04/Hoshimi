@@ -1,4 +1,4 @@
-import type { Order } from '@/domain/order'
+import { normalizeOrder, type Order } from '@/domain/order'
 import type { AppSettings, ChannelFee, Snapshot } from '@/storage/types'
 import { SCHEMA_VERSION } from '@/storage/types'
 
@@ -28,7 +28,7 @@ export function emptySnapshot(): Snapshot {
   }
 }
 
-function isOrderLike(v: unknown): v is Order {
+function isOrderLike(v: unknown): v is Partial<Order> & Pick<Order, 'id' | 'orderNo'> {
   if (!v || typeof v !== 'object') return false
   const o = v as Record<string, unknown>
   return typeof o.id === 'string' && typeof o.orderNo === 'string' && Array.isArray(o.items)
@@ -51,7 +51,7 @@ export function normalizeSnapshot(raw: unknown): Snapshot | null {
   if (!Array.isArray(settings.expiryOffsets)) settings.expiryOffsets = [1, 3, 7]
   if (!Array.isArray(settings.recentProductIds)) settings.recentProductIds = []
 
-  const orders = data.orders.filter(isOrderLike)
+  const orders = data.orders.filter(isOrderLike).map(normalizeOrder)
   const customers = Array.isArray(data.customers)
     ? data.customers.filter((c) => c && typeof (c as { id?: string }).id === 'string')
     : []

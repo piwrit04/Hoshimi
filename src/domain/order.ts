@@ -1,8 +1,11 @@
 /** 订单领域类型（与持久化快照共用） */
 
-export type OrderStatus = '待处理' | '进行中' | '已完成'
+import type { TransferMode } from '@/domain/money'
+
+export type OrderStatus = '待处理' | '进行中' | '已完成' | '已退款' | '已取消'
 export type OrderType = '普通' | '托管'
 export type Platform = '微信' | '闲鱼'
+export type SettleKind = '日结' | '周结' | '月结'
 
 export interface OrderItem {
   category: string
@@ -23,13 +26,63 @@ export interface Order {
   items: OrderItem[]
   /** 托管单专用 */
   custodyKind?: string
-  settleKind?: string
+  settleKind?: SettleKind
   startDate?: string
   endDate?: string
   /** 钱 */
   amount: number
   feeRate: number
+  feeAmount: number
   payout: number
   transferEnabled: boolean
+  transferMode: TransferMode
+  /** 0–1 */
+  transferRatio: number
+  transferAmount: number
   note: string
+  startedAt?: string
+  completedAt?: string
+  /** 已完成 / 终态后金额锁定 */
+  amountLocked?: boolean
+}
+
+/** 给旧快照 / 缺字段补默认 */
+export function normalizeOrder(raw: Partial<Order> & Pick<Order, 'id' | 'orderNo'>): Order {
+  const amount = typeof raw.amount === 'number' ? raw.amount : 0
+  const feeRate = typeof raw.feeRate === 'number' ? raw.feeRate : 0
+  const feeAmount =
+    typeof raw.feeAmount === 'number' ? raw.feeAmount : Math.round(amount * feeRate * 100) / 100
+  const payout = typeof raw.payout === 'number' ? raw.payout : amount - feeAmount
+  return {
+    id: raw.id,
+    orderNo: raw.orderNo,
+    createdAt: typeof raw.createdAt === 'string' ? raw.createdAt : new Date().toISOString(),
+    nickname: typeof raw.nickname === 'string' ? raw.nickname : '',
+    contact: typeof raw.contact === 'string' ? raw.contact : '',
+    type: raw.type === '托管' ? '托管' : '普通',
+    platform: raw.platform === '闲鱼' ? '闲鱼' : '微信',
+    server: typeof raw.server === 'string' ? raw.server : '官服',
+    status: isOrderStatus(raw.status) ? raw.status : '待处理',
+    items: Array.isArray(raw.items) ? raw.items : [],
+    custodyKind: raw.custodyKind,
+    settleKind: raw.settleKind,
+    startDate: raw.startDate,
+    endDate: raw.endDate,
+    amount,
+    feeRate,
+    feeAmount,
+    payout,
+    transferEnabled: Boolean(raw.transferEnabled),
+    transferMode: raw.transferMode === 'fixed' ? 'fixed' : 'ratio',
+    transferRatio: typeof raw.transferRatio === 'number' ? raw.transferRatio : 0.8,
+    transferAmount: typeof raw.transferAmount === 'number' ? raw.transferAmount : 0,
+    note: typeof raw.note === 'string' ? raw.note : '',
+    startedAt: raw.startedAt,
+    completedAt: raw.completedAt,
+    amountLocked: Boolean(raw.amountLocked),
+  }
+}
+
+function isOrderStatus(v: unknown): v is OrderStatus {
+  return v === '待处理' || v === '进行中' || v === '已完成' || v === '已退款' || v === '已取消'
 }
