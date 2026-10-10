@@ -7,22 +7,11 @@ import "./index.css";
 /*
  * 入口。
  *
- * 两个刻意的选择：
- *
- * 1. **HashRouter 而不是 BrowserRouter**。
- *    Electron 生产环境用 file:// 加载页面，没有 HTTP 服务器来把
- *    /characters 这种路径重写到 index.html。用 BrowserRouter 的结果是
- *    刷新或深链接直接白屏。HashRouter 把路由放在 # 后面，file:// 下也能工作。
- *
- * 2. 加载画面在 React 挂载后立刻收掉。
- *    index.html 里那段脚本已经把进度推到 10%，这里推到 100% 再淡出。
+ * 1. **HashRouter**：Electron 生产环境用 app:// / 开发时也兼容；file:// 下无 HTTP 重写。
+ * 2. **启动画面**：index.html 推到 10%；真正收掉在 App 里 hydrate IndexedDB 之后
+ *    （见 storage/boot.ts），避免账本还没读完就闪空列表。
  */
-const loading = document.getElementById("loading-screen");
-if (loading) {
-  window.updateLoadingProgress?.(100, "准备就绪");
-  loading.classList.add("hidden");
-  setTimeout(() => loading.remove(), 600);
-}
+window.updateLoadingProgress?.(15, "正在启动…");
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

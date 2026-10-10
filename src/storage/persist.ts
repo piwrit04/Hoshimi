@@ -1,0 +1,28 @@
+import { emptySnapshot, normalizeSnapshot } from '@/domain/ledger'
+import { idbGet, idbSet } from './idb'
+import { SNAPSHOT_KEY, type Snapshot } from './types'
+
+export async function loadSnapshot(): Promise<Snapshot> {
+  try {
+    const raw = await idbGet<unknown>(SNAPSHOT_KEY)
+    if (raw == null) return emptySnapshot()
+    return normalizeSnapshot(raw) ?? emptySnapshot()
+  } catch {
+    return emptySnapshot()
+  }
+}
+
+/** 写入失败返回 false（配额满等），界面可提示备份 */
+export async function saveSnapshot(snapshot: Snapshot): Promise<boolean> {
+  try {
+    await idbSet(SNAPSHOT_KEY, {
+      ...snapshot,
+      updatedAt: new Date().toISOString(),
+    })
+    return true
+  } catch {
+    return false
+  }
+}
+
+export { SNAPSHOT_KEY }

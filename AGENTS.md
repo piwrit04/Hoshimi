@@ -4,9 +4,8 @@
 
 **项目**：星笺（Hoshimi）——代肝订单管理系统，Windows 桌面应用。
 **技术栈**：Electron 38 + React 19 + Vite 7 + TypeScript 5.9 + Tailwind 4。
-**当前阶段**：⚠️ **只有 UI 外壳和组件展示，业务逻辑仍为零。** 订单、客户、打手、结算、持久化都还没写。
-侧栏现在有三项：概览（Dashboard 占位页）、组件预览、设置（占位页）——都是静态占位数据，
-**真正的业务页面（订单管理等）还没开始**。
+**当前阶段**：组件库 + 新建订单可用；**本地账本已接 IndexedDB**（`src/storage/`，刷新/重启保留）。
+客户 / 待办 / 概览真实数据 / 导出备份仍待做。侧栏：概览、订单、组件预览、设置。
 
 ---
 
@@ -25,6 +24,15 @@
    "拿别的组件凑"还是"先跳过"，也不要用原生 HTML 偷偷替代一个本该有的组件。
 
 ---
+
+## 存储（IndexedDB）
+
+业务账本主存：**IndexedDB**（库 `hoshimi`，键 `snapshot`），见 `src/storage/`。
+- schema 字段 `version`，迁移写在 `domain/ledger.ts` 的 `normalizeSnapshot`。
+- 启动：`storage/boot.ts` → LoadingBar + HTML 启动画面进度，再挂路由。
+- 主题/侧栏仍用 localStorage（小偏好）。Electron 下 `app://hoshimi` origin 稳定；
+  以后 JSON 备份可落到 `%APPDATA%\\Hoshimi`，**不改主存**。
+- **不要**再把订单写进 localStorage。
 
 ## 0. 开工前必读
 

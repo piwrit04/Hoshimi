@@ -5,7 +5,6 @@ import { ToastContainer } from "@/components/ui/Toast";
 import { FloatingSearch } from "@/components/search/FloatingSearch";
 import { Scrollbar } from "@/components/ui/Scrollbar";
 import NewOrderModal from "@/pages/Orders/NewOrder";
-import { LoadingBarHost } from "@/components/ui/LoadingBar";
 import { ModalConfirmHost } from "@/components/ui/ModalConfirm";
 
 /*
@@ -50,7 +49,6 @@ export default function MainLayout() {
       </div>
 
       <ToastContainer />
-      <LoadingBarHost />
       <ModalConfirmHost />
       <NewOrderModal />
     </div>

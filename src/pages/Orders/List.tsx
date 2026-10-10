@@ -7,7 +7,7 @@ import { useNewOrderStore } from '@/store/useNewOrderStore'
 
 /*
  * 订单列表 —— 第一版只读表格，行点进去没有详情抽屉。
- * 数据来自 useOrdersStore（内存），刷新会丢。
+ * 数据来自 useOrdersStore（IndexedDB 持久化，刷新/重启保留）。
  */
 
 const statusTone: Record<OrderStatus, 'default' | 'warning' | 'success' | 'danger'> = {
