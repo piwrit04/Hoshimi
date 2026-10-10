@@ -23,64 +23,60 @@
    这里保持原样 —— 少一套机制，就少一处可能不同步的地方。
    ============================================================ */
 :root {
-  /* ---- 深色（默认） ---- */
-  --background: 222 47% 11%;
-  --foreground: 210 40% 98%;
+  /* ---- 深色（默认）——重做：中性炭灰底 + 粉色主色（与浅色同一品牌色系）
+     旧版深色是蓝色主色 + 偏蓝的灰底，和浅色粉系完全两套品牌；
+     现在参照 shadcn zinc dark 的明度阶梯：背景 7% → 卡片 10% → 次级 16% → 边框 20%。 */
+  --background: 240 6% 7%;
+  --foreground: 240 5% 94%;
 
-  --card: 217 33% 17%;
-  --card-foreground: 210 40% 98%;
+  --card: 240 5% 10%;
+  --card-foreground: 240 5% 94%;
 
-  --popover: 217 33% 17%;
-  --popover-foreground: 210 40% 98%;
+  --popover: 240 5% 11%;
+  --popover-foreground: 240 5% 94%;
 
-  --primary: 211 100% 71%;
-  --primary-foreground: 210 40% 98%;
+  --primary: 344 78% 72%;
+  --primary-foreground: 340 40% 10%;
 
-  --secondary: 217 28% 22%;
-  --secondary-soft: 217 28% 26%;
-  --secondary-foreground: 210 40% 96%;
+  --secondary: 240 4% 16%;
+  --secondary-soft: 240 4% 19%;
+  --secondary-foreground: 240 5% 94%;
 
-  --accent: 266 70% 68%;
-  --accent-foreground: 222 47% 11%;
+  --accent: 262 60% 72%;
+  --accent-foreground: 240 6% 7%;
 
-  --muted: 217 28% 20%;
-  --muted-foreground: 215 16% 72%;
+  --muted: 240 4% 16%;
+  --muted-foreground: 240 5% 64%;
 
-  --destructive: 0 72% 55%;
+  --destructive: 0 70% 62%;
   --destructive-foreground: 0 0% 100%;
-  --success: 142 60% 48%;
-  --warning: 38 92% 55%;
+  --success: 150 50% 52%;
+  --warning: 38 85% 60%;
 
-  --border: 215 16% 32%;
-  --input: 215 16% 32%;
-  --ring: 211 100% 71%;
+  --border: 240 4% 20%;
+  --input: 240 4% 24%;
+  --ring: 344 78% 72%;
 
-  --text-1: 210 40% 98%;
-  --text-2: 215 20% 65%;
-  --text-3: 215 20% 50%;
+  --text-1: 240 5% 94%;
+  --text-2: 240 5% 64%;
+  --text-3: 240 4% 46%;
 
-  --brand-hex: #7eb3ff;
-  --brand-rgb: 126, 179, 255;
-  --brand-text-hex: #7eb3ff;
-  --on-brand-hex: #0f0f11;
+  --brand-hex: #f0819f;
+  --brand-rgb: 240, 129, 159;
+  --brand-text-hex: #f490ab;
+  --on-brand-hex: #1c0a10;
 
-  /* ---- 语义色（RGB 三元组，给 global-components.scss 用） ----
-     为什么要单列一套：下面 global-*.scss 里的 .btn-chip / .card-panel 之类
-     原来全部写死浅色的 #EE7093 / #FFFFFF，深色模式下就是白底粉字。
-     这里给出**两套都成立**的值，组件样式只引用变量，不再写死 hex。 */
-  --brand-deep-rgb: 90, 140, 220;   /* 主色 hover，深色模式下要变暗 */
-  --success-rgb: 74, 166, 108;
-  --warning-rgb: 214, 158, 46;
-  --danger-rgb: 224, 92, 92;
-  --info-rgb: 96, 148, 224;
+  --brand-deep-rgb: 226, 108, 141;
+  --success-rgb: 84, 196, 138;
+  --warning-rgb: 232, 176, 72;
+  --danger-rgb: 236, 104, 104;
+  --info-rgb: 120, 160, 240;
 
-  /* 强调色（工具箱的淡紫 C5B4E5 / 蓝 2D52B7 在这套主题里的对应值） */
-  --accent-soft-rgb: 165, 160, 190;
-  --accent-strong-rgb: 108, 132, 200;
+  --accent-soft-rgb: 82, 82, 96;
+  --accent-strong-rgb: 150, 160, 220;
 
-  /* 控件表面态，供 .form-input / .dd-* 使用 */
-  --surface-rgb: 40, 44, 54;
-  --surface-hover-rgb: 48, 54, 66;
+  --surface-rgb: 26, 26, 30;
+  --surface-hover-rgb: 38, 38, 44;
 
   --radius-xs: 2px;
   --radius-sm: 4px;
@@ -133,7 +129,7 @@
   --accent-foreground: 0 0% 100%;
 
   --muted: 262 10% 96%;
-  --muted-foreground: 262 17% 58%;
+  --muted-foreground: 262 12% 50%;
 
   /* ⚠️ 修复记录：这三个值原来是 344 70% 68% / 224 65% 48% / 344 70% 68%，
      也就是 --destructive 和 --primary **完全相同**、--warning 也是那个品牌粉，

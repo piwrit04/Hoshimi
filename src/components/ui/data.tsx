@@ -40,7 +40,10 @@ export interface DataTableColumn<T> {
   align?: 'left' | 'right' | 'center'
   /** 这一列表头可点排序 */
   sortable?: boolean
+  /** 单元格 class（只给 td） */
   className?: string
+  /** 表头 class（只给 th） */
+  headerClassName?: string
 }
 
 export interface DataTableProps<T> {
@@ -115,17 +118,24 @@ export function DataTable<T>({
   }
 
   const alignClass = (a?: DataTableColumn<T>['align']) =>
-    a === 'right' ? 'dd-table__num' : a === 'center' ? 'text-center' : ''
+    a === 'right' ? 'dd-table__num' : a === 'center' ? 'dd-table__center' : ''
 
   const isEmpty = sorted.length === 0
 
   return (
     <div className={cn('dd-table-wrap', className)}>
       <table className={cn('dd-table', striped && 'dd-table--striped', compact && 'dd-table--compact')}>
+        {/* colgroup：表头和表体共用同一组列宽（table-layout: fixed），保证上下严格对齐 */}
+        <colgroup>
+          {selectable && <col style={{ width: 44 }} />}
+          {columns.map((col) => (
+            <col key={col.key} style={col.width ? { width: col.width } : undefined} />
+          ))}
+        </colgroup>
         <thead>
           <tr>
             {selectable && (
-              <th style={{ width: 40 }}>
+              <th>
                 <input
                   type="checkbox"
                   aria-label="全选"
@@ -140,7 +150,7 @@ export function DataTable<T>({
               </th>
             )}
             {columns.map((col) => (
-              <th key={col.key} style={col.width ? { width: col.width } : undefined} className={alignClass(col.align)}>
+              <th key={col.key} className={cn(alignClass(col.align), col.headerClassName)}>
                 {col.sortable ? (
                   <span
                     className="dd-table__sort"

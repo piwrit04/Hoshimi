@@ -19,14 +19,25 @@ type NavItemType =
   | { icon: typeof Home; label: string; path: string; modal?: false }
   | { icon: typeof Home; label: string; modal: true };
 
-const navItems: NavItemType[] = [
-  { icon: Home, label: '概览', path: '/dashboard' },
-  { icon: LayoutList, label: '订单', path: '/orders' },
-  { icon: ListTodo, label: '待办', path: '/todo' },
-  { icon: Users, label: '客户', path: '/customers' },
-  { icon: PlusCircle, label: '新建订单', modal: true },
-  { icon: Boxes, label: '组件预览', path: '/components' },
-  { icon: Settings, label: '设置', path: '/settings' },
+/* 分组参照 shadcn dashboard-01：顶部主操作「新建订单」，下面「工作台」「系统」两组 */
+const quickCreate: NavItemType = { icon: PlusCircle, label: '新建订单', modal: true };
+const navGroups: { label: string; items: NavItemType[] }[] = [
+  {
+    label: '工作台',
+    items: [
+      { icon: Home, label: '概览', path: '/dashboard' },
+      { icon: LayoutList, label: '订单', path: '/orders' },
+      { icon: ListTodo, label: '待办', path: '/todo' },
+      { icon: Users, label: '客户', path: '/customers' },
+    ],
+  },
+  {
+    label: '系统',
+    items: [
+      { icon: Settings, label: '设置', path: '/settings' },
+      { icon: Boxes, label: '组件预览', path: '/components' },
+    ],
+  },
 ];
 
 const NavItem = memo(function NavItem({
@@ -43,8 +54,8 @@ const NavItem = memo(function NavItem({
   const inner = (isActive: boolean) => (
     <>
       <item.icon
-        size={20}
-        className={cn(iconClass, isActive ? 'text-primary-foreground' : 'group-hover:text-primary')}
+        size={16}
+        className={cn(iconClass, isActive ? 'text-brand' : 'text-muted-foreground group-hover:text-foreground')}
       />
       <span className={cn(spanClass, isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100')}>
         {item.label}
@@ -60,12 +71,12 @@ const NavItem = memo(function NavItem({
           type="button"
           onClick={openNewOrder}
           className={cn(
-            'flex items-center px-3 py-2.5 rounded-lg transition-colors duration-300 relative overflow-hidden group w-full text-left',
-            'text-muted-foreground hover:bg-secondary hover:text-foreground',
-            isCollapsed ? 'justify-center' : 'gap-3'
+            'btn-base btn-primary w-full',
+            isCollapsed ? '!px-0' : 'justify-start'
           )}
         >
-          {inner(false)}
+          <item.icon size={16} className="shrink-0" />
+          {!isCollapsed && <span className="text-sm font-medium">{item.label}</span>}
         </button>
       </Tooltip>
     );
@@ -77,9 +88,9 @@ const NavItem = memo(function NavItem({
         to={item.path}
         className={({ isActive }) =>
           cn(
-            'flex items-center px-3 py-2.5 rounded-lg transition-colors duration-300 relative overflow-hidden group',
+            'flex h-9 items-center px-3 rounded-lg transition-colors duration-150 relative overflow-hidden group',
             isActive
-              ? 'bg-primary text-primary-foreground'
+              ? 'bg-brand/10 text-foreground font-medium'
               : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
             isCollapsed ? 'justify-center' : 'gap-3'
           )
@@ -129,7 +140,7 @@ export function Sidebar({ showLogo = true }: { showLogo?: boolean }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [toggleCollapse, isCollapsed]);
 
-  const sidebarWidth = isCollapsed ? 'w-16' : 'w-64';
+  const sidebarWidth = isCollapsed ? 'w-16' : 'w-60';
 
   return (
     <div
@@ -137,7 +148,7 @@ export function Sidebar({ showLogo = true }: { showLogo?: boolean }) {
         'h-full flex flex-col relative transition-all duration-300 ease-in-out z-50',
         /* ⚠️ 工具箱原文是写死的浅粉底 bg-[#FCFAFD]/92 + 边框 #E8E1F0 —— 深色模式不跟着变。
            这里换成主题变量。阴影保留原样（它本来就只是外侧一道柔影，不分模式）。 */
-        'bg-card/92 backdrop-blur-xl border-r border-border/80 shadow-[8px_0_24px_rgba(40,28,65,0.08)]',
+        'bg-card border-r border-border',
         sidebarWidth
       )}
       data-testid="sidebar"
@@ -146,7 +157,7 @@ export function Sidebar({ showLogo = true }: { showLogo?: boolean }) {
         <button
           type="button"
           aria-label={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-          className="flex items-center justify-center shrink-0 cursor-pointer transition-colors duration-300 hover:bg-secondary/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary no-drag h-16 px-3"
+          className="flex items-center justify-center shrink-0 cursor-pointer transition-colors duration-300 hover:bg-secondary/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary no-drag h-14 px-3 border-b border-border"
           onMouseEnter={() => setIsLogoHovered(true)}
           onMouseLeave={() => setIsLogoHovered(false)}
           onClick={onLogoClick}
@@ -154,7 +165,7 @@ export function Sidebar({ showLogo = true }: { showLogo?: boolean }) {
           <div
             className={cn(
               'relative flex items-center justify-center h-full transition-all duration-300',
-              isCollapsed ? 'w-16 px-0' : 'w-full px-4'
+              isCollapsed ? 'w-16 px-0' : 'w-full px-1'
             )}
           >
             {/* 悬停时把 logo 换成展开/收起图标 */}
@@ -164,7 +175,7 @@ export function Sidebar({ showLogo = true }: { showLogo?: boolean }) {
                 isLogoHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
               )}
             >
-              <Menu size={24} className="text-foreground" />
+              <Menu size={18} className="text-foreground" />
             </div>
 
             {/* 品牌字标 —— **占位 LOGO**。
@@ -175,22 +186,34 @@ export function Sidebar({ showLogo = true }: { showLogo?: boolean }) {
                    内联 favicon 的汉字、electron/main.cjs 的 TITLE 一起改。 */}
             <div
               className={cn(
-                'h-10 w-full max-w-[180px] rounded-lg bg-primary text-primary-foreground',
-                'flex items-center justify-center font-bold tracking-wide text-base',
-                'transition-all duration-300 select-none',
-                isCollapsed ? 'w-10 text-sm' : '',
-                isLogoHovered ? 'opacity-0 scale-75' : 'opacity-100 scale-100'
+                'flex w-full items-center gap-2 transition-all duration-300 select-none',
+                isCollapsed ? 'justify-center' : 'justify-start',
+                isLogoHovered ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
               )}
             >
-              {isCollapsed ? '星' : '星笺'}
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand text-on-brand text-sm font-bold">星</span>
+              {!isCollapsed && (
+                <span className="flex flex-col leading-tight text-left">
+                  <span className="text-sm font-semibold text-foreground">星笺</span>
+                  <span className="text-[11px] text-muted-foreground tabular-nums">v{__APP_VERSION__}</span>
+                </span>
+              )}
             </div>
           </div>
         </button>
       )}
 
-      <Scrollbar className="flex-1" contentClassName="px-3 py-4 flex flex-col gap-1">
-        {navItems.map((item) => (
-          <NavItem key={item.label} item={item} isCollapsed={isCollapsed} />
+      <Scrollbar className="flex-1" contentClassName="px-3 py-4 flex flex-col gap-6">
+        <NavItem item={quickCreate} isCollapsed={isCollapsed} />
+        {navGroups.map((g) => (
+          <div key={g.label} className="flex flex-col gap-1">
+            {!isCollapsed && (
+              <div className="px-3 pb-1 text-xs font-medium text-muted-foreground">{g.label}</div>
+            )}
+            {g.items.map((item) => (
+              <NavItem key={item.label} item={item} isCollapsed={isCollapsed} />
+            ))}
+          </div>
         ))}
       </Scrollbar>
     </div>

@@ -80,27 +80,28 @@ function ModalImpl({ isOpen, onClose, title, children, footer, className, showCl
             aria-hidden="true"
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, scale: 0.98, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            exit={{ opacity: 0, scale: 0.98, y: 8 }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
             className={cn(
-              "relative w-full max-w-lg bg-card text-card-foreground border border-border rounded-lg shadow-2 overflow-hidden flex flex-col max-h-[90vh]",
+              "relative w-full max-w-lg bg-card text-card-foreground border border-border rounded-xl shadow-2 overflow-hidden flex flex-col max-h-[90vh]",
               className
             )}
             role="dialog"
             aria-modal="true"
             ref={panelRef}
           >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-secondary/40">
-              <h3 className="text-lg font-bold text-foreground">{title}</h3>
+            <div className="flex h-14 shrink-0 items-center justify-between px-6 border-b border-border">
+              <h3 className="text-base font-semibold leading-6 text-foreground">{title}</h3>
               {showClose && (
                 <button
                   type="button"
                   onClick={onClose}
                   aria-label="关闭"
-                  className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors no-drag"
+                  className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors no-drag"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4" />
                 </button>
               )}
             </div>
@@ -110,7 +111,7 @@ function ModalImpl({ isOpen, onClose, title, children, footer, className, showCl
             </Scrollbar>
 
             {footer && (
-              <div className="px-6 py-4 border-t border-border bg-secondary/40 flex justify-end gap-3">
+              <div className="flex h-16 shrink-0 items-center justify-end gap-2 px-6 border-t border-border">
                 {footer}
               </div>
             )}

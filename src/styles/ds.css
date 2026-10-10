@@ -1,0 +1,249 @@
+/*
+ * ============================================================
+ *  星笺设计系统（DS）—— 规格照 shadcn/ui dashboard-01，配色用本项目粉色
+ * ============================================================
+ *  本文件在 index.css 里**最后**引入，统一覆盖工具箱遗留的尺寸。
+ *  规则：
+ *   - 间距只用 4 / 8 / 12 / 16 / 24 / 32（8px 网格，4 只给图标间隙）
+ *   - 字号：页面标题 20/28 · 区块标题 14/20 · 正文 14/20 · 辅助 12/16
+ *   - 控件高度：md 36（按钮 / 输入 / 选择器统一），sm 32（表格行内、工具条）
+ *   - 圆角：控件 8 · 卡片 12 · 标签 6
+ *   - 卡片：1px 边框 + bg-card + 极轻阴影，不做 hover 跳动
+ *   - 表格：表头 40 / 行 48，表头与单元格同一 padding（0 12px），数字列右对齐 + tabular-nums
+ */
+
+:root {
+  --ds-h-md: 36px;
+  --ds-h-sm: 32px;
+  --ds-r-control: 8px;
+  --ds-r-card: 12px;
+  --ds-r-tag: 6px;
+  --ds-cell-x: 12px;
+  --ds-shadow-xs: 0 1px 2px rgba(15, 15, 30, 0.04);
+  --ds-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------------- 字体排版 ---------------- */
+.ds-page-title { font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em; color: hsl(var(--foreground)); }
+.ds-page-desc { font-size: 13px; line-height: 20px; color: hsl(var(--muted-foreground)); }
+.ds-section-title { font-size: 14px; line-height: 20px; font-weight: 600; color: hsl(var(--foreground)); }
+.ds-caption { font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
+.ds-num { font-variant-numeric: tabular-nums; }
+
+/* ---------------- 页面容器 ---------------- */
+.ds-page {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 32px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+@media (max-width: 768px) { .ds-page { padding: 16px; gap: 16px; } }
+
+.ds-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 36px;
+}
+.ds-page-header__actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+/* ---------------- 卡片 ---------------- */
+.ds-card {
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--ds-r-card);
+  box-shadow: var(--ds-shadow-xs);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.ds-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 24px 0;
+  min-height: 52px;
+}
+.ds-card__body { padding: 16px 24px 24px; flex: 1; min-height: 0; }
+.ds-card__body--flush { padding: 0; }
+.ds-card--flush { overflow: hidden; }
+
+/* 统计卡（shadcn SectionCards） */
+.ds-stat { padding: 20px 24px; gap: 8px; height: 100%; }
+.ds-stat__label { display: flex; align-items: center; justify-content: space-between; font-size: 13px; line-height: 20px; color: hsl(var(--muted-foreground)); }
+.ds-stat__value { font-size: 28px; line-height: 36px; font-weight: 600; font-variant-numeric: tabular-nums; color: hsl(var(--foreground)); letter-spacing: -0.02em; }
+.ds-stat__foot { font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); margin-top: auto; }
+
+/* 工具条（筛选行） */
+.ds-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+/* ---------------- 按钮（覆盖 global-button.scss） ---------------- */
+.btn-base, .btn-primary, .btn-secondary, .btn-ghost, .btn-danger, .btn-icon-text {
+  height: var(--ds-h-md);
+  min-height: var(--ds-h-md);
+  min-width: 0;
+  padding: 0 16px;
+  gap: 8px;
+  border-radius: var(--ds-r-control);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  transition: background-color .15s var(--ds-ease), border-color .15s var(--ds-ease), color .15s var(--ds-ease), box-shadow .15s var(--ds-ease), transform .1s var(--ds-ease);
+}
+.btn-base:active:not(:disabled) { transform: scale(0.98); }
+.btn-primary:hover:not(:disabled) { transform: none; }
+.btn-primary { box-shadow: var(--ds-shadow-xs); }
+.btn-secondary {
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  box-shadow: var(--ds-shadow-xs);
+}
+.btn-secondary:hover:not(:disabled) {
+  background-color: hsl(var(--secondary));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+.btn-ghost { padding: 0 12px; }
+.btn-base:focus-visible { box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.3); }
+.btn-base:disabled { opacity: .5; background-color: inherit; }
+.btn-primary:disabled { background-color: var(--brand-hex); color: var(--on-brand-hex); }
+.btn--sm, .btn--sm.btn-ghost {
+  height: var(--ds-h-sm);
+  min-height: var(--ds-h-sm);
+  padding: 0 12px;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 18px;
+}
+/* lg 不再使用：统一回 md */
+.btn--lg { height: var(--ds-h-md); min-height: var(--ds-h-md); padding: 0 16px; font-size: 14px; }
+.btn--circle, .btn--circle.btn--lg {
+  width: var(--ds-h-md);
+  height: var(--ds-h-md);
+  padding: 0;
+  border-radius: var(--ds-r-control);
+}
+.btn--circle.btn--sm { width: var(--ds-h-sm); height: var(--ds-h-sm); padding: 0; }
+
+/* ---------------- 表单控件 ---------------- */
+.dd-control, .form-input, .form-select {
+  height: var(--ds-h-md);
+  min-height: var(--ds-h-md);
+  padding: 0 12px;
+  border-radius: var(--ds-r-control);
+  border: 1px solid hsl(var(--input));
+  background-color: hsl(var(--card));
+  font-size: 14px;
+  box-shadow: var(--ds-shadow-xs);
+  transition: border-color .15s var(--ds-ease), box-shadow .15s var(--ds-ease);
+}
+.dd-control:hover:not(:disabled):not(:focus),
+.form-input:hover, .form-select:hover { background-color: hsl(var(--card)); border-color: rgba(var(--brand-rgb), .45); }
+.dd-control:focus, .dd-control[data-open="true"], .form-input:focus, .form-select:focus {
+  border-color: var(--brand-hex);
+  box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.18);
+}
+.dd-control--textarea, .form-textarea {
+  height: auto;
+  min-height: 80px;
+  padding: 8px 12px;
+  line-height: 20px;
+}
+.dd-control-wrap--prefix > .dd-control { padding-left: 32px; }
+.dd-control-wrap--suffix > .dd-control { padding-right: 32px; }
+.dd-field { gap: 8px; }
+.dd-label { font-size: 13px; line-height: 20px; font-weight: 500; }
+.dd-help, .dd-error-text { font-size: 12px; line-height: 16px; }
+.dd-fieldset { gap: 16px; }
+
+/* 分段控件（Segmented，参考 Ant Segmented / shadcn Tabs） */
+.form-radio-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  height: var(--ds-h-md);
+  border-radius: var(--ds-r-control);
+  background-color: hsl(var(--secondary));
+}
+.form-radio-option {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  display: inline-flex;
+  align-items: center;
+}
+.form-radio-option:hover { color: hsl(var(--foreground)); }
+.form-radio-option--active, .form-radio-option--active:hover {
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
+  box-shadow: 0 1px 2px rgba(0,0,0,.08);
+}
+
+/* ---------------- 标签 ---------------- */
+.dd-tag {
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--ds-r-tag);
+  font-size: 12px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+/* ---------------- 菜单 / 浮层 ---------------- */
+.dd-popover { border-radius: 10px; box-shadow: 0 8px 24px rgba(15, 15, 30, .12); }
+.dd-menu { padding: 4px; }
+.dd-menu__item { height: 32px; padding: 0 8px; border-radius: 6px; font-size: 14px; }
+
+/* ---------------- 表格（表头与单元格同一规格） ---------------- */
+.dd-table-wrap {
+  border: none;
+  border-radius: 0;
+}
+.dd-table { table-layout: fixed; width: 100%; font-size: 14px; }
+.dd-table th, .dd-table td {
+  padding: 0 var(--ds-cell-x);
+  vertical-align: middle;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dd-table th {
+  height: 40px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  background-color: hsl(var(--secondary) / 0.6);
+  border-bottom: 1px solid hsl(var(--border));
+  white-space: nowrap;
+}
+.dd-table td { height: 48px; padding-top: 6px; padding-bottom: 6px; line-height: 20px; }
+.dd-table th:first-child, .dd-table td:first-child { padding-left: 16px; }
+.dd-table th:last-child, .dd-table td:last-child { padding-right: 16px; }
+.dd-table .dd-table__num { text-align: right; font-variant-numeric: tabular-nums; }
+.dd-table .dd-table__center { text-align: center; }
+.dd-table th.dd-table__num .dd-table__sort { flex-direction: row-reverse; }
+.dd-table tbody tr { transition: background-color .12s var(--ds-ease); }
+.dd-table tbody tr:hover td { background-color: hsl(var(--secondary) / 0.55); }
+.dd-table--compact th { height: 36px; }
+.dd-table--compact td { height: 40px; padding-top: 4px; padding-bottom: 4px; }
+/* 表格放在独立容器（非卡片）时自带边框 */
+.ds-table-card { border: 1px solid hsl(var(--border)); border-radius: var(--ds-r-card); overflow: hidden; background: hsl(var(--card)); box-shadow: var(--ds-shadow-xs); }
+
+/* ---------------- 呼吸感：进场 ---------------- */
+@keyframes ds-rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.ds-rise { animation: ds-rise .32s var(--ds-ease) both; }
+@media (prefers-reduced-motion: reduce) { .ds-rise { animation: none; } }

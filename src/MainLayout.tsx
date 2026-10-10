@@ -26,13 +26,13 @@ export default function MainLayout() {
       <FloatingSearch />
 
       {/* 左侧栏 */}
-      <aside className="hidden md:flex md:flex-col shrink-0 h-full w-64">
+      <aside className="hidden md:flex md:flex-col shrink-0 h-full">
         <Sidebar showLogo={true} />
       </aside>
 
       {/* 右侧：标题栏 + 内容 */}
       <div className="min-w-0 flex-1 flex flex-col">
-        <header className="shrink-0 z-50 h-[52px] bg-card/92 backdrop-blur-xl border-b border-border/80">
+        <header className="shrink-0 z-50 h-14 bg-card border-b border-border">
           <TitleBar className="h-full" />
         </header>
 
@@ -49,10 +49,10 @@ export default function MainLayout() {
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, y: 6 }}
+              initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
               className="min-h-full"
             >
               <Outlet />
