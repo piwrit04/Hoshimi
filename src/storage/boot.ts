@@ -3,22 +3,25 @@ import { useOrdersStore } from '@/store/useOrdersStore'
 
 /**
  * 启动时 hydrate 账本：顶条 LoadingBar + HTML 启动画面进度。
- * 失败也放行（空账本），避免白屏。
+ * 失败也放行（空账本），避免白屏。至少展示一小段启动画面，避免闪一下消失。
  */
 export async function bootPersist(): Promise<void> {
-  window.updateLoadingProgress?.(35, '读取本地数据…')
+  const minSplash = new Promise<void>((r) => setTimeout(r, 420))
+  window.updateLoadingProgress?.(28, '读取本地数据…')
   loadingBar.start()
   try {
     await useOrdersStore.getState().hydrate()
-    window.updateLoadingProgress?.(85, '账本已就绪')
+    window.updateLoadingProgress?.(72, '整理账本…')
+    await minSplash
+    window.updateLoadingProgress?.(90, '账本已就绪')
     loadingBar.done()
   } catch {
     loadingBar.error()
-    // hydrate 内部应已落到空账本；再兜底一次
     const s = useOrdersStore.getState()
     if (!s.hydrated) {
       await s.hydrate().catch(() => undefined)
     }
+    await minSplash
   }
 }
 

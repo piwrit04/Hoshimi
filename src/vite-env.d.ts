@@ -21,6 +21,7 @@ export interface IpcRendererLike {
 }
 
 declare global {
+  const __APP_VERSION__: string;
   interface Window {
     ipcRenderer: IpcRendererLike;
     desktop: {

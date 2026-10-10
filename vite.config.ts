@@ -2,8 +2,10 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { readFileSync } from "node:fs";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
+const pkg = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8")) as { version: string };
 
 /*
  * ⚠️ Tailwind 走 **PostCSS 插件**（`@tailwindcss/postcss`，见 postcss.config.mjs），
@@ -24,6 +26,9 @@ const root = path.dirname(fileURLToPath(import.meta.url));
  * 结论：只要 `src/styles/*.scss` 还在，就必须是 PostCSS 路线，**不能**换成 @tailwindcss/vite。
  */
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   plugins: [react()],
   resolve: {
     alias: { "@": path.resolve(root, "src") },
