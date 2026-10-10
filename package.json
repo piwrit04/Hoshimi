@@ -9,6 +9,7 @@
     "build": "node scripts/vite-with-local-tmp.mjs build",
     "preview": "node scripts/vite-with-local-tmp.mjs preview",
     "typecheck": "tsc --noEmit",
+    "selftest": "node scripts/selftest.mjs",
     "electron:install": "npm --prefix electron install",
     "electron:run": "node scripts/electron-run.mjs",
     "shell": "npm run build && npm run electron:run",
