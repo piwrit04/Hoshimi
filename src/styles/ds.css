@@ -24,7 +24,7 @@
 }
 
 /* ---------------- 字体排版 ---------------- */
-.ds-page-title { font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em; color: hsl(var(--foreground)); }
+.ds-page-title { font-size: 22px; line-height: 30px; font-weight: 700; letter-spacing: -0.01em; color: hsl(var(--foreground)); }
 .ds-page-desc { font-size: 13px; line-height: 20px; color: hsl(var(--muted-foreground)); }
 .ds-section-title { font-size: 14px; line-height: 20px; font-weight: 600; color: hsl(var(--foreground)); }
 .ds-caption { font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); }
@@ -78,7 +78,7 @@
 /* 统计卡（shadcn SectionCards） */
 .ds-stat { padding: 20px 24px; gap: 8px; height: 100%; }
 .ds-stat__label { display: flex; align-items: center; justify-content: space-between; font-size: 13px; line-height: 20px; color: hsl(var(--muted-foreground)); }
-.ds-stat__value { font-size: 28px; line-height: 36px; font-weight: 600; font-variant-numeric: tabular-nums; color: hsl(var(--foreground)); letter-spacing: -0.02em; }
+.ds-stat__value { font-size: 32px; line-height: 40px; font-weight: 700; font-variant-numeric: tabular-nums; color: hsl(var(--foreground)); letter-spacing: -0.02em; }
 .ds-stat__foot { font-size: 12px; line-height: 16px; color: hsl(var(--muted-foreground)); margin-top: auto; }
 
 /* 工具条（筛选行） */
@@ -283,15 +283,17 @@
 
 .ds-page-title--live {
   position: relative;
+  color: var(--brand-text-hex);
+  animation: ds-title-in 0.5s var(--ds-ease) both;
 }
 .ds-page-title--live::after {
   content: "";
   display: block;
-  width: 28px;
-  height: 3px;
-  margin-top: 6px;
+  width: 40px;
+  height: 4px;
+  margin-top: 8px;
   border-radius: 999px;
-  background: var(--brand-hex);
+  background: linear-gradient(90deg, var(--brand-hex), rgba(var(--brand-rgb), 0.15));
   transform-origin: left center;
   animation: ds-accent-grow 0.55s var(--ds-ease) 0.12s both;
 }
@@ -322,16 +324,18 @@
 
 .ds-stat--hero {
   background:
-    radial-gradient(120% 90% at 100% 0%, rgba(var(--brand-rgb), 0.16) 0%, transparent 55%),
+    radial-gradient(90% 80% at 100% -10%, rgba(var(--brand-rgb), 0.32) 0%, transparent 55%),
+    radial-gradient(70% 60% at 0% 110%, rgba(var(--brand-rgb), 0.12) 0%, transparent 50%),
+    linear-gradient(160deg, rgba(var(--brand-rgb), 0.08) 0%, transparent 42%),
     hsl(var(--card));
-  border-color: rgba(var(--brand-rgb), 0.28);
+  border-color: rgba(var(--brand-rgb), 0.42);
   animation:
     ds-rise 0.36s var(--ds-ease) var(--ds-delay, 0ms) both,
     ds-breathe 3.6s ease-in-out calc(var(--ds-delay, 0ms) + 0.5s) infinite;
 }
 .ds-stat--hero .ds-stat__value {
-  font-size: 32px;
-  line-height: 40px;
+  font-size: 36px;
+  line-height: 44px;
   color: var(--brand-text-hex);
 }
 .ds-stat--hero .ds-stat__icon {
@@ -354,6 +358,21 @@
 .ds-stat--warn .ds-stat__value { color: hsl(var(--warning)); }
 
 .ds-stat--link:hover { border-color: rgba(var(--brand-rgb), 0.45); }
+
+
+/* 卡片软底纹：淡粉光斑，增加层次但不抢眼 */
+.ds-card:not(.ds-stat) {
+  background:
+    radial-gradient(80% 70% at 100% 0%, rgba(var(--brand-rgb), 0.06) 0%, transparent 55%),
+    hsl(var(--card));
+}
+.ds-stat:not(.ds-stat--hero):not(.ds-stat--warn) {
+  background:
+    radial-gradient(90% 80% at 100% 0%, rgba(var(--brand-rgb), 0.10) 0%, transparent 55%),
+    hsl(var(--card));
+  border-color: hsl(var(--border) / 0.9);
+}
+.ds-stat__label { font-weight: 600; color: hsl(var(--foreground) / 0.72); }
 
 @media (prefers-reduced-motion: reduce) {
   .ds-rise,

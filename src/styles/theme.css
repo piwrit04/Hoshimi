@@ -61,9 +61,9 @@
   --text-2: 240 5% 64%;
   --text-3: 240 4% 46%;
 
-  --brand-hex: #f0819f;
-  --brand-rgb: 240, 129, 159;
-  --brand-text-hex: #f490ab;
+  --brand-hex: #f48aab;
+  --brand-rgb: 244, 138, 171;
+  --brand-text-hex: #ff9fbc;
   --on-brand-hex: #1c0a10;
 
   --brand-deep-rgb: 226, 108, 141;
@@ -225,10 +225,16 @@
   --color-brand-60: rgba(var(--brand-rgb), 0.6);
   --color-on-brand: var(--on-brand-hex);
 
-  --font-sans: "Microsoft YaHei", "SimHei", "Hiragino Sans GB", "WenQuanYi Micro Hei",
+  /* UI 圆体：优先筑紫A丸（本机/public/fonts），过渡用 M PLUS Rounded 1c（OFL） */
+  --font-sans: "筑紫A丸ゴシック", "Tsukushi A Round Gothic", "M PLUS Rounded 1c",
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC",
     ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-display: "Microsoft YaHei", "SimHei", "Hiragino Sans GB", "WenQuanYi Micro Hei",
+  --font-display: "筑紫A丸ゴシック", "Tsukushi A Round Gothic", "M PLUS Rounded 1c",
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC",
     ui-sans-serif, system-ui, sans-serif;
+  /* 金额数字：Inter，不用圆体 */
+  --font-num: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", monospace;
 
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);

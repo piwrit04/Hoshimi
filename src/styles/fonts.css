@@ -1,0 +1,57 @@
+/*
+ * 字体：UI 圆体 + 金额用 Inter。
+ *
+ * 筑紫A丸ゴシック（Tsukushi A Round Gothic）是 Fontworks 商用字体，不能随仓库分发。
+ * 优先尝试本地 / 系统已装的筑紫；未装时用开源圆体 M PLUS Rounded 1c（OFL）作过渡。
+ * 把已授权的 .otf/.ttf 放到 public/fonts/（见该目录 README）后重新构建即可切回筑紫。
+ *
+ * 金额数字走 --font-num（Inter），不要用圆体，保证 tabular 对齐。
+ */
+
+/* ---- 本地筑紫（文件不存在时 @font-face 失败会被浏览器忽略） ---- */
+@font-face {
+  font-family: "筑紫A丸ゴシック";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src:
+    local("筑紫A丸ゴシック"),
+    local("Tsukushi A Round Gothic"),
+    local("TsukushiARoundGothic"),
+    url("/fonts/TsukushiARoundGothic-Regular.otf") format("opentype"),
+    url("/fonts/TsukushiARoundGothic-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "筑紫A丸ゴシック";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src:
+    local("筑紫A丸ゴシック"),
+    local("Tsukushi A Round Gothic"),
+    url("/fonts/TsukushiARoundGothic-Medium.otf") format("opentype"),
+    url("/fonts/TsukushiARoundGothic-Medium.ttf") format("truetype");
+}
+@font-face {
+  font-family: "筑紫A丸ゴシック";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src:
+    local("筑紫A丸ゴシック"),
+    local("Tsukushi A Round Gothic"),
+    url("/fonts/TsukushiARoundGothic-Bold.otf") format("opentype"),
+    url("/fonts/TsukushiARoundGothic-Bold.ttf") format("truetype");
+}
+
+/* 金额 / 订单号等数字：Inter + tabular-nums */
+.ds-num,
+.tabular-nums,
+.tnum,
+.money {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
+.ds-stat__value {
+  font-family: var(--font-num);
+}

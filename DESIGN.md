@@ -175,12 +175,18 @@
 ## 4. 字体
 
 ```
---font-sans:    "Microsoft YaHei", "SimHei", "Hiragino Sans GB", "WenQuanYi Micro Hei", ui-sans-serif, system-ui, ...
---font-display: 同上（去掉 -apple-system / BlinkMacSystemFont）
+--font-sans / --font-display:
+  "筑紫A丸ゴシック", "Tsukushi A Round Gothic", "M PLUS Rounded 1c",
+  PingFang SC / Microsoft YaHei / …
+
+--font-num:  "Inter Variable", "Inter", …   （金额 / 统计数字，tabular-nums）
+--font-mono: ui-monospace …
 ```
 
-**只有中文字体栈，没有任何自定义字体文件**（项目里没有 `.woff2` / `.ttf`）。
-对比之下 Cheezit 和工具箱都带了字体资源，所以如果以后要加，这里是空白。
+- **目标字体**：筑紫A丸（工具箱同款二次元圆体）。Fontworks 商用，**不能随仓库分发**。
+- **过渡**：打包 OFL 开源圆体 `M PLUS Rounded 1c`（`@fontsource`，日文+拉丁子集 400/500/700）。
+- **本机切换**：把已授权的筑紫 `.otf/.ttf` 放到 `public/fonts/`（见该目录 README），`@font-face` 会优先加载。
+- 金额数字始终用 Inter，不用圆体。
 
 ⚠️ **字重没有 token。** 被删除的旧规范里有一条「字重只有四档，不要写 550 / 650 / 750」，
 但**现行代码里没有任何 `--fw-*` 变量承载它**。规则本身仍然成立（浏览器会把 700 以上就近
