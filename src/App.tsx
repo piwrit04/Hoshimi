@@ -8,6 +8,7 @@ import ComponentsPage from "@/pages/Components";
 import Dashboard from "@/pages/Dashboard";
 import Settings from "@/pages/Settings";
 import Orders from "@/pages/Orders/List";
+import Customers from "@/pages/Customers";
 import NotFound from "@/pages/NotFound";
 
 export function App() {
@@ -36,6 +37,8 @@ export function App() {
           <Route element={<MainLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/orders" element={<Orders />} />
+            <Route path="/customers" element={<Customers />} />
+            <Route path="/customers/:customerId" element={<Customers />} />
             <Route path="/components" element={<ComponentsPage />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />

@@ -14,7 +14,8 @@ import {
   payoutVoid,
   wantsReason,
 } from '@/domain/status'
-import { useState } from 'react'
+import { useState, memo, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { FormTextarea } from '@/components/ui/form'
 
 /*
@@ -73,7 +74,7 @@ export default function Orders() {
     addToast({ type: 'success', message: `${actionLabel(to)}成功${tip}` })
   }
 
-  const columns: DataTableColumn<Order>[] = [
+  const columns: DataTableColumn<Order>[] = useMemo(() => [
     {
       key: 'orderNo',
       title: '单号',
@@ -93,12 +94,7 @@ export default function Orders() {
     {
       key: 'nickname',
       title: '客户',
-      render: (r) => (
-        <div>
-          <div className="font-semibold">{r.nickname}</div>
-          <div className="text-xs text-muted-foreground">{r.contact}</div>
-        </div>
-      ),
+      render: (r) => <CustomerCell order={r} />,
     },
     {
       key: 'items',
@@ -153,7 +149,7 @@ export default function Orders() {
         <OrderRowActions order={r} onMove={move} onEdit={() => openEdit(r.id)} />
       ),
     },
-  ]
+  ], [])
 
   const active = orders.filter((o) => !payoutVoid(o))
   const total = active.reduce((s, o) => s + o.amount, 0)
@@ -221,7 +217,37 @@ export default function Orders() {
   )
 }
 
-function OrderRowActions({
+
+function CustomerCell({ order }: { order: Order }) {
+  const navigate = useNavigate()
+  const customers = useOrdersStore((s) => s.customers)
+  const id = useMemo(() => {
+    if (order.customerId) return order.customerId
+    const hit = customers.find(
+      (c) =>
+        !c.mergedIntoId &&
+        ((order.contact && c.contact === order.contact) ||
+          (!order.contact && c.nickname === order.nickname)),
+    )
+    return hit?.id
+  }, [order.customerId, order.contact, order.nickname, customers])
+
+  return (
+    <button
+      type="button"
+      className="text-left hover:text-brand transition-colors"
+      onClick={(e) => {
+        e.stopPropagation()
+        if (id) navigate(`/customers/${id}`)
+      }}
+    >
+      <div className="font-semibold">{order.nickname}</div>
+      <div className="text-xs text-muted-foreground">{order.contact}</div>
+    </button>
+  )
+}
+
+const OrderRowActions = memo(function OrderRowActions({
   order,
   onMove,
   onEdit,
@@ -284,4 +310,4 @@ function OrderRowActions({
       />
     </div>
   )
-}
+})

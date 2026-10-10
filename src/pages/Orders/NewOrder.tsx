@@ -24,9 +24,10 @@ import {
   type TransferMode,
 } from '@/domain/money'
 import {
-  SERVERS,
   categoriesForOrderType,
   productsOfCategory,
+  primaryGameId,
+  serversOf,
 } from '@/domain/catalog'
 import type { SettleKind } from '@/domain/order'
 import { isTerminal } from '@/domain/status'
@@ -146,7 +147,31 @@ function Inner({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- resetForm 故意不进依赖
   }, [open, editing])
 
-  const categories = useMemo(() => categoriesForOrderType(orderType), [orderType])
+  const catalogCategories = useOrdersStore((s) => s.categories)
+  const catalogProducts = useOrdersStore((s) => s.products)
+  const catalogGames = useOrdersStore((s) => s.games)
+  const catalogServers = useOrdersStore((s) => s.servers)
+  const gameId = useMemo(() => primaryGameId(catalogGames), [catalogGames])
+  const categories = useMemo(
+    () => categoriesForOrderType(catalogCategories, gameId, orderType),
+    [catalogCategories, gameId, orderType],
+  )
+  const serverOptions = useMemo(
+    () => serversOf(catalogServers, gameId).map((s) => s.name),
+    [catalogServers, gameId],
+  )
+  const custodyOptions = useMemo(() => {
+    const custodyCat = categoriesForOrderType(catalogCategories, gameId, '托管')[0]
+    if (!custodyCat) return ['普托', '全托']
+    const list = productsOfCategory(catalogProducts, custodyCat.id).map((p) => p.name)
+    return list.length ? list : ['普托', '全托']
+  }, [catalogCategories, catalogProducts, gameId])
+
+  const productNamesOf = (categoryName: string) => {
+    const cat = categories.find((c) => c.name === categoryName)
+    if (!cat) return [] as { name: string; price?: number | null }[]
+    return productsOfCategory(catalogProducts, cat.id)
+  }
 
   const addLine = () =>
     setLines((ls) => [...ls, { key: Date.now(), category: '', product: '', price: '' }])
@@ -381,7 +406,7 @@ function Inner({
             disabled={moneyLocked}
             value={server}
             onChange={setServer}
-            options={SERVERS.map((s) => ({ value: s, label: s }))}
+            options={serverOptions.map((s) => ({ value: s, label: s }))}
           />
           {!isEdit ? (
             <FormRadioGroup
@@ -433,11 +458,22 @@ function Inner({
                       placeholder={line.category ? '项目' : '先选分类'}
                       disabled={moneyLocked || !line.category}
                       filterable
-                      options={(line.category ? productsOfCategory(line.category) : []).map(
-                        (p) => ({ label: p, value: p }),
+                      options={(line.category ? productNamesOf(line.category) : []).map(
+                        (p) => ({ label: p.name, value: p.name }),
                       )}
                       value={line.product || null}
-                      onChange={(p) => updateLine(line.key, { product: p ?? '' })}
+                      onChange={(p) => {
+                        const hit = line.category
+                          ? productNamesOf(line.category).find((x) => x.name === p)
+                          : undefined
+                        updateLine(line.key, {
+                          product: p ?? '',
+                          price:
+                            hit?.price != null && !line.price
+                              ? String(hit.price)
+                              : line.price,
+                        })
+                      }}
                     />
                   </div>
                   <div className="w-24 shrink-0">
@@ -487,7 +523,7 @@ function Inner({
                 className="h-10 items-center"
                 value={custodyKind}
                 onChange={(v) => setCustodyKind(v ?? '')}
-                options={['普托', '全托'].map((p) => ({ value: p, label: p }))}
+                options={custodyOptions.map((p) => ({ value: p, label: p }))}
                 error={errors.custodyKind}
               />
               <FormRadioGroup
