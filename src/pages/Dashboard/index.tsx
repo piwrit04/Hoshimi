@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { ArrowUpRight, CalendarClock, CircleDollarSign, Hourglass, PlusCircle, ShoppingBag, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { yuan as money, yuan2 } from '@/lib/format'
+import { CountUp } from '@/lib/count-up'
 import { useOrdersStore } from '@/store/useOrdersStore'
 import { useNewOrderStore } from '@/store/useNewOrderStore'
 import { dashboard, incomeTrend, type TrendUnit } from '@/domain/dashboard'
@@ -15,13 +16,9 @@ import { NO_PAYOUT, payoutVoid } from '@/domain/status'
 import type { Order, OrderStatus } from '@/domain/order'
 
 /*
- * 概览 —— 版式照 shadcn dashboard-01：
- *   第一行 4 张统计卡（等高、gap 16）
- *   第二行 收入走势（8 列）+ 托管快到期（4 列），同高
- *   第三行 最近订单表
- * 每个数字只出现一次。
+ * 概览 —— 对齐规格保留：4 统计卡 + 走势/托管 + 最近订单。
+ * 灵魂参考 Cheezit：CountUp、问候语动效、呼吸主卡、粉调层次。
  */
-
 
 const statusTone: Record<OrderStatus, 'brand' | 'warning' | 'success' | 'danger'> = {
   待处理: 'warning',
@@ -85,6 +82,7 @@ export default function Dashboard() {
   return (
     <div className="ds-page">
       <PageHeader
+        live
         title={m.hello}
         description={
           <>
@@ -124,39 +122,37 @@ export default function Dashboard() {
         </div>
       ) : null}
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="ds-stagger grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           icon={CircleDollarSign}
           label="今日到手"
-          value={money(k.payoutToday)}
+          value={k.payoutToday}
+          money
           foot={`本月 ${money(k.payoutThisMonth)} · 上月 ${money(k.payoutLastMonth)}`}
           tip="今天「已完成」订单的到手（金额 − 转出 − 手续费）"
-          delay={0}
+          variant="hero"
         />
         <StatCard
           icon={Hourglass}
           label="进行中"
-          value={String(k.inProgress)}
+          value={k.inProgress}
           foot={`待处理 ${k.waiting} 单`}
           to="/todo"
-          delay={40}
         />
         <StatCard
           icon={ShoppingBag}
           label="本周新单"
-          value={String(k.newThisWeek)}
+          value={k.newThisWeek}
           foot={`本周下单流水 ${money(k.newThisWeekAmount)}`}
           to="/orders"
-          delay={80}
         />
         <StatCard
           icon={CalendarClock}
           label="托管快到期"
-          value={String(m.expiring.length)}
+          value={m.expiring.length}
           foot={`${m.remindDays} 天内 · 托管中 ${k.custodyActive} 单`}
           to="/todo"
-          tone={m.expiring.length ? 'warning' : undefined}
-          delay={120}
+          variant={m.expiring.length ? 'warn' : undefined}
         />
       </section>
 
@@ -176,6 +172,17 @@ export default function Dashboard() {
           }
           bodyClassName="flex flex-col"
         >
+          <div className="mb-3 flex items-baseline gap-2">
+            <span
+              className={cn(
+                'text-[32px] leading-10 font-bold tracking-tight tabular-nums',
+                m.expiring.length ? 'text-foreground' : 'text-muted-foreground',
+              )}
+            >
+              <CountUp value={m.expiring.length} />
+            </span>
+            <span className="ds-caption">单</span>
+          </div>
           {m.expiring.length === 0 ? (
             <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-border py-10 text-sm text-muted-foreground">
               近期没有要到期的托管单
@@ -237,32 +244,40 @@ function StatCard({
   icon: Icon,
   label,
   value,
+  money: asMoney,
   foot,
   tip,
   to,
-  tone,
-  delay = 0,
+  variant,
 }: {
   icon: LucideIcon
   label: string
-  value: string
+  value: number
+  money?: boolean
   foot: string
   tip?: string
   to?: string
-  tone?: 'warning'
-  delay?: number
+  variant?: 'hero' | 'warn'
 }) {
   const body = (
     <div
-      className={cn('ds-card ds-stat ds-rise', to && 'transition-colors hover:border-brand/40')}
-      style={{ animationDelay: `${delay}ms` }}
+      className={cn(
+        'ds-card ds-stat ds-rise',
+        variant === 'hero' && 'ds-stat--hero',
+        variant === 'warn' && 'ds-stat--warn',
+        to && 'ds-stat--link',
+      )}
       title={tip}
     >
       <div className="ds-stat__label">
         <span>{label}</span>
-        <Icon size={16} className={cn(tone === 'warning' ? 'text-warning' : 'text-muted-foreground')} />
+        <span className="ds-stat__icon" aria-hidden>
+          <Icon size={14} />
+        </span>
       </div>
-      <div className="ds-stat__value">{value}</div>
+      <div className="ds-stat__value">
+        <CountUp value={value} money={asMoney} />
+      </div>
       <div className="ds-stat__foot">{foot}</div>
     </div>
   )

@@ -244,12 +244,124 @@
 /* 表格放在独立容器（非卡片）时自带边框 */
 .ds-table-card { border: 1px solid hsl(var(--border)); border-radius: var(--ds-r-card); overflow: hidden; background: hsl(var(--card)); box-shadow: var(--ds-shadow-xs); }
 
-/* ---------------- 呼吸感：进场 ---------------- */
-@keyframes ds-rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-.ds-rise { animation: ds-rise .32s var(--ds-ease) both; }
-@media (prefers-reduced-motion: reduce) { .ds-rise { animation: none; } }
 .form-radio-group--sm { height: var(--ds-h-sm); }
 .form-radio-group--sm .form-radio-option { height: 26px; padding: 0 10px; font-size: 12px; }
 
 /* 卡片头里的幽灵按钮：抵消自身内边距，让文字右缘与卡片内容对齐 */
 .ds-card__header > div > .btn-ghost:last-child { margin-right: -12px; }
+
+/* ---------------- 个性与呼吸（对齐系统尺寸不变，只加层次与动效） ---------------- */
+@keyframes ds-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes ds-title-in {
+  from { opacity: 0; transform: translateY(8px); filter: blur(2px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+@keyframes ds-breathe {
+  0%, 100% { box-shadow: var(--ds-shadow-xs), 0 0 0 0 rgba(var(--brand-rgb), 0); }
+  50% { box-shadow: var(--ds-shadow-xs), 0 0 24px 0 rgba(var(--brand-rgb), 0.18); }
+}
+@keyframes ds-breathe-warn {
+  0%, 100% { box-shadow: var(--ds-shadow-xs), 0 0 0 0 rgba(var(--warning-rgb), 0); }
+  50% { box-shadow: var(--ds-shadow-xs), 0 0 20px 0 rgba(var(--warning-rgb), 0.16); }
+}
+@keyframes ds-accent-grow {
+  from { transform: scaleX(0); opacity: 0; }
+  to { transform: scaleX(1); opacity: 1; }
+}
+
+.ds-rise { animation: ds-rise 0.36s var(--ds-ease) both; animation-delay: var(--ds-delay, 0ms); }
+.ds-stagger > *:nth-child(1) { --ds-delay: 0ms; }
+.ds-stagger > *:nth-child(2) { --ds-delay: 40ms; }
+.ds-stagger > *:nth-child(3) { --ds-delay: 80ms; }
+.ds-stagger > *:nth-child(4) { --ds-delay: 120ms; }
+.ds-stagger > *:nth-child(5) { --ds-delay: 160ms; }
+.ds-stagger > *:nth-child(n + 6) { --ds-delay: 200ms; }
+.ds-stagger > * .ds-rise:not(.ds-stat--hero):not(.ds-stat--warn) { animation-delay: var(--ds-delay, 0ms); }
+
+.ds-page-title--live {
+  position: relative;
+}
+.ds-page-title--live::after {
+  content: "";
+  display: block;
+  width: 28px;
+  height: 3px;
+  margin-top: 6px;
+  border-radius: 999px;
+  background: var(--brand-hex);
+  transform-origin: left center;
+  animation: ds-accent-grow 0.55s var(--ds-ease) 0.12s both;
+}
+
+/* 统计卡：图标胶囊 + 悬停微抬 + 层次色 */
+.ds-stat {
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s var(--ds-ease), box-shadow 0.2s var(--ds-ease), transform 0.2s var(--ds-ease);
+}
+.ds-stat:hover {
+  border-color: rgba(var(--brand-rgb), 0.35);
+  box-shadow: 0 4px 16px rgba(15, 15, 30, 0.06);
+  transform: translateY(-1px);
+}
+.ds-stat__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(var(--brand-rgb), 0.12);
+  color: var(--brand-text-hex);
+  flex-shrink: 0;
+}
+.ds-stat__value { font-weight: 700; }
+
+.ds-stat--hero {
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(var(--brand-rgb), 0.16) 0%, transparent 55%),
+    hsl(var(--card));
+  border-color: rgba(var(--brand-rgb), 0.28);
+  animation:
+    ds-rise 0.36s var(--ds-ease) var(--ds-delay, 0ms) both,
+    ds-breathe 3.6s ease-in-out calc(var(--ds-delay, 0ms) + 0.5s) infinite;
+}
+.ds-stat--hero .ds-stat__value {
+  font-size: 32px;
+  line-height: 40px;
+  color: var(--brand-text-hex);
+}
+.ds-stat--hero .ds-stat__icon {
+  background: rgba(var(--brand-rgb), 0.2);
+}
+
+.ds-stat--warn {
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(var(--warning-rgb), 0.12) 0%, transparent 55%),
+    hsl(var(--card));
+  border-color: rgba(var(--warning-rgb), 0.28);
+  animation:
+    ds-rise 0.36s var(--ds-ease) var(--ds-delay, 0ms) both,
+    ds-breathe-warn 3.6s ease-in-out calc(var(--ds-delay, 0ms) + 0.6s) infinite;
+}
+.ds-stat--warn .ds-stat__icon {
+  background: rgba(var(--warning-rgb), 0.16);
+  color: hsl(var(--warning));
+}
+.ds-stat--warn .ds-stat__value { color: hsl(var(--warning)); }
+
+.ds-stat--link:hover { border-color: rgba(var(--brand-rgb), 0.45); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-rise,
+  .ds-page-title--live,
+  .ds-page-title--live::after,
+  .ds-stat--hero,
+  .ds-stat--warn {
+    animation: none !important;
+  }
+  .ds-stat:hover { transform: none; }
+}

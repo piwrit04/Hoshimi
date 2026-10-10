@@ -12,6 +12,7 @@ import { daysUntilLabel, workbench } from '@/domain/workbench'
 import { actionLabel, nextStatuses, payoutVoid, NO_PAYOUT } from '@/domain/status'
 import { cn } from '@/lib/utils'
 import { yuan, yuan2 } from '@/lib/format'
+import { CountUp } from '@/lib/count-up'
 
 const PAGE = 24
 
@@ -95,14 +96,10 @@ export default function TodoPage() {
         }
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Stat label="今日完成" value={String(model.doneTodayCount)} sub="单" />
-        <Stat
-          label="今日到手"
-          value={yuan(model.todayPayout)}
-          sub="今日完成订单"
-        />
-        <Stat label="待跟进" value={String(follow)} sub="普通 + 即将到期托管" />
+      <div className="ds-stagger grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <Stat label="今日完成" value={model.doneTodayCount} sub="单" />
+        <Stat label="今日到手" value={model.todayPayout} money sub="今日完成订单" variant="hero" />
+        <Stat label="待跟进" value={follow} sub="普通 + 即将到期托管" variant={follow ? 'warn' : undefined} />
       </div>
 
       <div className="w-64">
@@ -189,11 +186,25 @@ function SectionHead({ title, count }: { title: string; count: number }) {
   )
 }
 
-function Stat({ label, value, sub }: { label: string; value: string; sub: string }) {
+function Stat({
+  label,
+  value,
+  sub,
+  money: asMoney,
+  variant,
+}: {
+  label: string
+  value: number
+  sub: string
+  money?: boolean
+  variant?: 'hero' | 'warn'
+}) {
   return (
-    <div className="ds-card ds-stat ds-rise">
+    <div className={cn('ds-card ds-stat ds-rise', variant === 'hero' && 'ds-stat--hero', variant === 'warn' && 'ds-stat--warn')}>
       <div className="ds-stat__label">{label}</div>
-      <div className="ds-stat__value">{value}</div>
+      <div className="ds-stat__value">
+        <CountUp value={value} money={asMoney} />
+      </div>
       <div className="ds-stat__foot">{sub}</div>
     </div>
   )

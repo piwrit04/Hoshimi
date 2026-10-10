@@ -25,7 +25,7 @@
 | 卡片 | 唯一样式 `ds-card` / `<Card>`：1px 边框 + bg-card + 极轻阴影；头 16/24，体 16/24/24；hover 不跳动 |
 | 统计卡 | `ds-stat`：标签 13 → 数值 28/36 tabular → 脚注 12 |
 | 表格 | `table-layout: fixed` + `<colgroup>`，表头与表体共用列宽；表头 40 / 行 48；单元格左右 12，首末列 24（与卡片头对齐）；数字列右对齐 + tabular-nums；金额统一两位小数 |
-| 动效 | 进场 `ds-rise`（4px 上浮 + 淡入 320ms，ease-out-expo），页面切换 200ms；尊重 reduce-motion |
+| 动效 | 进场 `ds-rise`（10px 上浮 + 淡入 360ms）；问候语 `live` 标题 + 粉线；统计主卡 `ds-breathe` 呼吸光晕 + CountUp；尊重 reduce-motion |
 
 ### 组件对照（我们 vs 成熟组件库）
 
