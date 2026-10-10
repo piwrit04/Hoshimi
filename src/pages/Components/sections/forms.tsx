@@ -18,6 +18,7 @@ import {
   Form,
   FormAutoComplete,
   FormCheckbox,
+  FormCheckboxGroup,
   FormHint,
   FormInput,
   FormNativeSelect,
@@ -33,6 +34,8 @@ import {
   type FormRules,
 } from '@/components/ui/form'
 import { Button } from '@/components/ui/Button'
+import { DatePicker } from '@/components/ui/DatePicker'
+import { TimePicker } from '@/components/ui/TimePicker'
 import { Tag } from '@/components/ui/data'
 import { Row, PlannedPreview } from './general'
 
@@ -679,6 +682,57 @@ export function UploadDemo() {
   )
 }
 
+
+function DatePickerDemo() {
+  const [v, setV] = useState('2026-02-14')
+  return (
+    <Row label="日期">
+      <Field label="下单日期" className="w-56">
+        <DatePicker value={v} onChange={setV} />
+      </Field>
+      <Field label="禁用周末" className="w-56">
+        <DatePicker
+          value={v}
+          onChange={setV}
+          disabledDate={(iso) => {
+            const d = new Date(iso + 'T00:00:00')
+            const day = d.getDay()
+            return day === 0 || day === 6
+          }}
+        />
+      </Field>
+    </Row>
+  )
+}
+
+function TimePickerDemo() {
+  const [v, setV] = useState('09:30')
+  return (
+    <Row label="时间">
+      <Field label="开始时刻" className="w-40">
+        <TimePicker value={v} onChange={setV} />
+      </Field>
+    </Row>
+  )
+}
+
+function CheckboxGroupDemo() {
+  const [v, setV] = useState<string[]>(['wechat'])
+  return (
+    <FormCheckboxGroup
+      label="通知渠道"
+      showCheckAll
+      value={v}
+      onChange={setV}
+      options={[
+        { label: '微信', value: 'wechat' },
+        { label: '闲鱼', value: 'xianyu' },
+        { label: 'QQ', value: 'qq' },
+      ]}
+    />
+  )
+}
+
 /* ================================================================== */
 /* 计划中的表单件 —— 每个给一个尺寸正确的草样                          */
 /* ================================================================== */
@@ -900,16 +954,6 @@ function mockDatetimePicker() {
 }
 
 const FORM_PLANNED_MOCKS: Record<string, { title: string; mock: ReactNode; note?: string }> = {
-  'c-datepicker': {
-    title: '日期选择 · 计划中',
-    mock: mockDatePicker(),
-    note: '带快捷项：今天 / 本周 / 本月 / 自定义区间。筛选器和录入两处都要。',
-  },
-  'c-timepicker': {
-    title: '时间选择 · 计划中',
-    mock: mockTimePicker(),
-    note: '和日期框并排就是「日期时间选择」。',
-  },
   'c-mention': {
     title: '提及 · 计划中',
     mock: mockMention(),
@@ -940,11 +984,6 @@ const FORM_PLANNED_MOCKS: Record<string, { title: string; mock: ReactNode; note?
     mock: mockDynamicTags(),
     note: '回车生成标签，标签可删。',
   },
-  'c-checkboxgroup': {
-    title: '复选框组 · 计划中',
-    mock: mockCheckboxGroup(),
-    note: '带全选和半选。批量操作的前提。',
-  },
   'c-transfer': {
     title: '穿梭框 · 计划中',
     mock: mockTransfer(),
@@ -972,12 +1011,15 @@ export const FORM_DEMOS: Record<string, ComponentType> = {
   'c-nativeselect': NativeSelectDemo,
   'c-autocomplete': AutoCompleteDemo,
   'c-checkbox': CheckboxDemo,
+  'c-checkboxgroup': CheckboxGroupDemo,
   'c-radiogroup': RadioGroupDemo,
   'c-switch': SwitchDemo,
   'c-slider': SliderDemo,
   'c-segmented': SegmentedDemo,
   'c-form': FormDemo,
   'c-upload': UploadDemo,
+  'c-datepicker': DatePickerDemo,
+  'c-timepicker': TimePickerDemo,
 }
 
 /* 下面这些在这个文件里只用了一部分，其余留给别的 section 复用 */

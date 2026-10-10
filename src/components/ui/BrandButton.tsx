@@ -1,15 +1,15 @@
-import { ButtonHTMLAttributes, PropsWithChildren } from 'react'
-import { cn } from '@/lib/utils'
+/**
+ * @deprecated 请用 `<Button variant="primary">`。保留薄包装以免旧引用断裂。
+ */
+import { Button, type ButtonProps } from './Button'
+import type { PropsWithChildren } from 'react'
 
-type Props = PropsWithChildren<ButtonHTMLAttributes<HTMLButtonElement>>
+type Props = PropsWithChildren<Omit<ButtonProps, 'variant'>>
 
-export default function BrandButton({ className, children, ...rest }: Props) {
+export default function BrandButton({ children, ...rest }: Props) {
   return (
-    <button
-      {...rest}
-      className={cn('btn-primary btn-with-icon', className)}
-    >
+    <Button variant="primary" {...rest}>
       {children}
-    </button>
+    </Button>
   )
 }

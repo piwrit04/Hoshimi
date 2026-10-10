@@ -177,13 +177,12 @@ localStorage("theme-storage")  →  zustand useThemeStore.mode ('dark' | 'light'
 | 侧栏 `<aside>` | `hidden md:flex md:flex-col shrink-0 h-full w-64` —— **贴边、无圆角、无外边距** |
 | 右侧列 | `min-w-0 flex-1 flex flex-col` |
 | 标题栏 `<header>` | `shrink-0 z-50 h-[52px] bg-card/92 backdrop-blur-xl border-b border-border/80` |
-| 内容区 `<main>` | `data-scroll-root min-h-0 flex-1 overflow-y-auto overflow-x-hidden` |
+| 内容区滚动根 | `Scrollbar` viewport：`data-scroll-root min-h-0 flex-1`（overlay 滚动条；锁滚动 / 锚点都找它） |
 
 **两条硬约定**：
 
-1. **`<main>` 是全站唯一的滚动容器**，不是 `window`。组件展示页的锚点跳转和滚动高亮
-   必须找它。它带 `data-scroll-root` 就是给那页用的 —— 比 `querySelector('main')`
-   靠标签名稳。`overflow-hidden` 也在最外层，别去掉。
+1. **全站唯一滚动容器是 `Scrollbar` 的 viewport**（带 `data-scroll-root`），不是 `window`、也不是 Scrollbar 外壳。
+   组件展示页锚点 / 弹层滚动锁用 `getAppScrollRoot()`（`src/lib/scroll-root.ts`）。`overflow-hidden` 仍在最外层，别去掉。
 2. **标题栏高 52px**，`MainLayout.tsx` 注释警告改它要连带改 404 卡片里的
    `min-h-[calc(100vh-48px)]`，两处要一起改。⚠️ **但那两个数字（52 和 48）在注释里本身
    就不一致**，说明这对联动值已经漂过一次 —— 真要动，先在浏览器里量一遍再改。
@@ -287,3 +286,15 @@ localStorage("theme-storage")  →  zustand useThemeStore.mode ('dark' | 'light'
 **参照物**：`Cheezit` 目录里有一套完整的 `DESIGN.md` + `PRODUCT.md`，**而且那边有 git**。
 两个项目同域（都是代肝生意），用户已明确本项目定位是**取代** Cheezit ——
 重建业务文档时，那里是最现实的起点。
+
+
+---
+
+## 组件库近期变更（维护备忘）
+
+- **浮层栈** `src/lib/overlay-stack.ts`：Modal / Drawer / `Modal.confirm` 共用；Esc 只关最顶一层；滚动锁引用计数，锁的是 `data-scroll-root` 真实滚动区。
+- **FormUpload** 的 `UploadFile.file` 保留真实 `File`（可读 Excel）。
+- **FormSelect** 清空传 `null`（与 `value: string | null` 一致）。
+- **DatePicker** ready：贴底上翻、`disabledDate`。**TimePicker** / **FormCheckboxGroup** / **LoadingBar** / **Modal.confirm** 已补。
+- **BrandButton / OutlineButton / IconTextButton / ProgressBar** 已薄包装到 `Button` / `Progress`，标 `@deprecated`。
+- 暂缓：Cascader、Transfer、DatetimePicker 一体控件（可用 Date + Time 拼）。

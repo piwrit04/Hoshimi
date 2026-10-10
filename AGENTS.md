@@ -313,3 +313,10 @@ npm run dev            # 或 npm run preview
 - 改完主动说：改了什么文件、怎么验证的、有什么遗留问题。
 - **不要声称改好了却没验证过。** 要么跑脚本，要么说明"我没验证"。
 - 用户明确说过的话要记住并遵守，不要重复犯同一个错误。
+
+## 组件 / 浮层约定（摘要）
+
+- 新按钮一律用 `Button`；旧 `BrandButton` / `OutlineButton` / `IconTextButton` / `ProgressBar` 仅为兼容包装。
+- 弹层 Esc / 锁滚动：走 `pushOverlay`（`src/lib/overlay-stack.ts`），不要各自监听 Esc + 只锁 `body`。
+- 滚动根：`getAppScrollRoot()`；`data-scroll-root` 在 Scrollbar **viewport** 上。
+- 登记表改状态时同步改 `registry.ts` + 对应 `sections/*` demo。

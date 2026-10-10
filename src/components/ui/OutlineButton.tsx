@@ -1,31 +1,25 @@
-import React, { ButtonHTMLAttributes, PropsWithChildren } from 'react'
-import { cn } from '@/lib/utils'
+/**
+ * @deprecated 请用 `<Button variant="ghost|danger">`。保留薄包装以免旧引用断裂。
+ */
+import { Button, type ButtonProps } from './Button'
+import type { PropsWithChildren } from 'react'
 
 type OutlineButtonVariant = 'ghost' | 'danger'
 
 type Props = PropsWithChildren<
-  ButtonHTMLAttributes<HTMLButtonElement> & {
+  Omit<ButtonProps, 'variant'> & {
     variant?: OutlineButtonVariant
   }
 >
 
 export default function OutlineButton({
-  className,
   children,
   variant = 'ghost',
   ...rest
 }: Props) {
-  const variantClass: Record<OutlineButtonVariant, string> = {
-    ghost: 'btn-ghost btn-ghost--muted btn-with-icon',
-    danger: 'btn-ghost btn-ghost--danger btn-with-icon',
-  }
-
   return (
-    <button
-      {...rest}
-      className={cn(variantClass[variant], className)}
-    >
+    <Button variant={variant} {...rest}>
       {children}
-    </button>
+    </Button>
   )
 }

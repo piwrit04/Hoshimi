@@ -5,6 +5,7 @@ import { cn } from '../../lib/utils';
 import ReactDOM from 'react-dom';
 import { Scrollbar } from './Scrollbar';
 import { pushOverlay } from '@/lib/overlay-stack';
+import { modalConfirm, type ModalConfirmOptions } from './ModalConfirm';
 
 interface ModalProps {
   isOpen: boolean;
@@ -16,7 +17,7 @@ interface ModalProps {
   showClose?: boolean;
 }
 
-export const Modal = ({ isOpen, onClose, title, children, footer, className, showClose = true }: ModalProps) => {
+function ModalImpl({ isOpen, onClose, title, children, footer, className, showClose = true }: ModalProps) {
   const onCloseRef = React.useRef(onClose);
   const panelRef = React.useRef<HTMLDivElement>(null);
 
@@ -119,6 +120,11 @@ export const Modal = ({ isOpen, onClose, title, children, footer, className, sho
     </AnimatePresence>,
     document.body
   );
-};
+}
 
-export default Modal;
+export const Modal = Object.assign(ModalImpl, {
+  /** 命令式确认框。需在布局里挂 <ModalConfirmHost />。 */
+  confirm: modalConfirm,
+})
+export default Modal
+export type { ModalConfirmOptions }

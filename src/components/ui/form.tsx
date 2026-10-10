@@ -737,6 +737,77 @@ export function FormCheckbox({
   )
 }
 
+
+export interface FormCheckboxGroupProps {
+  label?: ReactNode
+  help?: ReactNode
+  error?: ReactNode
+  name?: string
+  options: SelectOption[]
+  value: string[]
+  onChange: (v: string[]) => void
+  disabled?: boolean
+  direction?: 'horizontal' | 'vertical'
+  /** 显示「全选」 */
+  showCheckAll?: boolean
+  className?: string
+  required?: boolean
+}
+
+export function FormCheckboxGroup({
+  label,
+  help,
+  error,
+  name,
+  options,
+  value,
+  onChange,
+  disabled,
+  direction = 'horizontal',
+  showCheckAll,
+  className,
+  required,
+}: FormCheckboxGroupProps) {
+  const allValues = options.filter((o) => !o.disabled).map((o) => o.value)
+  const allChecked = allValues.length > 0 && allValues.every((v) => value.includes(v))
+  const someChecked = !allChecked && allValues.some((v) => value.includes(v))
+
+  const toggle = (v: string, checked: boolean) => {
+    onChange(checked ? [...value, v] : value.filter((x) => x !== v))
+  }
+
+  return (
+    <Field label={label} name={name} help={help} error={error} required={required} className={className}>
+      <div
+        className={cn(
+          'flex flex-wrap gap-3',
+          direction === 'vertical' && 'flex-col'
+        )}
+        role="group"
+      >
+        {showCheckAll && (
+          <FormCheckbox
+            label="全选"
+            checked={allChecked}
+            indeterminate={someChecked}
+            disabled={disabled}
+            onChange={(checked) => onChange(checked ? [...allValues] : [])}
+          />
+        )}
+        {options.map((o) => (
+          <FormCheckbox
+            key={o.value}
+            label={o.label}
+            checked={value.includes(o.value)}
+            disabled={disabled || o.disabled}
+            onChange={(checked) => toggle(o.value, checked)}
+          />
+        ))}
+      </div>
+    </Field>
+  )
+}
+
 export interface FormRadioGroupProps {
   label?: ReactNode
   help?: ReactNode

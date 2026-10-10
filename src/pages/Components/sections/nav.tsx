@@ -23,6 +23,8 @@ import {
 import { Tabs, Breadcrumb, Pagination, Steps, FloatButton, Progress, Spin, SpinOverlay } from '@/components/ui/feedback'
 import { Dropdown, Popover, Drawer } from '@/components/ui/overlay'
 import { Button } from '@/components/ui/Button'
+import { loadingBar } from '@/components/ui/LoadingBar'
+import { Modal } from '@/components/ui/Modal'
 import { Tag, List, ListItem } from '@/components/ui/data'
 import { Row, PlannedPreview } from './general'
 
@@ -761,6 +763,40 @@ export const NAV_DEMOS: Record<string, ComponentType> = {
   'c-backtotop': BackToTopDemo,
 }
 
+
+function LoadingBarDemo() {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Button size="sm" onClick={() => loadingBar.start()}>开始</Button>
+      <Button size="sm" variant="secondary" onClick={() => loadingBar.done()}>完成</Button>
+      <Button size="sm" variant="danger" onClick={() => loadingBar.error()}>失败</Button>
+      <span className="text-xs text-muted-foreground self-center">点一下看窗口最顶上的细条</span>
+    </div>
+  )
+}
+
+function DialogDemo() {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Button
+        size="sm"
+        variant="danger"
+        onClick={() =>
+          Modal.confirm({
+            title: '这两个客户是同一个吗？',
+            content: '合并会保留联系方式和订单。此操作需谨慎。',
+            okText: '合并',
+            cancelText: '先不合并',
+            tone: 'danger',
+          })
+        }
+      >
+        打开确认框
+      </Button>
+    </div>
+  )
+}
+
 /* ================================================================== */
 /* 反馈里「计划中」的                                                   */
 /* ================================================================== */
@@ -818,16 +854,6 @@ function mockInfiniteScroll() {
 }
 
 const FB_PLANNED_MOCKS: Record<string, { title: string; mock: ReactNode; note?: string }> = {
-  'c-loadingbar': {
-    title: '加载条 · 计划中',
-    mock: mockLoadingBar(),
-    note: '窗口顶上一道细线，不挡操作。导入大批量数据时比遮罩友好。',
-  },
-  'c-dialog': {
-    title: '命令式对话框 · 计划中',
-    mock: mockDialog(),
-    note: '「合并客户前必须弹窗问」是产品定义里的硬要求。这种中途冒出来问一句的场景，命令式比维护 isOpen 状态干净。',
-  },
   'c-infinitescroll': {
     title: '无限滚动 · 计划中',
     mock: mockInfiniteScroll(),
@@ -845,4 +871,6 @@ export function FeedbackPlannedMock({ id }: { id: string }) {
 export const FEEDBACK_DEMOS: Record<string, ComponentType> = {
   'c-progress': ProgressDemo,
   'c-spin': SpinDemo,
+  'c-loadingbar': LoadingBarDemo,
+  'c-dialog': DialogDemo,
 }

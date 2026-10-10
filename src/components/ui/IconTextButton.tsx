@@ -1,38 +1,34 @@
-import React, { ComponentType } from 'react'
-import { cn } from '@/lib/utils'
+/**
+ * @deprecated 请用 `<Button icon={...} variant={...}>`。保留薄包装以免旧引用断裂。
+ */
+import { Button, type ButtonProps, type ButtonVariant } from './Button'
+import type { ComponentType, ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
 
 type IconTextButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
 
-interface IconTextButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface IconTextButtonProps extends Omit<ButtonProps, 'variant' | 'icon'> {
   icon: ComponentType<{ size?: number }> | LucideIcon
-  children: React.ReactNode
+  children: ReactNode
   variant?: IconTextButtonVariant
 }
 
-const variantClassMap: Record<IconTextButtonVariant, string> = {
-  primary: 'btn-primary btn-with-icon',
-  secondary: 'btn-icon-text btn-with-icon',
-  ghost: 'btn-icon-text btn-icon-text--ghost btn-with-icon',
-  danger: 'btn-icon-text btn-icon-text--danger btn-with-icon',
+const map: Record<IconTextButtonVariant, ButtonVariant> = {
+  primary: 'primary',
+  secondary: 'secondary',
+  ghost: 'ghost',
+  danger: 'danger',
 }
 
 export default function IconTextButton({
-  icon: Icon,
+  icon,
   children,
   variant = 'secondary',
-  className,
   ...rest
 }: IconTextButtonProps) {
   return (
-    <button
-      type="button"
-      {...rest}
-      className={cn(variantClassMap[variant], className)}
-    >
-      <Icon size={16} />
-      <span>{children}</span>
-    </button>
+    <Button icon={icon as ButtonProps['icon']} variant={map[variant]} {...rest}>
+      {children}
+    </Button>
   )
 }

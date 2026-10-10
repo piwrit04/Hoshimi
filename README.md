@@ -106,3 +106,17 @@ MIT License
 ---
 
 由 [Claude](https://claude.ai) 协作开发 ✨
+
+## 组件库
+
+自研 UI（对照 Naive UI 分类）。入口：应用内「组件预览」页；登记表 `src/pages/Components/registry.ts`。
+
+命令式能力需在布局挂载：`<LoadingBarHost />`、`<ModalConfirmHost />`（已在 `MainLayout`）。
+
+```ts
+import { loadingBar } from '@/components/ui/LoadingBar'
+import { Modal } from '@/components/ui/Modal'
+
+loadingBar.start(); /* ... */ loadingBar.done()
+await Modal.confirm({ title: '确认？', tone: 'danger' })
+```

@@ -197,15 +197,13 @@ export const COMPONENTS: ComponentEntry[] = [
   },
   {
     id: 'c-datepicker', name: '日期选择', sub: 'DatePicker', naive: 'n-date-picker',
-    anchor: 'sec-datepicker', category: '数据录入', status: 'planned',
-    desc: '日历面板选日期，支持范围选择、快捷项（今天 / 本周 / 本月）。',
-    scene: '记订单的「下单日期」、托管「到期日期」、收支分析的「统计区间」。账本里几乎每个筛选器都要它，是二期第一优先要补的表单件。',
+    anchor: 'sec-datepicker', category: '数据录入', status: 'ready',
+    desc: '日历选日期；贴底向上翻，支持 disabledDate。新建订单已在用。',
   },
   {
     id: 'c-timepicker', name: '时间选择', sub: 'TimePicker', naive: 'n-time-picker',
-    anchor: 'sec-timepicker', category: '数据录入', status: 'planned',
-    desc: '选时分。',
-    scene: '和日期选择配合，记录「打手实际开始的时刻」；也用于托管到期的精确定时。',
+    anchor: 'sec-timepicker', category: '数据录入', status: 'ready',
+    desc: '时分选择（HH:mm），贴底向上翻，可清除。',
   },
   {
     id: 'c-mention', name: '提及', sub: 'Mention', naive: 'n-mention',
@@ -245,9 +243,8 @@ export const COMPONENTS: ComponentEntry[] = [
   },
   {
     id: 'c-checkboxgroup', name: '复选框组', sub: 'CheckboxGroup', naive: 'n-checkbox-group',
-    anchor: 'sec-checkboxgroup', category: '数据录入', status: 'planned',
-    desc: '一组复选框统一管值，带「全选」。',
-    scene: '批量改状态、批量指派打手时，先勾一批订单再统一操作。现在只能一行一行点。',
+    anchor: 'sec-checkboxgroup', category: '数据录入', status: 'ready',
+    desc: '一组复选框统一管值，可选全选 / 半选。',
   },
   {
     id: 'c-transfer', name: '穿梭框', sub: 'Transfer', naive: 'n-transfer',
@@ -516,15 +513,13 @@ export const COMPONENTS: ComponentEntry[] = [
   },
   {
     id: 'c-loadingbar', name: '加载条', sub: 'LoadingBar', naive: 'n-loading-bar',
-    anchor: 'sec-loadingbar', category: '反馈', status: 'planned',
-    desc: '窗口最顶上一条细进度条，表示「正在处理」。',
-    scene: 'Excel 导入 500 行订单时，顶上一道细线比弹一个遮罩更不打断操作 —— 用户可以同时看别的。',
+    anchor: 'sec-loadingbar', category: '反馈', status: 'ready',
+    desc: '窗口顶细条：loadingBar.start/done/error。',
   },
   {
     id: 'c-dialog', name: '命令式对话框', sub: 'Dialog', naive: 'n-dialog（命令式）',
-    anchor: 'sec-dialog', category: '反馈', status: 'planned',
-    desc: '不写 JSX，直接 `dialog.warning({...})` 调出来的对话框。',
-    scene: '**合并客户**前必须弹窗问 —— 产品定义里写死的要求。这种「代码中途冒出来问一句」的场景，命令式比维护一个 isOpen 状态干净。',
+    anchor: 'sec-dialog', category: '反馈', status: 'ready',
+    desc: '命令式确认：Modal.confirm({ title, content, onOk })。',
   },
   {
     id: 'c-infinitescroll', name: '无限滚动', sub: 'InfiniteScroll', naive: 'n-infinite-scroll',
