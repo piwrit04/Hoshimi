@@ -36,23 +36,23 @@
   --primary: 211 100% 71%;
   --primary-foreground: 210 40% 98%;
 
-  --secondary: 217 33% 17%;
-  --secondary-soft: 217 33% 20%;
-  --secondary-foreground: 210 40% 98%;
+  --secondary: 217 28% 22%;
+  --secondary-soft: 217 28% 26%;
+  --secondary-foreground: 210 40% 96%;
 
-  --accent: 266 83% 58%;
-  --accent-foreground: 210 40% 98%;
+  --accent: 266 70% 68%;
+  --accent-foreground: 222 47% 11%;
 
-  --muted: 217 33% 17%;
-  --muted-foreground: 215 20.2% 65.1%;
+  --muted: 217 28% 20%;
+  --muted-foreground: 215 16% 72%;
 
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
-  --success: 142 71% 40%;
-  --warning: 37 92% 52%;
+  --destructive: 0 72% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 142 60% 48%;
+  --warning: 38 92% 55%;
 
-  --border: 215 19% 35%;
-  --input: 215 19% 35%;
+  --border: 215 16% 32%;
+  --input: 215 16% 32%;
   --ring: 211 100% 71%;
 
   --text-1: 210 40% 98%;
@@ -79,8 +79,8 @@
   --accent-strong-rgb: 108, 132, 200;
 
   /* 控件表面态，供 .form-input / .dd-* 使用 */
-  --surface-rgb: 36, 36, 40;
-  --surface-hover-rgb: 44, 44, 50;
+  --surface-rgb: 40, 44, 54;
+  --surface-hover-rgb: 48, 54, 66;
 
   --radius-xs: 2px;
   --radius-sm: 4px;
