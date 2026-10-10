@@ -848,8 +848,8 @@ export function FormRadioGroup({
         role="radiogroup"
         aria-invalid={error ? true : undefined}
         className={cn(
-          'flex gap-3',
-          direction === 'vertical' ? 'flex-col items-stretch' : 'flex-wrap items-center',
+          'flex',
+          direction === 'vertical' ? 'flex-col items-stretch gap-2' : 'flex-wrap items-center gap-x-4 gap-y-2 min-h-9',
           className
         )}
       >

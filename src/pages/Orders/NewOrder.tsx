@@ -319,7 +319,7 @@ function Inner({
       footer={
         <>
           <Button
-            variant="ghost"
+            variant="secondary"
             onClick={() => {
               resetForm()
               onClose()
@@ -331,15 +331,15 @@ function Inner({
             {isEdit
               ? moneyLocked
                 ? '保存备注与客户'
-                : `保存 · 到手 ¥${money.payoutAmount.toFixed(0)}`
-              : `记这一单 · 到手 ¥${money.payoutAmount.toFixed(0)}`}
+                : '保存修改'
+              : '记这一单'}
           </Button>
         </>
       }
     >
-      <div className="space-y-5">
+      <div className="flex flex-col gap-6">
         {isEdit && editing && (
-          <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/50 px-4 h-10 text-sm">
             <span className="text-muted-foreground">当前状态</span>
             <Tag tone={statusTone[editing.status]}>{editing.status}</Tag>
             {moneyLocked && (
@@ -352,7 +352,9 @@ function Inner({
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <section className="flex flex-col gap-4">
+        <h3 className="ds-section-title">客户与渠道</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
           <FormInput
             label="昵称"
             required
@@ -375,7 +377,7 @@ function Inner({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
           <FormRadioGroup
             label="订单类型"
             required
@@ -403,7 +405,7 @@ function Inner({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
           <FormRadioGroup
             label="服务器"
             required
@@ -425,32 +427,38 @@ function Inner({
               ]}
             />
           ) : (
-            <div className="text-xs text-muted-foreground self-end pb-2">
+            <div className="ds-caption self-end flex items-center h-9">
               状态请在列表里「开始 / 完成 / 退款」切换
             </div>
           )}
         </div>
+        </section>
 
         {orderType === '普通' ? (
-          <section className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                项目明细
-              </h3>
+          <section className="flex flex-col gap-3">
+            <div className="flex h-8 items-center justify-between">
+              <h3 className="ds-section-title">项目明细</h3>
               {!moneyLocked && (
-                <Button variant="ghost" size="sm" onClick={addLine}>
-                  <Plus size={14} /> 添加项目
+                <Button variant="secondary" size="sm" icon={Plus} onClick={addLine}>
+                  添加项目
                 </Button>
               )}
             </div>
-            {errors.lines && <p className="text-xs text-danger">{errors.lines}</p>}
-            <div className="space-y-2">
+            {errors.lines && <p className="dd-error-text">{errors.lines}</p>}
+            <div className="flex flex-col gap-2">
+              <div className="grid grid-cols-[24px_1fr_1fr_128px_32px] items-center gap-2 ds-caption">
+                <span className="text-center">#</span>
+                <span>分类</span>
+                <span>项目</span>
+                <span className="text-right pr-1">单价</span>
+                <span />
+              </div>
               {lines.map((line, i) => (
-                <div key={line.key} className="flex items-center gap-2 bg-secondary/40 rounded-lg p-2">
-                  <span className="text-xs text-muted-foreground w-4 text-center shrink-0">
+                <div key={line.key} className="grid grid-cols-[24px_1fr_1fr_128px_32px] items-center gap-2">
+                  <span className="ds-caption text-center tabular-nums">
                     {i + 1}
                   </span>
-                  <div className="flex-1 grid grid-cols-2 gap-2">
+                  <div className="contents">
                     <FormSelect
                       placeholder="分类"
                       disabled={moneyLocked}
@@ -480,7 +488,7 @@ function Inner({
                       }}
                     />
                   </div>
-                  <div className="w-24 shrink-0">
+                  <div>
                     <FormNumberInput
                       unit="元"
                       min={0}
@@ -493,38 +501,34 @@ function Inner({
                       }
                     />
                   </div>
-                  <button
-                    type="button"
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    iconOnly
+                    icon={Trash2}
                     disabled={moneyLocked || i === 0}
                     onClick={() => removeLine(line.key)}
-                    className={
-                      'shrink-0 p-2 rounded ' +
-                      (moneyLocked || i === 0
-                        ? 'text-muted-foreground/30 cursor-not-allowed'
-                        : 'text-muted-foreground hover:text-danger')
-                    }
                     aria-label="移除"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  />
                 </div>
               ))}
             </div>
-            <p className="text-xs text-muted-foreground text-right">
-              合计 <b className="text-foreground">¥{linesTotal.toFixed(2)}</b>
-            </p>
+            <div className="grid grid-cols-[24px_1fr_1fr_128px_32px] items-center gap-2 text-sm">
+              <span />
+              <span />
+              <span className="text-right text-muted-foreground">合计</span>
+              <span className="text-right pr-3 font-medium tabular-nums">¥{linesTotal.toFixed(2)}</span>
+              <span />
+            </div>
           </section>
         ) : (
-          <section className="space-y-3">
-            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              托管安排
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <section className="flex flex-col gap-4">
+            <h3 className="ds-section-title">托管安排</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
               <FormRadioGroup
                 label="托管类型"
                 required
                 disabled={moneyLocked}
-                className="h-10 items-center"
                 value={custodyKind}
                 onChange={(v) => setCustodyKind(v ?? '')}
                 options={custodyOptions.map((p) => ({ value: p, label: p }))}
@@ -534,7 +538,6 @@ function Inner({
                 label="结算方式"
                 required
                 disabled={moneyLocked}
-                className="h-10 items-center"
                 value={settleKind}
                 onChange={(v) => onSettleChange(v as SettleKind)}
                 options={['日结', '周结', '月结'].map((s) => ({ value: s, label: s }))}
@@ -580,7 +583,7 @@ function Inner({
           />
         )}
 
-        <section className="space-y-3">
+        <section className="flex flex-col gap-4">
           <FormSwitch
             label="这单转给打手做"
             checked={transferEnabled}
@@ -588,12 +591,11 @@ function Inner({
             onChange={setTransferEnabled}
           />
           {transferEnabled && (
-            <div className="pl-4 border-l-2 border-border/60 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 rounded-lg border border-border p-4">
               <FormRadioGroup
                 label="转出方式"
                 required
                 disabled={moneyLocked}
-                className="h-10 items-center"
                 value={transferMode}
                 onChange={(v) => setTransferMode(v as TransferMode)}
                 options={[
@@ -631,7 +633,7 @@ function Inner({
           )}
         </section>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-flow-col auto-cols-fr divide-x divide-border rounded-lg border border-border">
           <MoneyCell label="订单金额" value={amount} voided={Boolean(editing && payoutVoid(editing))} />
           {transferEnabled && (
             <MoneyCell
@@ -681,19 +683,10 @@ function MoneyCell({
   voided?: boolean
 }) {
   return (
-    <div
-      className={
-        'rounded-lg p-2.5 text-center ' +
-        (highlight
-          ? 'bg-brand/10 ring-1 ring-brand/30'
-          : accent
-            ? 'bg-primary/5'
-            : 'bg-secondary/40')
-      }
-    >
-      <div className="text-[11px] text-muted-foreground">{label}</div>
+    <div className={'flex flex-col gap-1 px-4 py-3 ' + (highlight ? 'bg-brand/5' : accent ? '' : '')}>
+      <div className="ds-caption">{label}</div>
       <div
-        className={`text-base font-bold tabular-nums ${
+        className={`text-lg leading-7 font-semibold tabular-nums ${
           voided ? 'text-muted-foreground' : highlight ? 'text-brand' : 'text-foreground'
         }`}
       >
