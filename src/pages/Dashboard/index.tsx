@@ -9,10 +9,11 @@ import {
   ArrowUpRight,
   type LucideIcon,
 } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { useOrdersStore } from '@/store/useOrdersStore'
-import { dashboard } from '@/domain/dashboard'
-import { useMemo } from 'react'
+import { dashboard, incomeTrend, type TrendUnit } from '@/domain/dashboard'
+import { IncomeTrendChart } from '@/components/charts/IncomeTrendChart'
 
 const fade = {
   initial: { opacity: 0, y: 8 },
@@ -28,11 +29,26 @@ export default function Dashboard() {
   const customers = useOrdersStore((s) => s.customers)
   const settings = useOrdersStore((s) => s.settings)
 
+  const games = useOrdersStore((s) => s.games)
+  const [unit, setUnit] = useState<TrendUnit>('month')
+  const [tipDismissed, setTipDismissed] = useState(() => {
+    try {
+      return localStorage.getItem('hoshimi.firstRunTipDismissed') === '1'
+    } catch {
+      return false
+    }
+  })
+
   const m = useMemo(
     () => dashboard({ orders, customers, settings }),
     [orders, customers, settings],
   )
+  const trend = useMemo(
+    () => incomeTrend({ orders, customers, settings }, unit),
+    [orders, customers, settings, unit],
+  )
   const k = m.kpis
+  const showSetupTip = !tipDismissed && games.length === 0
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-10 px-4 md:px-8 pt-4">
@@ -49,6 +65,31 @@ export default function Dashboard() {
           </p>
         </div>
       </header>
+
+      {showSetupTip ? (
+        <div className="flex items-start justify-between gap-3 rounded-xl border border-brand/30 bg-brand/5 px-4 py-3 text-sm">
+          <p className="text-foreground/90">
+            还没有游戏目录。去「设置 → 项目目录」加一个游戏，录单会更顺手。
+            <Link to="/settings" className="ml-2 font-semibold text-brand hover:underline">
+              去设置 →
+            </Link>
+          </p>
+          <button
+            type="button"
+            className="shrink-0 text-xs text-muted-foreground hover:text-foreground"
+            onClick={() => {
+              try {
+                localStorage.setItem('hoshimi.firstRunTipDismissed', '1')
+              } catch {
+                /* ignore */
+              }
+              setTipDismissed(true)
+            }}
+          >
+            知道了
+          </button>
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-8 space-y-6">
@@ -89,6 +130,12 @@ export default function Dashboard() {
               </Link>
             </motion.div>
           </section>
+
+          <motion.div {...fade} transition={{ duration: 0.25, delay: 0.08 }}>
+            <DashboardPanel title="收入走势">
+              <IncomeTrendChart points={trend} unit={unit} onUnitChange={setUnit} />
+            </DashboardPanel>
+          </motion.div>
 
           <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <QuickAccessCard

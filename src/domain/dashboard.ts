@@ -86,3 +86,73 @@ export function dashboard(ledger: LedgerView, now = new Date()) {
     statusCounts,
   }
 }
+
+export type TrendUnit = 'day' | 'week' | 'month'
+export type TrendPoint = {
+  key: string
+  label: string
+  revenue: number
+  payout: number
+  count: number
+}
+
+const pad = (n: number) => String(n).padStart(2, '0')
+const dayKey = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+const weekStart = (d: Date) => {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate())
+  x.setDate(x.getDate() - ((x.getDay() + 6) % 7))
+  return x
+}
+
+/**
+ * 收入走势：日（近 14 天）/ 周（近 8 周）/ 月（近 6 个月）。
+ * 口径同概览：已完成 + 有完成时间；有正式单时不算示例。
+ */
+export function incomeTrend(
+  ledger: LedgerView,
+  unit: TrendUnit,
+  now = new Date(),
+): TrendPoint[] {
+  const { orders } = statOrders(ledger.orders)
+  const done = orders.filter((o) => o.status === '已完成' && o.completedAt)
+  const buckets: { key: string; label: string }[] = []
+  let keyOf: (d: Date) => string
+  if (unit === 'day') {
+    for (let i = 13; i >= 0; i -= 1) {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i)
+      buckets.push({ key: dayKey(d), label: `${d.getMonth() + 1}/${d.getDate()}` })
+    }
+    keyOf = dayKey
+  } else if (unit === 'week') {
+    const start = weekStart(now)
+    for (let i = 7; i >= 0; i -= 1) {
+      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() - i * 7)
+      const end = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 6)
+      buckets.push({
+        key: dayKey(d),
+        label: `${d.getMonth() + 1}/${d.getDate()}–${end.getMonth() + 1}/${end.getDate()}`,
+      })
+    }
+    keyOf = (d) => dayKey(weekStart(d))
+  } else {
+    for (let i = 5; i >= 0; i -= 1) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      buckets.push({
+        key: `${d.getFullYear()}-${pad(d.getMonth() + 1)}`,
+        label: `${d.getMonth() + 1}月`,
+      })
+    }
+    keyOf = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`
+  }
+
+  return buckets.map((b) => {
+    const list = done.filter((o) => keyOf(new Date(o.completedAt!)) === b.key)
+    return {
+      key: b.key,
+      label: b.label,
+      revenue: sumMoney(list.map((o) => o.amount)),
+      payout: sumMoney(list.map((o) => o.payout)),
+      count: list.length,
+    }
+  })
+}
