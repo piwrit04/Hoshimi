@@ -53,9 +53,8 @@ export function ButtonDemo() {
       </Row>
 
       <Row label="尺寸">
-        <Button variant="primary" size="sm">小号</Button>
-        <Button variant="primary" size="md">中号</Button>
-        <Button variant="primary" size="lg">大号</Button>
+        <Button variant="primary" size="sm">sm · 32px（表格行内 / 工具条）</Button>
+        <Button variant="primary" size="md">md · 36px（页头 / 弹窗底部）</Button>
       </Row>
 
       <Row label="图标位置">

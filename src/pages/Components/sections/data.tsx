@@ -68,12 +68,12 @@ const CHANNEL_META: Record<Order['channel'], { label: string; rate: number }> = 
 }
 
 const ORDERS: Order[] = [
-  { no: 'XY20260214-0031', customer: '小北', service: '主线 4-6 章', channel: 'xianyu', amountCents: 28600, status: 'doing', fighter: '阿凯', due: '02-20' },
-  { no: 'WX20260214-0032', customer: '橙子', service: '深渊满星', channel: 'wechat', amountCents: 52000, status: 'review', fighter: '小北', due: '02-18' },
-  { no: 'XY20260213-0029', customer: '阿凯', service: '日常代肝 ×7', channel: 'xianyu', amountCents: 12800, status: 'done', fighter: '橙子', due: '02-15' },
-  { no: 'XY20260212-0027', customer: '老周', service: '周本 ×3', channel: 'xianyu', amountCents: 8800, status: 'done', fighter: '芋圆', due: '02-14' },
-  { no: 'WX20260212-0026', customer: '芋圆', service: '账号托管 30 天', channel: 'wechat', amountCents: 30000, status: 'refunded', fighter: '阿凯', due: '—' },
-  { no: 'XY20260211-0024', customer: '小北', service: '材料代刷', channel: 'xianyu', amountCents: 4600, status: 'done', fighter: '老周', due: '02-13' },
+  { no: 'XY20260214-0031', customer: '小北', service: '第四章：红字的研究', channel: 'xianyu', amountCents: 28600, status: 'doing', fighter: '阿凯', due: '02-20' },
+  { no: 'WX20260214-0032', customer: '橙子', service: '全异象委托', channel: 'wechat', amountCents: 52000, status: 'review', fighter: '小北', due: '02-18' },
+  { no: 'XY20260213-0029', customer: '阿凯', service: '都市活力', channel: 'xianyu', amountCents: 12800, status: 'done', fighter: '橙子', due: '02-15' },
+  { no: 'XY20260212-0027', customer: '老周', service: '排球之星（周常联赛）', channel: 'xianyu', amountCents: 8800, status: 'done', fighter: '芋圆', due: '02-14' },
+  { no: 'WX20260212-0026', customer: '芋圆', service: '全托 · 月结', channel: 'wechat', amountCents: 30000, status: 'refunded', fighter: '阿凯', due: '—' },
+  { no: 'XY20260211-0024', customer: '小北', service: '锄大地', channel: 'xianyu', amountCents: 4600, status: 'done', fighter: '老周', due: '02-13' },
 ]
 
 /** 分 → 人民币显示。展示层唯一的换算点。 */
@@ -276,7 +276,7 @@ export function TableDemo() {
 /* ------------------------------------------------------------------ */
 
 export function TagDemo() {
-  const [tags, setTags] = useState(['主线代打', '深渊满星', '日常代肝', '材料代刷'])
+  const [tags, setTags] = useState(['主线任务', '全异象委托', '都市玩法', '锄大地'])
   return (
     <div className="space-y-5">
       <Row label="六种语义色">
@@ -295,7 +295,7 @@ export function TagDemo() {
           </Tag>
         ))}
         {tags.length === 0 && (
-          <Button variant="ghost" size="sm" onClick={() => setTags(['主线代打', '深渊满星'])}>
+          <Button variant="ghost" size="sm" onClick={() => setTags(['主线任务', '全异象委托'])}>
             恢复
           </Button>
         )}
@@ -620,18 +620,18 @@ export function TreeDemo() {
             children: [
               {
                 key: 'g1-1',
-                label: '主线代打',
+                label: '主线任务',
                 children: [
                   { key: 'g1-1-1', label: '1-3 章' },
                   { key: 'g1-1-2', label: '4-6 章' },
                 ],
               },
-              { key: 'g1-2', label: '深渊满星' },
+              { key: 'g1-2', label: '全异象委托' },
               {
                 key: 'g1-3',
-                label: '日常代肝',
+                label: '都市玩法',
                 children: [
-                  { key: 'g1-3-1', label: '每日委托 ×7' },
+                  { key: 'g1-3-1', label: '都市活力' },
                   { key: 'g1-3-2', label: '树脂清空 ×7' },
                 ],
               },

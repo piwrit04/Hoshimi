@@ -250,3 +250,6 @@
 @media (prefers-reduced-motion: reduce) { .ds-rise { animation: none; } }
 .form-radio-group--sm { height: var(--ds-h-sm); }
 .form-radio-group--sm .form-radio-option { height: 26px; padding: 0 10px; font-size: 12px; }
+
+/* 卡片头里的幽灵按钮：抵消自身内边距，让文字右缘与卡片内容对齐 */
+.ds-card__header > div > .btn-ghost:last-child { margin-right: -12px; }

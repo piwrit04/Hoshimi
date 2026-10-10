@@ -100,13 +100,13 @@ export function FloatingSearch() {
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             style={{ left: position.x, top: position.y, position: "fixed" }}
-            className="z-50 w-[480px] flex flex-col bg-card/95 backdrop-blur-xl border border-border/50 shadow-floating rounded-lg overflow-hidden"
+            className="z-50 w-[520px] flex flex-col bg-popover border border-border shadow-floating rounded-xl overflow-hidden"
           >
             {/* 拖拽把手 */}
             <div
               onMouseDown={handleMouseDown}
               className={cn(
-                "h-10 flex items-center justify-between px-4 border-b border-border/50 bg-secondary/30 select-none cursor-move",
+                "h-10 flex items-center justify-between px-4 border-b border-border select-none cursor-move",
                 isDragging ? "cursor-grabbing" : "cursor-grab"
               )}
             >
@@ -157,9 +157,9 @@ export function FloatingSearch() {
                       key={item.id}
                       to={`/components#${item.anchor}`}
                       onClick={closeSearch}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors group"
+                      className="flex h-11 items-center gap-3 px-3 rounded-lg hover:bg-secondary transition-colors group"
                     >
-                      <div className="w-8 h-8 rounded-full bg-secondary border border-border/50 flex items-center justify-center">
+                      <div className="size-7 rounded-md bg-secondary border border-border flex items-center justify-center">
                         <Boxes size={16} className="text-muted-foreground group-hover:text-primary transition-colors" />
                       </div>
                       <div className="flex-1">
@@ -177,7 +177,7 @@ export function FloatingSearch() {
               )}
             </div>
 
-            <div className="px-4 py-2 bg-secondary/30 border-t border-border/50 text-[10px] text-muted-foreground flex justify-between">
+            <div className="flex h-9 items-center justify-between px-4 border-t border-border text-xs text-muted-foreground">
               <span>拖动顶部标题栏可移动窗口</span>
               <span>{results.length} 个结果</span>
             </div>

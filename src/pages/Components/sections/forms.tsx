@@ -802,7 +802,7 @@ function mockCascader() {
       {[
         { title: '游戏', items: ['原神', '崩铁'], active: '原神' },
         { title: '大区', items: ['国服', '国际服'], active: '国服' },
-        { title: '服务', items: ['主线代打', '深渊满星', '日常'], active: '深渊满星' },
+        { title: '服务', items: ['主线任务', '异象委托', '都市玩法'], active: '异象委托' },
       ].map((col) => (
         <div key={col.title} className="w-28 rounded-lg border border-border bg-popover overflow-hidden">
           <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground bg-secondary">

@@ -32,7 +32,8 @@ export type ButtonVariant =
   | 'danger'    // 危险色实心
   | 'text'      // 纯文字，最轻
 
-export type ButtonSize = 'sm' | 'md' | 'lg'
+/** 只有两档：sm 32px（表格行内、设置行、工具条）/ md 36px（页头、弹窗底部、表单） */
+export type ButtonSize = 'sm' | 'md'
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant
@@ -57,7 +58,6 @@ const variantClass: Record<ButtonVariant, string> = {
 const sizeClass: Record<ButtonSize, string> = {
   sm: 'btn--sm',
   md: '',
-  lg: 'btn--lg',
 }
 
 export function Button({
@@ -95,7 +95,7 @@ export function Button({
       {loading ? (
         <Loader2 size={size === 'sm' ? 14 : 16} className="animate-spin shrink-0" />
       ) : (
-        Icon && <Icon size={size === 'sm' ? 14 : size === 'lg' ? 20 : 16} className="shrink-0" />
+        Icon && <Icon size={size === 'sm' ? 14 : 16} className="shrink-0" />
       )}
       {!iconOnly && children}
     </button>

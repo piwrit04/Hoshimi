@@ -157,10 +157,11 @@ export default function ComponentsPage() {
   const readyPercent = Math.round((REGISTRY_STATS.ready / (REGISTRY_STATS.ready + plannedCount)) * 100)
 
   return (
-    <div className="max-w-[1500px] mx-auto px-6 md:px-8 pb-16">
+    <div className="mx-auto w-full max-w-[1500px] px-8 pt-6 pb-16">
       <PageHeader
-        icon={Palette}
+        className="mb-6"
         title="组件预览"
+        description="组件库全部组件的实时样例与规格"
         actions={<CompletionMeter percent={readyPercent} />}
       />
 
@@ -262,7 +263,7 @@ export default function ComponentsPage() {
               <section key={cat} className="mb-10">
                 {/* 分类标题 */}
                 <div className="flex items-center gap-3 mb-4">
-                  <h2 className="text-xl font-bold text-foreground">{cat}</h2>
+                  <h2 className="text-base font-semibold leading-6 text-foreground">{cat}</h2>
                   <span className="h-px flex-1 bg-border" />
                   <span className="text-xs text-muted-foreground tabular-nums">{list.length} 个</span>
                 </div>
