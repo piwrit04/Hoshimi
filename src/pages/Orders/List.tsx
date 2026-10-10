@@ -37,14 +37,15 @@ import {
 import { exportCsv, exportXlsx } from '@/domain/export'
 import { useState, memo, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { yuan, yuan2 } from '@/lib/format'
 
 /*
  * 订单列表：筛选 / 排序记住在模块级；点行编辑；开始 / 完成主按钮。
  */
 
-const statusTone: Record<OrderStatus, 'default' | 'warning' | 'success' | 'danger'> = {
+const statusTone: Record<OrderStatus, 'brand' | 'warning' | 'success' | 'danger'> = {
   待处理: 'warning',
-  进行中: 'default',
+  进行中: 'brand',
   已完成: 'success',
   已退款: 'danger',
   已取消: 'danger',
@@ -206,15 +207,15 @@ export default function Orders() {
       {
         key: 'orderNo',
         title: '单号',
-        width: '120px',
-        render: (r) => <span className="font-mono text-xs">{r.orderNo}</span>,
+        width: '136px',
+        render: (r) => <span className="font-mono text-[13px] text-muted-foreground">{r.orderNo}</span>,
       },
       {
         key: 'createdAt',
         title: '日期',
-        width: '90px',
+        width: '64px',
         render: (r) => (
-          <span className="text-xs text-muted-foreground">
+          <span className="tabular-nums text-muted-foreground">
             {new Date(r.createdAt).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}
           </span>
         ),
@@ -222,6 +223,7 @@ export default function Orders() {
       {
         key: 'nickname',
         title: '客户',
+        width: '144px',
         render: (r) => <CustomerCell order={r} />,
       },
       {
@@ -229,49 +231,56 @@ export default function Orders() {
         title: '项目',
         render: (r) =>
           r.type === '托管' ? (
-            <span>
-              {r.custodyKind} · {r.settleKind}
+            <span className="flex items-center gap-2 min-w-0">
+              <Tag tone="info">托管</Tag>
+              <span className="truncate">
+                {r.custodyKind}
+                {r.settleKind ? ` · ${r.settleKind}` : ''}
+                {r.endDate ? ` · 至 ${r.endDate.slice(5)}` : ''}
+              </span>
             </span>
           ) : (
-            <div className="text-sm">{r.items.map((i) => i.product).join('、')}</div>
+            <span className="block truncate" title={r.items.map((i) => i.product).join('、')}>
+              {r.items.map((i) => i.product).join('、')}
+            </span>
           ),
       },
       {
         key: 'platform',
         title: '渠道',
-        width: '70px',
-        render: (r) => <span className="text-sm">{r.platform}</span>,
+        width: '64px',
+        render: (r) => <span>{r.platform}</span>,
       },
       {
         key: 'amount',
         title: '金额',
-        width: '90px',
+        width: '104px',
         align: 'right',
         sortable: true,
-        render: (r) => <span className="tabular-nums">¥{r.amount.toFixed(0)}</span>,
+        render: (r) => <span>{yuan2(r.amount)}</span>,
       },
       {
         key: 'payout',
         title: '到手',
-        width: '90px',
+        width: '104px',
         align: 'right',
         render: (r) =>
           payoutVoid(r) ? (
             <span className="text-muted-foreground">{NO_PAYOUT}</span>
           ) : (
-            <span className="tabular-nums font-semibold text-brand">¥{r.payout.toFixed(0)}</span>
+            <span className="font-medium">{yuan2(r.payout)}</span>
           ),
       },
       {
         key: 'status',
         title: '状态',
-        width: '90px',
+        width: '96px',
         render: (r) => <Tag tone={statusTone[r.status]}>{r.status}</Tag>,
       },
       {
         key: 'actions',
         title: '操作',
-        width: '150px',
+        width: '152px',
         align: 'right',
         render: (r) => (
           <OrderRowActions order={r} onMove={move} onEdit={() => openEdit(r.id)} />
@@ -320,17 +329,17 @@ export default function Orders() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-8 py-6">
+    <div className="ds-page">
       <PageHeader
-        icon={LayoutList}
-        title={`订单 · 共 ${rows.length} 单，流水 ¥${total.toFixed(0)}，到手 ¥${payout.toFixed(0)}`}
+        title="订单"
+        description={`共 ${rows.length} 单 · 流水 ${yuan(total)} · 到手 ${yuan(payout)}（不含退款 / 取消）`}
         actions={
-          <div className="flex items-center gap-2 flex-wrap justify-end">
+          <>
             <Dropdown
               align="end"
               trigger={
                 <span className="inline-flex">
-                  <Button variant="secondary" size="sm" icon={Download}>
+                  <Button variant="secondary" icon={Download}>
                     导出
                   </Button>
                 </span>
@@ -341,26 +350,26 @@ export default function Orders() {
               ]}
               onSelect={(key) => void doExport(key as 'xlsx' | 'csv')}
             />
-            <Button variant="primary" onClick={openNewOrder}>
-              <PlusCircle size={16} /> 新建订单
+            <Button variant="primary" icon={PlusCircle} onClick={openNewOrder}>
+              新建订单
             </Button>
-          </div>
+          </>
         }
       />
 
       <motion.div
         {...fade}
         transition={{ duration: 0.22 }}
-        className="mb-3 flex flex-col gap-2 rounded-xl border border-border/50 bg-card p-3 shadow-sm"
+        className="flex flex-col gap-2"
       >
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative min-w-[10rem] flex-1 max-w-xs">
+        <div className="ds-toolbar">
+          <div className="relative w-64">
             <Search
-              size={14}
-              className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+              size={16}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
             />
             <input
-              className="form-input w-full !pl-8 text-sm"
+              className="dd-control w-full !pl-9 !pr-8"
               placeholder="搜索单号 / 客户 / 项目…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -368,7 +377,7 @@ export default function Orders() {
             {search.trim() ? (
               <button
                 type="button"
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 aria-label="清除搜索"
                 onClick={() => setSearch('')}
               >
@@ -376,52 +385,57 @@ export default function Orders() {
               </button>
             ) : null}
           </div>
-          <FormSelect
-            className="w-28"
-            value={mode}
-            onChange={(v) => setMode((v as OrderMode) ?? 'open')}
-            options={MODES.map((m) => ({ value: m.id, label: m.label }))}
-          />
-          <FormSelect
-            className="w-28"
-            value={type}
-            onChange={(v) => setType((v as OrderType | 'all') ?? 'all')}
-            options={TYPES.map((t) => ({ value: t.id, label: t.label }))}
-          />
-          <FormSelect
-            className="w-28"
-            value={platform}
-            onChange={(v) => setPlatform((v as Platform | 'all') ?? 'all')}
-            options={[
-              { value: 'all', label: '全部渠道' },
-              { value: '微信', label: '微信' },
-              { value: '闲鱼', label: '闲鱼' },
-            ]}
-          />
-          <FormSelect
-            className="w-32"
-            value={period}
-            onChange={(v) => setPeriod((v as Period) ?? 'all')}
-            options={PERIODS.map((p) => ({ value: p.id, label: p.label }))}
-          />
-          <FormSelect
-            className="w-36"
-            value={`${sortBy}:${sortDir}`}
-            onChange={(v) => {
-              const raw = v ?? 'createdAt:desc'
-              const [by, dir] = raw.split(':') as [OrderSortKey, OrderSortDir]
-              setSort(by, dir)
-            }}
-            options={SORT_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
-          />
+          <div className="w-32">
+            <FormSelect
+              value={mode}
+              onChange={(v) => setMode((v as OrderMode) ?? 'open')}
+              options={MODES.map((m) => ({ value: m.id, label: m.label }))}
+            />
+          </div>
+          <div className="w-32">
+            <FormSelect
+              value={type}
+              onChange={(v) => setType((v as OrderType | 'all') ?? 'all')}
+              options={TYPES.map((t) => ({ value: t.id, label: t.label }))}
+            />
+          </div>
+          <div className="w-32">
+            <FormSelect
+              value={platform}
+              onChange={(v) => setPlatform((v as Platform | 'all') ?? 'all')}
+              options={[
+                { value: 'all', label: '全部渠道' },
+                { value: '微信', label: '微信' },
+                { value: '闲鱼', label: '闲鱼' },
+              ]}
+            />
+          </div>
+          <div className="w-32">
+            <FormSelect
+              value={period}
+              onChange={(v) => setPeriod((v as Period) ?? 'all')}
+              options={PERIODS.map((p) => ({ value: p.id, label: p.label }))}
+            />
+          </div>
+          <div className="w-36">
+            <FormSelect
+              value={`${sortBy}:${sortDir}`}
+              onChange={(v) => {
+                const raw = v ?? 'createdAt:desc'
+                const [by, dir] = raw.split(':') as [OrderSortKey, OrderSortDir]
+                setSort(by, dir)
+              }}
+              options={SORT_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+            />
+          </div>
           {hasFilter ? (
-            <Button size="sm" variant="ghost" onClick={resetFilters}>
+            <Button variant="ghost" icon={X} onClick={resetFilters}>
               重置
             </Button>
           ) : null}
         </div>
         {search.trim() ? (
-          <p className="text-xs text-muted-foreground px-0.5">
+          <p className="ds-caption">
             正在搜索：{search.trim()} · 显示 {rows.length} / {orders.length} 单
           </p>
         ) : null}
@@ -430,7 +444,7 @@ export default function Orders() {
       <motion.div
         {...fade}
         transition={{ duration: 0.25, delay: 0.04 }}
-        className="bg-card border border-border/50 rounded-xl overflow-hidden"
+        className="ds-table-card"
       >
         <DataTable
           columns={columns}
@@ -471,7 +485,7 @@ export default function Orders() {
         className="max-w-sm"
         footer={
           <>
-            <Button variant="ghost" onClick={() => setReasonDialog(null)}>
+            <Button variant="secondary" onClick={() => setReasonDialog(null)}>
               取消
             </Button>
             <Button
@@ -517,14 +531,14 @@ function CustomerCell({ order }: { order: Order }) {
   return (
     <button
       type="button"
-      className="text-left hover:text-brand transition-colors"
+      className="block w-full min-w-0 text-left hover:text-brand transition-colors"
       onClick={(e) => {
         e.stopPropagation()
         if (id) navigate(`/customers/${id}`)
       }}
     >
-      <div className="font-semibold">{order.nickname}</div>
-      <div className="text-xs text-muted-foreground">{order.contact}</div>
+      <div className="font-medium truncate leading-5">{order.nickname}</div>
+      <div className="ds-caption truncate">{order.contact}</div>
     </button>
   )
 }

@@ -72,6 +72,7 @@
 }
 .ds-card__body { padding: 16px 24px 24px; flex: 1; min-height: 0; }
 .ds-card__body--flush { padding: 0; }
+.ds-card__header--bordered { padding: 12px 24px; min-height: 56px; border-bottom: 1px solid hsl(var(--border)); }
 .ds-card--flush { overflow: hidden; }
 
 /* 统计卡（shadcn SectionCards） */
@@ -231,8 +232,8 @@
   white-space: nowrap;
 }
 .dd-table td { height: 48px; padding-top: 6px; padding-bottom: 6px; line-height: 20px; }
-.dd-table th:first-child, .dd-table td:first-child { padding-left: 16px; }
-.dd-table th:last-child, .dd-table td:last-child { padding-right: 16px; }
+.dd-table th:first-child, .dd-table td:first-child { padding-left: 24px; }
+.dd-table th:last-child, .dd-table td:last-child { padding-right: 24px; }
 .dd-table .dd-table__num { text-align: right; font-variant-numeric: tabular-nums; }
 .dd-table .dd-table__center { text-align: center; }
 .dd-table th.dd-table__num .dd-table__sort { flex-direction: row-reverse; }
@@ -247,3 +248,5 @@
 @keyframes ds-rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 .ds-rise { animation: ds-rise .32s var(--ds-ease) both; }
 @media (prefers-reduced-motion: reduce) { .ds-rise { animation: none; } }
+.form-radio-group--sm { height: var(--ds-h-sm); }
+.form-radio-group--sm .form-radio-option { height: 26px; padding: 0 10px; font-size: 12px; }

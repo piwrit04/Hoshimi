@@ -26,7 +26,7 @@ export function Card({
   return (
     <section className={cn('ds-card', flush && 'ds-card--flush', className)} {...rest}>
       {hasHeader ? (
-        <div className={cn('ds-card__header', flush && 'pb-4 border-b border-border')}>
+        <div className={cn('ds-card__header', flush && 'ds-card__header--bordered')}>
           <div className="min-w-0">
             {title != null ? <h2 className="ds-section-title truncate">{title}</h2> : null}
             {description != null ? <p className="ds-caption mt-0.5 truncate">{description}</p> : null}

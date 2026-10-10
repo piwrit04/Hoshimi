@@ -24,7 +24,7 @@ export function IncomeTrendChart({
 }) {
   const [hover, setHover] = useState<number | null>(null)
   const W = 560
-  const H = 180
+  const H = 220
   const padL = 8
   const padR = 8
   const padT = 16
@@ -50,7 +50,7 @@ export function IncomeTrendChart({
   const total = points.reduce((s, p) => s + p.payout, 0)
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1.5">
@@ -62,18 +62,15 @@ export function IncomeTrendChart({
             合计 <b className="text-foreground tabular-nums">{money(total)}</b>
           </span>
         </div>
-        <div className="inline-flex rounded-lg border border-border/60 bg-secondary/40 p-0.5">
+        <div className="form-radio-group form-radio-group--sm" role="tablist">
           {UNITS.map((u) => (
             <button
               key={u.key}
               type="button"
               onClick={() => onUnitChange(u.key)}
-              className={cn(
-                'px-2.5 py-1 text-xs font-semibold rounded-md transition-colors',
-                unit === u.key
-                  ? 'bg-card text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground',
-              )}
+              role="tab"
+              aria-selected={unit === u.key}
+              className={cn('form-radio-option', unit === u.key && 'form-radio-option--active')}
             >
               {u.label}
             </button>
@@ -81,10 +78,10 @@ export function IncomeTrendChart({
         </div>
       </div>
 
-      <div className="relative w-full overflow-hidden rounded-lg bg-secondary/20 border border-border/40">
+      <div className="relative w-full overflow-hidden">
         <svg
           viewBox={`0 0 ${W} ${H}`}
-          className="w-full h-[180px] block"
+          className="w-full h-[220px] block"
           preserveAspectRatio="none"
           onMouseLeave={() => setHover(null)}
         >
@@ -135,7 +132,7 @@ export function IncomeTrendChart({
                 key={`l-${d.p.key}`}
                 x={d.x}
                 y={H - 8}
-                textAnchor="middle"
+                textAnchor={i === 0 ? 'start' : i === dots.length - 1 ? 'end' : 'middle'}
                 className="fill-muted-foreground"
                 fontSize={10}
               >

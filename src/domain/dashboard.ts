@@ -57,6 +57,13 @@ export function dashboard(ledger: LedgerView, now = new Date()) {
     .filter((x) => x.days <= threshold)
     .sort((a, b) => a.days - b.days)
 
+  // 本周（周一起）
+  const wk = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  wk.setDate(wk.getDate() - ((wk.getDay() + 6) % 7))
+  const newThisWeek = orders.filter((o) => new Date(o.createdAt).getTime() >= wk.getTime())
+  const newThisWeekLive = newThisWeek.filter((o) => o.status !== '已退款' && o.status !== '已取消')
+  const doneToday = done.filter((o) => todayISO(new Date(o.completedAt!)) === today)
+
   const recent = [...orders].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 6)
   const statusCounts = ALL_STATUSES.map((status) => ({
     status,
@@ -80,6 +87,10 @@ export function dashboard(ledger: LedgerView, now = new Date()) {
       custodyActive: custodyActive.length,
       activeCustomers,
       openCount: orders.filter(openStatus).length,
+      payoutToday: sumMoney(doneToday.map((o) => o.payout)),
+      completedToday: doneToday.length,
+      newThisWeek: newThisWeek.length,
+      newThisWeekAmount: sumMoney(newThisWeekLive.map((o) => o.amount)),
     },
     expiring,
     recent,
