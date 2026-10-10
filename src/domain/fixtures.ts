@@ -131,6 +131,7 @@ export function buildFixtureSnapshot(now = new Date()): Snapshot {
     const end = s.custody && start ? new Date(start.getFullYear(), start.getMonth(), start.getDate() + s.custody.days) : null
     return {
       id: `ord-${i + 1}`,
+      gameId: cat.games[0]?.id,
       orderNo: formatOrderNo(seq, 'NTE', created),
       createdAt: created.toISOString(),
       customerId: cust.id,

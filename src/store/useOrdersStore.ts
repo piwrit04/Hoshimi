@@ -2,13 +2,14 @@ import { create } from 'zustand'
 import type { Order } from '@/domain/order'
 import { emptySnapshot } from '@/domain/ledger'
 import { applyStatus, StatusFlowError } from '@/domain/status'
-import { normalizePhone } from '@/domain/customers'
+import { mergedNote, normalizePhone } from '@/domain/customers'
 import {
   addCategory as catAdd,
   addGame as gameAdd,
   addProduct as prodAdd,
   addServer as srvAdd,
   formatOrderNo,
+  primaryGameId,
   removeCategory as catRemove,
   removeGame as gameRemove,
   removeProduct as prodRemove,
@@ -64,6 +65,11 @@ interface OrdersState {
     patch: Partial<Pick<Customer, 'nickname' | 'contact' | 'note'>>,
   ) => Customer | null
   deleteCustomer: (id: string) => { ok: true } | { ok: false; reason: string }
+  mergeCustomers: (fromId: string, intoId: string) => { ok: true } | { ok: false; reason: string }
+  deleteOrder: (id: string) => Order | null
+  restoreOrder: (order: Order, index?: number) => void
+  setChannelFee: (platform: ChannelFee['platform'], rate: number) => void
+  updateSettings: (patch: Partial<AppSettings>) => void
   catalogSlice: () => CatalogSlice
   addGame: (name: string, prefix: string) => string
   updateGame: (id: string, patch: { name?: string; orderPrefix?: string }) => void
@@ -110,8 +116,19 @@ function schedulePersist(get: () => OrdersState) {
   }, 200)
 }
 
-function nextOrderNo(seq: number, games: Game[]): string {
-  return formatOrderNo(seq, resolveOrderPrefix(games))
+function nextOrderNo(seq: number, games: Game[], gameId?: string): string {
+  const prefix = gameId
+    ? games.find((g) => g.id === gameId)?.orderPrefix ?? resolveOrderPrefix(games)
+    : resolveOrderPrefix(games)
+  return formatOrderNo(seq, prefix)
+}
+
+export type OrderSlice = { order: Order; index: number }
+
+export function captureOrderSlice(orders: Order[], orderId: string): OrderSlice | null {
+  const index = orders.findIndex((o) => o.id === orderId)
+  if (index < 0) return null
+  return { order: { ...orders[index] }, index }
 }
 
 function applyCatalog(
@@ -266,6 +283,65 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
     return { ok: true }
   },
 
+  mergeCustomers: (fromId, intoId) => {
+    if (fromId === intoId) return { ok: false, reason: '不能合并到自己' }
+    const from = get().customers.find((c) => c.id === fromId)
+    const into = get().customers.find((c) => c.id === intoId)
+    if (!from || from.mergedIntoId) return { ok: false, reason: '来源客户不存在或已合并' }
+    if (!into || into.mergedIntoId) return { ok: false, reason: '目标客户不存在或已合并' }
+    const note = mergedNote(from, into)
+    set((s) => ({
+      customers: s.customers.map((c) =>
+        c.id === fromId
+          ? { ...c, mergedIntoId: intoId }
+          : c.id === intoId
+            ? { ...c, note }
+            : c,
+      ),
+      orders: s.orders.map((o) =>
+        o.customerId === fromId
+          ? { ...o, customerId: intoId, nickname: into.nickname, contact: into.contact || o.contact }
+          : o,
+      ),
+    }))
+    schedulePersist(get)
+    return { ok: true }
+  },
+
+  deleteOrder: (id) => {
+    const cur = get().orders.find((o) => o.id === id)
+    if (!cur) return null
+    set((s) => ({ orders: s.orders.filter((o) => o.id !== id) }))
+    schedulePersist(get)
+    return cur
+  },
+
+  restoreOrder: (order, index) => {
+    set((s) => {
+      const others = s.orders.filter((o) => o.id !== order.id)
+      const at = Math.min(Math.max(index ?? 0, 0), others.length)
+      return { orders: [...others.slice(0, at), { ...order }, ...others.slice(at)] }
+    })
+    schedulePersist(get)
+  },
+
+  setChannelFee: (platform, rate) => {
+    const safe = Number.isFinite(rate) && rate >= 0 && rate < 1 ? rate : 0
+    set((s) => {
+      const exists = s.channelFees.some((f) => f.platform === platform)
+      const channelFees = exists
+        ? s.channelFees.map((f) => (f.platform === platform ? { ...f, rate: safe } : f))
+        : [...s.channelFees, { platform, rate: safe }]
+      return { channelFees }
+    })
+    schedulePersist(get)
+  },
+
+  updateSettings: (patch) => {
+    set((s) => ({ settings: { ...s.settings, ...patch } }))
+    schedulePersist(get)
+  },
+
   addOrder: (data) => {
     const customer = get().upsertCustomer({
       nickname: data.nickname,
@@ -273,13 +349,18 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
     })
     const seq = get().orderSeq + 1
     const now = new Date().toISOString()
+    const games = get().games
+    const gameId = data.gameId && games.some((g) => g.id === data.gameId)
+      ? data.gameId
+      : primaryGameId(games)
     const order: Order = {
       ...data,
+      gameId,
       customerId: customer.id,
       nickname: customer.nickname,
       contact: customer.contact,
       id: `o-${Date.now()}-${seq}`,
-      orderNo: nextOrderNo(seq, get().games),
+      orderNo: nextOrderNo(seq, games, gameId),
       createdAt: now,
       startedAt:
         data.status === '进行中' || data.status === '已完成' ? data.startedAt ?? now : data.startedAt,

@@ -449,10 +449,16 @@ export function CatalogEditor() {
           <FormInput label="名称" required value={gameName} onChange={(e) => setGameName(e.target.value)} />
           <FormInput
             label="单号前缀"
-            help="字母数字，最多 8 位"
+            help="字母数字，最多 8 位；新订单会用该前缀生成单号"
             value={gamePrefix}
             onChange={(e) => setGamePrefix(e.target.value)}
           />
+          <p className="ds-caption">
+            例：#
+            {(gamePrefix.replace(/[^A-Za-z0-9]/g, '').slice(0, 8) || 'NTE') +
+              new Date().toISOString().slice(2, 10).replace(/-/g, '') +
+              '01'}
+          </p>
         </div>
       </Modal>
 

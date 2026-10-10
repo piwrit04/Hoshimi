@@ -351,6 +351,7 @@ export function applyImport(snap: Snapshot, plan: ImportPlan, now = new Date()):
     orderSeq += 1
     const order: Order = {
       id: `o-imp-${Date.now()}-${orderSeq}`,
+      gameId,
       orderNo: nextOrderNo(orderSeq, stamped, orderPrefix),
       createdAt: row.orderedAt,
       customerId,

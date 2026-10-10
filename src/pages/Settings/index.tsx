@@ -14,6 +14,7 @@ import {
   FileDown,
   Info,
   RefreshCw,
+  Percent,
 } from 'lucide-react'
 import { Dropdown } from '@/components/ui/overlay'
 import { FormSwitch } from '@/components/ui/form'
@@ -25,6 +26,8 @@ import { normalizeSnapshot } from '@/domain/ledger'
 import { readImportFile } from '@/domain/excel'
 import { applyImport, planImport, type ImportPlan } from '@/domain/import-plan'
 import { CatalogEditor } from './CatalogEditor'
+import { feePercentLabel } from '@/domain/money'
+import type { Platform } from '@/domain/order'
 import { exportCsv, exportXlsx } from '@/domain/export'
 
 const themeLabels: Record<ThemeMode, string> = {
@@ -202,6 +205,10 @@ export default function Settings() {
         </SettingGroup>
 
         <CatalogEditor />
+
+        <ChannelFeesSection />
+
+        <ExpiryOffsetsSection />
 
         <SettingGroup title="数据">
         <SettingRow
@@ -522,3 +529,116 @@ function SettingGroup({ title, children }: { title: string; children: React.Reac
     </section>
   )
 }
+
+function ChannelFeesSection() {
+  const fees = useOrdersStore((s) => s.channelFees)
+  const setChannelFee = useOrdersStore((s) => s.setChannelFee)
+  const addToast = useToastStore((s) => s.addToast)
+  const [drafts, setDrafts] = useState<Record<string, number | null>>({})
+
+  return (
+    <SettingGroup title="渠道费率">
+      <SettingRow
+        icon={Percent}
+        title="手续费费率"
+        description="手续费 = 金额 × 费率。修改只影响之后新存的订单，旧单按保存时的费率。"
+      >
+        <div className="flex flex-wrap items-center gap-2 justify-end">
+          {fees.map((fee) => {
+            const pct = drafts[fee.platform] ?? Math.round(fee.rate * 10000) / 100
+            return (
+              <label
+                key={fee.platform}
+                className="flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm"
+              >
+                <span className="shrink-0 font-medium text-muted-foreground">{fee.platform}</span>
+                <input
+                  className="w-14 bg-transparent text-right outline-none tabular-nums"
+                  inputMode="decimal"
+                  aria-label={`${fee.platform}费率（%）`}
+                  value={pct ?? ''}
+                  onChange={(e) => {
+                    const v = e.target.value.trim()
+                    if (v === '' || v === '.') {
+                      setDrafts((d) => ({ ...d, [fee.platform]: null }))
+                      return
+                    }
+                    const n = Number(v)
+                    if (!Number.isFinite(n)) return
+                    setDrafts((d) => ({ ...d, [fee.platform]: n }))
+                  }}
+                  onBlur={() => {
+                    const raw = drafts[fee.platform]
+                    const pctVal = raw === undefined ? Math.round(fee.rate * 10000) / 100 : raw
+                    if (pctVal == null || !Number.isFinite(pctVal) || pctVal < 0 || pctVal >= 100) {
+                      addToast({ type: 'error', message: '费率须为 0–100 之间的百分比' })
+                      setDrafts((d) => {
+                        const next = { ...d }
+                        delete next[fee.platform]
+                        return next
+                      })
+                      return
+                    }
+                    const rate = Math.round(pctVal * 100) / 10000
+                    setChannelFee(fee.platform as Platform, rate)
+                    setDrafts((d) => {
+                      const next = { ...d }
+                      delete next[fee.platform]
+                      return next
+                    })
+                    addToast({
+                      type: 'success',
+                      message: `${fee.platform}费率已设为 ${feePercentLabel(rate)}`,
+                    })
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+                  }}
+                />
+                <span className="shrink-0 text-muted-foreground">%</span>
+              </label>
+            )
+          })}
+        </div>
+      </SettingRow>
+    </SettingGroup>
+  )
+}
+
+function ExpiryOffsetsSection() {
+  const offsets = useOrdersStore((s) => s.settings.expiryOffsets)
+  const updateSettings = useOrdersStore((s) => s.updateSettings)
+  return (
+    <SettingGroup title="托管提醒">
+      <SettingRow
+        icon={Info}
+        title="到期提醒"
+        description="距结束日不超过所选天数的托管单，会出现在待办和概览。"
+      >
+        <div className="flex items-center gap-2 justify-end">
+          {[1, 3, 7].map((day) => {
+            const on = offsets.includes(day)
+            return (
+              <button
+                key={day}
+                type="button"
+                className={`btn-base btn--sm ${on ? 'btn-primary' : 'btn-secondary'}`}
+                aria-pressed={on}
+                onClick={() =>
+                  updateSettings({
+                    expiryOffsets: on
+                      ? offsets.filter((d) => d !== day)
+                      : [...offsets, day].sort((a, b) => a - b),
+                  })
+                }
+              >
+                提前 {day} 天
+              </button>
+            )
+          })}
+        </div>
+      </SettingRow>
+    </SettingGroup>
+  )
+}
+

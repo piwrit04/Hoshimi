@@ -19,6 +19,8 @@ export interface Order {
   createdAt: string
   /** 关联客户；旧数据可空，保存时会补 */
   customerId?: string
+  /** 所属游戏；用于单号前缀与目录；旧数据可空 */
+  gameId?: string
   nickname: string
   contact: string
   type: OrderType
@@ -64,6 +66,7 @@ export function normalizeOrder(raw: Partial<Order> & Pick<Order, 'id' | 'orderNo
     orderNo: raw.orderNo,
     createdAt: typeof raw.createdAt === 'string' ? raw.createdAt : new Date().toISOString(),
     customerId: typeof raw.customerId === 'string' ? raw.customerId : undefined,
+    gameId: typeof raw.gameId === 'string' ? raw.gameId : undefined,
     nickname: typeof raw.nickname === 'string' ? raw.nickname : '',
     contact: typeof raw.contact === 'string' ? raw.contact : '',
     type: raw.type === '托管' ? '托管' : '普通',

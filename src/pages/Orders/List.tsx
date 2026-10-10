@@ -14,13 +14,22 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { DataTable, Tag, type DataTableColumn } from '@/components/ui/data'
 import { Modal } from '@/components/ui/Modal'
+import { modalConfirm } from '@/components/ui/ModalConfirm'
 import { Dropdown } from '@/components/ui/overlay'
 import { FormSelect, FormTextarea } from '@/components/ui/form'
-import { useOrdersStore, type Order, type OrderStatus, type OrderType, type Platform } from '@/store/useOrdersStore'
+import {
+  captureOrderSlice,
+  useOrdersStore,
+  type Order,
+  type OrderStatus,
+  type OrderType,
+  type Platform,
+} from '@/store/useOrdersStore'
 import { useNewOrderStore } from '@/store/useNewOrderStore'
-import { useToastStore } from '@/store/useToastStore'
+import { toastUndo, useToastStore } from '@/store/useToastStore'
 import {
   actionLabel,
+  canMove,
   nextStatuses,
   NO_PAYOUT,
   payoutVoid,
@@ -161,6 +170,8 @@ export default function Orders() {
     to: OrderStatus
   } | null>(null)
   const [reason, setReason] = useState('')
+  const [selectedKeys, setSelectedKeys] = useState<string[]>([])
+  const restoreOrder = useOrdersStore((s) => s.restoreOrder)
 
   const rows = useMemo(
     () =>
@@ -178,20 +189,25 @@ export default function Orders() {
       setReasonDialog({ order, to })
       return
     }
+    const slice = captureOrderSlice(useOrdersStore.getState().orders, order.id)
     const next = setOrderStatus(order.id, to)
     if (!next) {
       addToast({ type: 'error', message: `无法改为「${to}」` })
       return
     }
-    addToast({
-      type: 'success',
-      message: to === '已完成' ? '已完成' : to === '进行中' ? '已开始处理' : `已改为「${to}」`,
-    })
+    const message =
+      to === '已完成' ? '已完成（可撤销）' : to === '进行中' ? '已开始处理' : `已改为「${to}」`
+    if (slice) {
+      toastUndo(message, () => restoreOrder(slice.order, slice.index))
+    } else {
+      addToast({ type: 'success', message })
+    }
   }
 
   const confirmReason = () => {
     if (!reasonDialog) return
     const { order, to } = reasonDialog
+    const slice = captureOrderSlice(useOrdersStore.getState().orders, order.id)
     const next = setOrderStatus(order.id, to)
     setReasonDialog(null)
     if (!next) {
@@ -199,7 +215,47 @@ export default function Orders() {
       return
     }
     const tip = reason.trim() ? `（${reason.trim()}）` : ''
-    addToast({ type: 'success', message: `${actionLabel(to)}成功${tip}` })
+    const message = `${actionLabel(to)}成功${tip}`
+    if (slice) {
+      toastUndo(message, () => restoreOrder(slice.order, slice.index))
+    } else {
+      addToast({ type: 'success', message })
+    }
+  }
+
+  const chosen = useMemo(
+    () => rows.filter((o) => selectedKeys.includes(o.id)),
+    [rows, selectedKeys],
+  )
+  const completeEligible = useMemo(
+    () => chosen.filter((o) => canMove(o.status, '已完成') && o.status !== '已完成'),
+    [chosen],
+  )
+
+  const bulkComplete = () => {
+    if (!completeEligible.length) return
+    void modalConfirm({
+      title: '批量完成？',
+      content: `将把选中的 ${completeEligible.length} 张未完成订单标为已完成。`,
+      okText: '完成',
+      onOk: () => {
+        const slices = completeEligible
+          .map((o) => captureOrderSlice(useOrdersStore.getState().orders, o.id))
+          .filter((s): s is NonNullable<typeof s> => Boolean(s))
+        let n = 0
+        for (const order of completeEligible) {
+          const cur = useOrdersStore.getState().orders.find((o) => o.id === order.id)
+          if (!cur || !canMove(cur.status, '已完成')) continue
+          if (setOrderStatus(order.id, '已完成')) n += 1
+        }
+        if (n > 0) {
+          toastUndo(`已完成 ${n} 张订单`, () => {
+            for (const slice of slices) restoreOrder(slice.order, slice.index)
+          })
+        }
+        setSelectedKeys([])
+      },
+    })
   }
 
   const columns: DataTableColumn<Order>[] = useMemo(

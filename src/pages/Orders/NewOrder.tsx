@@ -13,9 +13,9 @@ import {
   FormTextarea,
   Field,
 } from '@/components/ui/form'
-import { useToastStore } from '@/store/useToastStore'
+import { toastUndo, useToastStore } from '@/store/useToastStore'
 import { useNewOrderStore } from '@/store/useNewOrderStore'
-import { useOrdersStore, type Order } from '@/store/useOrdersStore'
+import { captureOrderSlice, useOrdersStore, type Order } from '@/store/useOrdersStore'
 import {
   calcMoney,
   feePercentLabel,
@@ -28,9 +28,11 @@ import {
   productsOfCategory,
   primaryGameId,
   serversOf,
+  sortedGames,
 } from '@/domain/catalog'
 import type { SettleKind } from '@/domain/order'
 import { isTerminal, payoutVoid, NO_PAYOUT } from '@/domain/status'
+import { modalConfirm } from '@/components/ui/ModalConfirm'
 
 type Line = { key: number; category: string; product: string; price: string }
 type StatusCreate = '待处理' | '进行中' | '已完成'
@@ -103,6 +105,17 @@ function Inner({
   const [transferAmount, setTransferAmount] = useState<number | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
+  const catalogCategories = useOrdersStore((s) => s.categories)
+  const catalogProducts = useOrdersStore((s) => s.products)
+  const catalogGames = useOrdersStore((s) => s.games)
+  const catalogServers = useOrdersStore((s) => s.servers)
+  const channelFees = useOrdersStore((s) => s.channelFees)
+  const deleteOrder = useOrdersStore((s) => s.deleteOrder)
+  const restoreOrder = useOrdersStore((s) => s.restoreOrder)
+  const gamesSorted = useMemo(() => sortedGames(catalogGames), [catalogGames])
+  const [gameId, setGameId] = useState(() => primaryGameId(catalogGames))
+  const safeGameId = gamesSorted.some((g) => g.id === gameId) ? gameId : primaryGameId(catalogGames)
+
   useEffect(() => {
     if (!open) return
     if (editing) {
@@ -110,6 +123,7 @@ function Inner({
       setContact(editing.contact)
       setOrderType(editing.type)
       setPlatform(editing.platform)
+      if (editing.gameId) setGameId(editing.gameId)
       setServer(editing.server)
       setStatus(
         editing.status === '进行中' || editing.status === '已完成' ? editing.status : '待处理',
@@ -147,25 +161,20 @@ function Inner({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- resetForm 故意不进依赖
   }, [open, editing])
 
-  const catalogCategories = useOrdersStore((s) => s.categories)
-  const catalogProducts = useOrdersStore((s) => s.products)
-  const catalogGames = useOrdersStore((s) => s.games)
-  const catalogServers = useOrdersStore((s) => s.servers)
-  const gameId = useMemo(() => primaryGameId(catalogGames), [catalogGames])
   const categories = useMemo(
-    () => categoriesForOrderType(catalogCategories, gameId, orderType),
-    [catalogCategories, gameId, orderType],
+    () => categoriesForOrderType(catalogCategories, safeGameId, orderType),
+    [catalogCategories, safeGameId, orderType],
   )
   const serverOptions = useMemo(
-    () => serversOf(catalogServers, gameId).map((s) => s.name),
-    [catalogServers, gameId],
+    () => serversOf(catalogServers, safeGameId).map((s) => s.name),
+    [catalogServers, safeGameId],
   )
   const custodyOptions = useMemo(() => {
-    const custodyCat = categoriesForOrderType(catalogCategories, gameId, '托管')[0]
+    const custodyCat = categoriesForOrderType(catalogCategories, safeGameId, '托管')[0]
     if (!custodyCat) return ['普托', '全托']
     const list = productsOfCategory(catalogProducts, custodyCat.id).map((p) => p.name)
     return list.length ? list : ['普托', '全托']
-  }, [catalogCategories, catalogProducts, gameId])
+  }, [catalogCategories, catalogProducts, safeGameId])
 
   const productNamesOf = (categoryName: string) => {
     const cat = categories.find((c) => c.name === categoryName)
@@ -194,7 +203,10 @@ function Inner({
     if (d && settleKind) setEndDate(calcEndDate(d, settleKind))
   }
 
-  const feeRate = PLATFORM_FEE[platform]
+  const feeRate = (() => {
+    const hit = channelFees.find((f) => f.platform === platform)
+    return hit ? hit.rate : (PLATFORM_FEE[platform] ?? 0)
+  })()
   const money = useMemo(
     () =>
       calcMoney({
@@ -213,6 +225,7 @@ function Inner({
     setContact('')
     setOrderType('普通')
     setPlatform('微信')
+    setGameId(primaryGameId(catalogGames))
     setServer('官服')
     setStatus('待处理')
     setLines([{ key: 1, category: '', product: '', price: '' }])
@@ -232,6 +245,7 @@ function Inner({
   const buildPayload = () => ({
     nickname: nickname.trim(),
     contact: contact.trim(),
+    gameId: safeGameId,
     type: orderType,
     platform,
     server: server ?? '官服',
@@ -318,6 +332,37 @@ function Inner({
       className="max-w-3xl"
       footer={
         <>
+          {isEdit && editing ? (
+            <Button
+              variant="danger"
+              className="mr-auto"
+              onClick={() => {
+                void modalConfirm({
+                  title: '删除订单？',
+                  content: '删除后可在几秒内撤销。如果只是客户不再需要，建议将状态改为「已取消」。',
+                  okText: '删除',
+                  tone: 'danger',
+                  onOk: () => {
+                    const slice = captureOrderSlice(useOrdersStore.getState().orders, editing.id)
+                    const removed = deleteOrder(editing.id)
+                    if (!removed) {
+                      addToast({ type: 'error', message: '删除失败' })
+                      throw new Error('删除失败')
+                    }
+                    resetForm()
+                    onClose()
+                    if (slice) {
+                      toastUndo('订单已删除', () => restoreOrder(slice.order, slice.index))
+                    } else {
+                      addToast({ type: 'success', message: '订单已删除' })
+                    }
+                  },
+                })
+              }}
+            >
+              删除订单
+            </Button>
+          ) : null}
           <Button
             variant="secondary"
             onClick={() => {
@@ -377,6 +422,28 @@ function Inner({
           />
         </div>
 
+        {gamesSorted.length > 1 && !moneyLocked ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            <FormSelect
+              label="游戏"
+              required
+              value={safeGameId}
+              onChange={(v) => {
+                if (!v || v === safeGameId) return
+                setGameId(v)
+                setServer(serversOf(catalogServers, v)[0]?.name ?? '官服')
+                setLines([{ key: 1, category: '', product: '', price: '' }])
+                setCustodyKind('')
+              }}
+              options={gamesSorted.map((g) => ({
+                value: g.id,
+                label: g.name,
+                hint: `单号前缀 ${g.orderPrefix}`,
+              }))}
+            />
+          </div>
+        ) : null}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
           <FormRadioGroup
             label="订单类型"
@@ -398,10 +465,14 @@ function Inner({
             disabled={moneyLocked}
             value={platform}
             onChange={(v) => setPlatform(v as Platform)}
-            options={(Object.keys(PLATFORM_FEE) as Platform[]).map((p) => ({
-              value: p,
-              label: `${p}（${feePercentLabel(PLATFORM_FEE[p])}）`,
-            }))}
+            options={(channelFees.length
+              ? channelFees.map((f) => f.platform)
+              : (Object.keys(PLATFORM_FEE) as Platform[])
+            ).map((p) => {
+              const hit = channelFees.find((f) => f.platform === p)
+              const rate = hit ? hit.rate : (PLATFORM_FEE[p as Platform] ?? 0)
+              return { value: p, label: `${p}（${feePercentLabel(rate)}）` }
+            })}
           />
         </div>
 

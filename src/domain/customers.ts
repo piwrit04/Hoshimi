@@ -34,3 +34,58 @@ export function customerDeleteBlockReason(orderCount: number): string | null {
   if (orderCount <= 0) return null
   return `该客户还有 ${orderCount} 张订单，不能删除。可先合并到其他客户，或保留档案。`
 }
+
+export const SAME_NAME_REASON = '昵称相同，手机号不同'
+
+export type CustomerLike = {
+  id: string
+  nickname: string
+  contact: string
+  note: string
+  mergedIntoId?: string
+}
+
+/** 合并时写进留下客户备注的一行 */
+export function mergeNoteLine(
+  from: Pick<CustomerLike, 'nickname' | 'contact' | 'note'>,
+  into: Pick<CustomerLike, 'nickname' | 'contact' | 'note'>,
+): string {
+  const phone = from.contact.trim()
+  const keepPhone = phone && phone !== into.contact.trim() ? phone : ''
+  const note = from.note.trim()
+  if (!keepPhone && !note) return ''
+  return `合并自 ${from.nickname}${keepPhone ? `（${keepPhone}）` : ''}${note ? `：${note}` : ''}`
+}
+
+/** 留下客户合并后的备注 */
+export function mergedNote(
+  from: Pick<CustomerLike, 'nickname' | 'contact' | 'note'>,
+  into: Pick<CustomerLike, 'nickname' | 'contact' | 'note'>,
+): string {
+  const line = mergeNoteLine(from, into)
+  if (!line) return into.note
+  const current = into.note.trim()
+  return current ? `${current}；${line}` : line
+}
+
+/** 活跃客户中疑似重复的两两组合（同号不同名 / 同名不同号） */
+export function duplicatePairs(
+  customers: CustomerLike[],
+): { a: CustomerLike; b: CustomerLike; reason: string }[] {
+  const list = customers.filter((c) => !c.mergedIntoId)
+  const pairs: { a: CustomerLike; b: CustomerLike; reason: string }[] = []
+  for (let i = 0; i < list.length; i += 1) {
+    for (let j = i + 1; j < list.length; j += 1) {
+      const a = list[i]
+      const b = list[j]
+      const pa = normalizePhone(a.contact)
+      const pb = normalizePhone(b.contact)
+      if (pa && pa === pb && a.nickname !== b.nickname) {
+        pairs.push({ a, b, reason: '手机号相同，昵称不同' })
+      } else if (a.nickname === b.nickname && pa && pb && pa !== pb) {
+        pairs.push({ a, b, reason: SAME_NAME_REASON })
+      }
+    }
+  }
+  return pairs
+}

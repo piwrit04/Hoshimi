@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ChevronRight, PenLine, PlusCircle, Search, Trash2, Users } from 'lucide-react'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { ChevronRight, GitMerge, PenLine, PlusCircle, Search, Trash2, Users } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { yuan, yuan2 } from '@/lib/format'
 import { PageHeader } from '@/components/ui/PageHeader'
@@ -12,7 +12,13 @@ import { modalConfirm } from '@/components/ui/ModalConfirm'
 import { useOrdersStore, type Order } from '@/store/useOrdersStore'
 import { useToastStore } from '@/store/useToastStore'
 import { useNewOrderStore } from '@/store/useNewOrderStore'
-import { customerMatches, nicknameError, phoneTail } from '@/domain/customers'
+import {
+  customerMatches,
+  duplicatePairs,
+  mergeNoteLine,
+  nicknameError,
+  phoneTail,
+} from '@/domain/customers'
 import { payoutVoid } from '@/domain/status'
 import type { Customer } from '@/storage/types'
 
@@ -69,6 +75,8 @@ function CustomerList() {
   const rows = useCustomerRows(search, sort)
   const navigate = useNavigate()
   const openNew = useNewOrderStore((s) => s.open)
+  const customers = useOrdersStore((s) => s.customers)
+  const pairs = useMemo(() => duplicatePairs(customers), [customers])
 
   const columns: DataTableColumn<Row>[] = useMemo(
     () => [
@@ -162,6 +170,55 @@ function CustomerList() {
         </div>
       </div>
 
+      {pairs.length > 0 ? (
+        <details className="ds-card overflow-hidden border-warning/30 bg-warning/5">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 px-4 py-2.5 text-[13px] text-warning [&::-webkit-details-marker]:hidden">
+            <Users size={16} className="shrink-0" />
+            <span className="flex-1 font-medium">
+              <b>{pairs.length}</b> 组客户疑似重复
+            </span>
+            <span className="ds-caption">点开查看 · 系统不会自动合并</span>
+          </summary>
+          <ul className="grid gap-1.5 border-t border-warning/20 px-4 py-3 text-[13px]">
+            {pairs.map((pair) => {
+              const label = (c: typeof pair.a) => {
+                const tail = phoneTail(c.contact)
+                return `${c.nickname}${tail ? `（${tail}）` : c.contact ? `（${c.contact}）` : ''}`
+              }
+              return (
+                <li key={`${pair.a.id}-${pair.b.id}`} className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span>
+                    <button
+                      type="button"
+                      className="font-semibold underline hover:text-foreground"
+                      onClick={() => navigate(`/customers/${pair.a.id}?merge=${pair.b.id}`)}
+                    >
+                      {label(pair.a)}
+                    </button>
+                    {' '}与{' '}
+                    <button
+                      type="button"
+                      className="font-semibold underline hover:text-foreground"
+                      onClick={() => navigate(`/customers/${pair.b.id}?merge=${pair.a.id}`)}
+                    >
+                      {label(pair.b)}
+                    </button>
+                    <span className="text-muted-foreground">（{pair.reason}）</span>
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => navigate(`/customers/${pair.a.id}?merge=${pair.b.id}`)}
+                  >
+                    去合并
+                  </Button>
+                </li>
+              )
+            })}
+          </ul>
+        </details>
+      ) : null}
+
       <div className="ds-table-card">
         <DataTable
           columns={columns}
@@ -191,7 +248,9 @@ const statusTone = {
 
 function CustomerDetail({ id }: { id: string }) {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const customer = useOrdersStore((s) => s.customers.find((c) => c.id === id))
+  const allCustomers = useOrdersStore((s) => s.customers)
   const allOrders = useOrdersStore((s) => s.orders)
   const orders = useMemo(
     () => allOrders.filter((o) => o.customerId === id),
@@ -199,12 +258,21 @@ function CustomerDetail({ id }: { id: string }) {
   )
   const updateCustomer = useOrdersStore((s) => s.updateCustomer)
   const deleteCustomer = useOrdersStore((s) => s.deleteCustomer)
+  const mergeCustomers = useOrdersStore((s) => s.mergeCustomers)
   const addToast = useToastStore((s) => s.addToast)
 
   const [editing, setEditing] = useState(false)
   const [nick, setNick] = useState('')
   const [contact, setContact] = useState('')
   const [note, setNote] = useState('')
+  const mergeFromQuery = searchParams.get('merge') ?? ''
+  const [mergeTarget, setMergeTarget] = useState(mergeFromQuery)
+  const [mergeOpen, setMergeOpen] = useState(Boolean(mergeFromQuery))
+
+  const others = useMemo(
+    () => allCustomers.filter((c) => c.id !== id && !c.mergedIntoId),
+    [allCustomers, id],
+  )
 
   const openOrder = useNewOrderStore((s) => s.openEdit)
   const orderColumns: DataTableColumn<Order>[] = useMemo(
@@ -314,6 +382,16 @@ function CustomerDetail({ id }: { id: string }) {
           <Button variant="secondary" icon={Trash2} onClick={askDelete}>
             删除
           </Button>
+          <Button
+            variant="secondary"
+            icon={GitMerge}
+            onClick={() => {
+              setMergeTarget(mergeFromQuery)
+              setMergeOpen(true)
+            }}
+          >
+            合并
+          </Button>
           <Button variant="primary" icon={PenLine} onClick={openEdit}>
             编辑资料
           </Button>
@@ -351,6 +429,81 @@ function CustomerDetail({ id }: { id: string }) {
           empty={<p className="py-10 text-center text-sm text-muted-foreground">尚未下单</p>}
         />
       </Card>
+
+
+      <Modal
+        isOpen={mergeOpen}
+        onClose={() => {
+          setMergeOpen(false)
+          if (mergeFromQuery) {
+            searchParams.delete('merge')
+            setSearchParams(searchParams, { replace: true })
+          }
+        }}
+        title="合并到其他客户"
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setMergeOpen(false)
+                if (mergeFromQuery) {
+                  searchParams.delete('merge')
+                  setSearchParams(searchParams, { replace: true })
+                }
+              }}
+            >
+              取消
+            </Button>
+            <Button
+              variant="danger"
+              disabled={!mergeTarget}
+              onClick={() => {
+                const into = others.find((c) => c.id === mergeTarget)
+                if (!into || !customer) return
+                const line = mergeNoteLine(customer, into)
+                void modalConfirm({
+                  title: '合并客户？',
+                  content: `「${customer.nickname}」的 ${orders.length} 张订单将转到「${into.nickname}」名下。${
+                    line ? `对方的手机号和备注会追加到保留客户的备注里。` : ''
+                  }此操作无法撤销。`,
+                  okText: '确认合并',
+                  tone: 'danger',
+                  onOk: () => {
+                    const r = mergeCustomers(id, mergeTarget)
+                    if (!r.ok) {
+                      addToast({ type: 'error', message: r.reason })
+                      throw new Error(r.reason)
+                    }
+                    addToast({ type: 'success', message: '客户已合并' })
+                    navigate(`/customers/${mergeTarget}`)
+                  },
+                })
+              }}
+            >
+              合并
+            </Button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-4">
+          <p className="text-sm text-muted-foreground">
+            用于合并重复的客户档案。确认后，该客户的全部订单将转到所选客户名下。
+          </p>
+          <FormSelect
+            label="保留客户"
+            value={mergeTarget || null}
+            onChange={(v) => setMergeTarget(v ?? '')}
+            placeholder="选择客户"
+            options={others.map((c) => ({
+              value: c.id,
+              label: c.nickname,
+              hint: c.contact || '无联系方式',
+            }))}
+            filterable
+          />
+        </div>
+      </Modal>
 
       <Modal
         isOpen={editing}

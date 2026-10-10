@@ -19,6 +19,10 @@ export function defaultSettings(): AppSettings {
   }
 }
 
+export function feeRateOf(fees: ChannelFee[], platform: string): number {
+  return fees.find((f) => f.platform === platform)?.rate ?? 0
+}
+
 export function defaultChannelFees(): ChannelFee[] {
   return [
     { platform: '微信', rate: 0 },
