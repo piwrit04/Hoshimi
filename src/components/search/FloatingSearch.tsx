@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, X, GripHorizontal, Command, Boxes } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSearchStore } from "@/store/useSearchStore";
-import { buildIndex, searchItems } from "@/lib/componentSearch";
+import type { Indexed } from "@/lib/componentSearch";
 import { COMPONENTS } from "@/pages/Components/registry";
 import { Link } from "react-router-dom";
 
@@ -22,8 +22,25 @@ export function FloatingSearch() {
   const dragStartRef = useRef({ x: 0, y: 0 });
   const windowRef = useRef<HTMLDivElement>(null);
 
-  const index = useMemo(() => buildIndex(COMPONENTS), []);
-  const results = useMemo(() => searchItems(index, query, 8), [index, query]);
+  /* 拼音库体积大：第一次打开面板时才加载，启动包不带它 */
+  const [engine, setEngine] = useState<{
+    index: Indexed[];
+    search: typeof import("@/lib/componentSearch").searchItems;
+  } | null>(null);
+  useEffect(() => {
+    if (!isOpen || engine) return;
+    let alive = true;
+    void import("@/lib/componentSearch").then((m) => {
+      if (alive) setEngine({ index: m.buildIndex(COMPONENTS), search: m.searchItems });
+    });
+    return () => {
+      alive = false;
+    };
+  }, [isOpen, engine]);
+  const results = useMemo(
+    () => (engine ? engine.search(engine.index, query, 8) : []),
+    [engine, query],
+  );
 
   /* 位置记忆 */
   useEffect(() => {
