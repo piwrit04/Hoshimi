@@ -1,10 +1,12 @@
-import { useMemo, useState, memo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ChevronRight, PenLine, Trash2, Users } from 'lucide-react'
+import { ChevronRight, PenLine, PlusCircle, Search, Trash2, Users } from 'lucide-react'
+import { Card } from '@/components/ui/Card'
+import { yuan, yuan2 } from '@/lib/format'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { DataTable, Avatar, Tag, type DataTableColumn } from '@/components/ui/data'
-import { FormInput, FormTextarea } from '@/components/ui/form'
+import { FormInput, FormSelect, FormTextarea } from '@/components/ui/form'
 import { Modal } from '@/components/ui/Modal'
 import { modalConfirm } from '@/components/ui/ModalConfirm'
 import { useOrdersStore, type Order } from '@/store/useOrdersStore'
@@ -74,71 +76,72 @@ function CustomerList() {
         key: 'customer',
         title: '客户',
         render: (r) => (
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             <Avatar size="sm">{letter(r.customer.nickname)}</Avatar>
             <div className="min-w-0">
-              <div className="font-semibold truncate">{r.customer.nickname}</div>
-              <div className="text-xs text-muted-foreground">
-                {r.customer.contact || '无联系方式'}
-              </div>
+              <div className="truncate font-medium leading-5">{r.customer.nickname}</div>
+              <div className="ds-caption truncate">{r.customer.contact || '无联系方式'}</div>
             </div>
           </div>
         ),
       },
       {
+        key: 'note',
+        title: '备注',
+        render: (r) => <span className="block truncate text-muted-foreground">{r.customer.note || '—'}</span>,
+      },
+      {
         key: 'orderCount',
-        title: '订单',
-        width: '80px',
+        title: '有效订单',
+        width: '104px',
         align: 'right',
-        render: (r) => <span className="tabular-nums font-semibold">{r.orderCount}</span>,
+        render: (r) => r.orderCount,
       },
       {
         key: 'spent',
-        title: '消费',
-        width: '100px',
+        title: '已完成消费',
+        width: '128px',
         align: 'right',
-        render: (r) => (
-          <span className="tabular-nums text-brand font-semibold">¥{r.spent.toFixed(0)}</span>
-        ),
+        render: (r) => <span className="font-medium">{yuan2(r.spent)}</span>,
       },
       {
         key: 'last',
         title: '最近下单',
-        width: '110px',
+        width: '112px',
+        align: 'right',
         render: (r) => (
-          <span className="text-xs text-muted-foreground">
-            {r.last
-              ? new Date(r.last).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })
-              : '—'}
+          <span className="text-muted-foreground">
+            {r.last ? new Date(r.last).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) : '—'}
           </span>
         ),
       },
       {
         key: 'go',
         title: '',
-        width: '40px',
+        width: '56px',
         align: 'right',
-        render: () => <ChevronRight size={16} className="text-muted-foreground" />,
+        render: () => <ChevronRight size={16} className="ml-auto text-muted-foreground" />,
       },
     ],
     [],
   )
 
   return (
-    <div className="max-w-5xl mx-auto px-4 md:px-8 py-6">
+    <div className="ds-page">
       <PageHeader
-        icon={Users}
-        title={`客户 · ${rows.length} 位`}
+        title="客户"
+        description={`共 ${rows.length} 位 · 记单时自动建档`}
         actions={
-          <Button variant="primary" onClick={openNew}>
+          <Button variant="primary" icon={PlusCircle} onClick={openNew}>
             新建订单
           </Button>
         }
       />
 
-      <div className="flex flex-wrap gap-2 mb-4">
-        <div className="flex-1 min-w-[180px]">
+      <div className="ds-toolbar">
+        <div className="w-64">
           <FormInput
+            prefix={<Search size={16} />}
             placeholder="搜索昵称 / 手机号"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -146,19 +149,20 @@ function CustomerList() {
             onClear={() => setSearch('')}
           />
         </div>
-        <select
-          className="h-10 rounded-lg border border-border bg-card px-3 text-sm text-foreground"
-          value={sort}
-          onChange={(e) => setSort(e.target.value as SortKey)}
-          aria-label="排序"
-        >
-          <option value="recent">最近下单</option>
-          <option value="spent">消费金额</option>
-          <option value="count">订单数</option>
-        </select>
+        <div className="w-36">
+          <FormSelect
+            value={sort}
+            onChange={(v) => setSort((v as SortKey) ?? 'recent')}
+            options={[
+              { value: 'recent', label: '按最近下单' },
+              { value: 'spent', label: '按消费金额' },
+              { value: 'count', label: '按订单数' },
+            ]}
+          />
+        </div>
       </div>
 
-      <div className="bg-card border border-border/50 rounded-xl overflow-hidden">
+      <div className="ds-table-card">
         <DataTable
           columns={columns}
           data={rows}
@@ -166,11 +170,9 @@ function CustomerList() {
           onRowClick={(r) => navigate(`/customers/${r.customer.id}`)}
           empty={
             <div className="py-16 text-center text-muted-foreground">
-              <Users size={36} className="mx-auto mb-3 opacity-30" />
+              <Users size={32} className="mx-auto mb-3 opacity-30" />
               <p className="text-sm">{search ? '没有匹配的客户' : '还没有客户'}</p>
-              <p className="text-xs mt-1">
-                {search ? '换个关键词试试' : '记单时会自动创建客户档案'}
-              </p>
+              <p className="ds-caption mt-1">{search ? '换个关键词试试' : '记单时会自动创建客户档案'}</p>
             </div>
           }
         />
@@ -179,41 +181,13 @@ function CustomerList() {
   )
 }
 
-const OrderMini = memo(function OrderMini({ order }: { order: Order }) {
-  const openEdit = useNewOrderStore((s) => s.openEdit)
-  return (
-    <button
-      type="button"
-      onClick={() => openEdit(order.id)}
-      className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-secondary/50 transition-colors border-b border-border/40 last:border-0"
-    >
-      <div className="min-w-0">
-        <div className="font-mono text-xs text-muted-foreground">{order.orderNo}</div>
-        <div className="text-sm truncate">
-          {order.type === '托管'
-            ? `${order.custodyKind} · ${order.settleKind}`
-            : order.items.map((i) => i.product).join('、') || '—'}
-        </div>
-      </div>
-      <div className="text-right shrink-0 space-y-1">
-        <div className="tabular-nums font-semibold">¥{order.amount.toFixed(0)}</div>
-        <Tag
-          tone={
-            order.status === '已完成'
-              ? 'success'
-              : order.status === '进行中'
-                ? 'default'
-                : order.status === '待处理'
-                  ? 'warning'
-                  : 'danger'
-          }
-        >
-          {order.status}
-        </Tag>
-      </div>
-    </button>
-  )
-})
+const statusTone = {
+  待处理: 'warning',
+  进行中: 'brand',
+  已完成: 'success',
+  已退款: 'danger',
+  已取消: 'danger',
+} as const
 
 function CustomerDetail({ id }: { id: string }) {
   const navigate = useNavigate()
@@ -232,13 +206,36 @@ function CustomerDetail({ id }: { id: string }) {
   const [contact, setContact] = useState('')
   const [note, setNote] = useState('')
 
+  const openOrder = useNewOrderStore((s) => s.openEdit)
+  const orderColumns: DataTableColumn<Order>[] = useMemo(
+    () => [
+      { key: 'orderNo', title: '单号', width: '148px', render: (o) => <span className="font-mono text-[13px] text-muted-foreground">{o.orderNo}</span> },
+      { key: 'createdAt', title: '日期', width: '72px', render: (o) => <span className="tabular-nums text-muted-foreground">{new Date(o.createdAt).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}</span> },
+      {
+        key: 'items',
+        title: '项目',
+        render: (o) => (
+          <span className="block truncate">
+            {o.type === '托管' ? `${o.custodyKind} · ${o.settleKind}` : o.items.map((i) => i.product).join('、') || '—'}
+          </span>
+        ),
+      },
+      { key: 'platform', title: '渠道', width: '72px' },
+      { key: 'amount', title: '金额', width: '112px', align: 'right', render: (o) => yuan2(o.amount) },
+      { key: 'status', title: '状态', width: '104px', render: (o) => <Tag tone={statusTone[o.status]}>{o.status}</Tag> },
+    ],
+    [],
+  )
+
   if (!customer || customer.mergedIntoId) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-16 text-center text-muted-foreground">
-        <p>客户不存在或已合并</p>
-        <Button className="mt-4" variant="secondary" onClick={() => navigate('/customers')}>
-          返回列表
-        </Button>
+      <div className="ds-page">
+        <div className="ds-card items-center py-16 text-center text-muted-foreground">
+          <p className="text-sm">客户不存在或已合并</p>
+          <Button className="mt-4" variant="secondary" onClick={() => navigate('/customers')}>
+            返回列表
+          </Button>
+        </div>
       </div>
     )
   }
@@ -288,54 +285,72 @@ function CustomerDetail({ id }: { id: string }) {
     .reduce((s, o) => s + o.amount, 0)
   const tail = phoneTail(customer.contact)
 
+  const sorted = [...orders].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const last = sorted[0]?.createdAt
+
   return (
-    <div className="max-w-3xl mx-auto px-4 md:px-8 py-6 space-y-6">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link to="/customers" className="hover:text-foreground">
+    <div className="ds-page">
+      <nav className="flex h-5 items-center gap-1 text-[13px] text-muted-foreground">
+        <Link to="/customers" className="hover:text-foreground transition-colors">
           客户
         </Link>
         <ChevronRight size={14} />
-        <span className="text-foreground font-medium">{customer.nickname}</span>
-      </div>
+        <span className="text-foreground">{customer.nickname}</span>
+      </nav>
 
-      <div className="bg-card border border-border/50 rounded-xl p-5 flex flex-wrap items-start gap-4">
-        <Avatar size="lg">{letter(customer.nickname)}</Avatar>
-        <div className="min-w-0 flex-1">
-          <h1 className="text-xl font-bold">{customer.nickname}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {customer.contact || '无联系方式'}
-            {tail ? ` · ${tail}` : ''}
-          </p>
-          {customer.note ? (
-            <p className="text-sm mt-2 text-muted-foreground whitespace-pre-wrap">{customer.note}</p>
-          ) : null}
-          <div className="flex gap-4 mt-3 text-sm">
-            <span>
-              订单 <b className="tabular-nums">{orders.length}</b>
-            </span>
-            <span>
-              消费 <b className="tabular-nums text-brand">¥{spent.toFixed(0)}</b>
-            </span>
+      <header className="ds-page-header">
+        <div className="flex min-w-0 items-center gap-3">
+          <Avatar size="lg">{letter(customer.nickname)}</Avatar>
+          <div className="min-w-0">
+            <h1 className="ds-page-title truncate">{customer.nickname}</h1>
+            <p className="ds-page-desc truncate">
+              {customer.contact || '无联系方式'}
+              {tail ? ` · 尾号 ${tail}` : ''}
+              {customer.note ? ` · ${customer.note}` : ''}
+            </p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="secondary" size="sm" icon={PenLine} onClick={openEdit}>
-            编辑
-          </Button>
-          <Button variant="ghost" size="sm" icon={Trash2} onClick={askDelete}>
+        <div className="ds-page-header__actions">
+          <Button variant="secondary" icon={Trash2} onClick={askDelete}>
             删除
           </Button>
+          <Button variant="primary" icon={PenLine} onClick={openEdit}>
+            编辑资料
+          </Button>
+        </div>
+      </header>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="ds-card ds-stat">
+          <div className="ds-stat__label">订单数</div>
+          <div className="ds-stat__value">{orders.length}</div>
+          <div className="ds-stat__foot">含退款 / 取消</div>
+        </div>
+        <div className="ds-card ds-stat">
+          <div className="ds-stat__label">已完成消费</div>
+          <div className="ds-stat__value">{yuan(spent)}</div>
+          <div className="ds-stat__foot">只算「已完成」</div>
+        </div>
+        <div className="ds-card ds-stat">
+          <div className="ds-stat__label">最近下单</div>
+          <div className="ds-stat__value">
+            {last ? new Date(last).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) : '—'}
+          </div>
+          <div className="ds-stat__foot">
+            建档于 {new Date(customer.createdAt).toLocaleDateString('zh-CN')}
+          </div>
         </div>
       </div>
 
-      <section className="bg-card border border-border/50 rounded-xl overflow-hidden">
-        <div className="px-4 py-3 border-b border-border/50 text-sm font-semibold">订单记录</div>
-        {orders.length === 0 ? (
-          <p className="py-10 text-center text-sm text-muted-foreground">尚未下单</p>
-        ) : (
-          orders.map((o) => <OrderMini key={o.id} order={o} />)
-        )}
-      </section>
+      <Card title="订单记录" flush>
+        <DataTable
+          columns={orderColumns}
+          data={sorted}
+          rowKey={(o) => o.id}
+          onRowClick={(o) => openOrder(o.id)}
+          empty={<p className="py-10 text-center text-sm text-muted-foreground">尚未下单</p>}
+        />
+      </Card>
 
       <Modal
         isOpen={editing}
@@ -343,7 +358,7 @@ function CustomerDetail({ id }: { id: string }) {
         title="编辑客户"
         footer={
           <>
-            <Button variant="ghost" onClick={() => setEditing(false)}>
+            <Button variant="secondary" onClick={() => setEditing(false)}>
               取消
             </Button>
             <Button variant="primary" onClick={save}>
@@ -352,7 +367,7 @@ function CustomerDetail({ id }: { id: string }) {
           </>
         }
       >
-        <div className="space-y-3">
+        <div className="flex flex-col gap-4">
           <FormInput label="昵称" required value={nick} onChange={(e) => setNick(e.target.value)} />
           <FormInput
             label="联系方式"

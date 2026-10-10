@@ -37,7 +37,7 @@ type StatusCreate = '待处理' | '进行中' | '已完成'
 
 const statusTone = {
   待处理: 'warning',
-  进行中: 'default',
+  进行中: 'brand',
   已完成: 'success',
   已退款: 'danger',
   已取消: 'danger',
