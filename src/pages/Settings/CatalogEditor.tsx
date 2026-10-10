@@ -84,20 +84,22 @@ export function CatalogEditor() {
   }
 
   return (
-    <div className="bg-card border border-border/50 rounded-xl overflow-hidden">
-      <div className="px-5 py-4 border-b border-border/50 flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2 min-w-0">
-          <FolderTree size={16} className="text-brand shrink-0" />
-          <div>
-            <h3 className="text-sm font-bold">项目目录</h3>
-            <p className="text-xs text-muted-foreground">
-              录单可选项目；改名不影响已保存订单
-            </p>
+    <section className="flex flex-col gap-3">
+    <h2 className="ds-section-title px-1">项目目录</h2>
+    <div className="ds-card overflow-hidden">
+      <div className="flex min-h-[72px] items-center gap-3 px-6 py-4 border-b border-border">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="size-9 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">
+            <FolderTree size={16} />
+          </div>
+          <div className="min-w-0">
+            <h3 className="text-sm font-medium leading-5">游戏</h3>
+            <p className="ds-caption mt-0.5">录单可选项目；改名不影响已保存订单</p>
           </div>
         </div>
         <div className="flex-1" />
+        <div className="w-40">
         <FormSelect
-          className="w-40"
           value={safeGameId}
           onChange={(v) => {
             setGameId(v ?? safeGameId)
@@ -105,6 +107,7 @@ export function CatalogEditor() {
           }}
           options={sorted.map((g) => ({ value: g.id, label: g.name }))}
         />
+        </div>
         <Button
           size="sm"
           variant="secondary"
@@ -121,6 +124,8 @@ export function CatalogEditor() {
           size="sm"
           variant="ghost"
           icon={Pencil}
+          iconOnly
+          aria-label="编辑游戏"
           onClick={() => {
             const g = sorted.find((x) => x.id === safeGameId)
             if (!g) return
@@ -133,6 +138,8 @@ export function CatalogEditor() {
           size="sm"
           variant="ghost"
           icon={Trash2}
+          iconOnly
+          aria-label="删除游戏"
           onClick={() => {
             void modalConfirm({
               title: '删除游戏',
@@ -151,17 +158,17 @@ export function CatalogEditor() {
 
 
       {/* 当前游戏的服务器 */}
-      <div className="px-5 py-3 border-b border-border/50 bg-secondary/20">
-        <div className="flex items-center gap-2 mb-2">
+      <div className="flex flex-col gap-3 px-6 py-4 border-b border-border">
+        <div className="flex items-center gap-2">
           <Server size={14} className="text-muted-foreground" />
-          <span className="text-xs font-semibold text-muted-foreground">服务器</span>
-          <span className="text-[10px] text-muted-foreground">停用后录单不显示；删除不影响已有订单</span>
+          <span className="text-[13px] font-medium">服务器</span>
+          <span className="ds-caption">停用后录单不显示；删除不影响已有订单</span>
         </div>
-        <ul className="flex flex-wrap gap-2 mb-2">
+        <ul className="flex flex-wrap gap-2">
           {gameServers.map((item) => (
             <li
               key={item.id}
-              className={`flex h-9 items-center gap-2 rounded-lg border border-border/50 bg-card pr-1 pl-3 text-sm ${
+              className={`flex h-9 items-center gap-2 rounded-lg border border-border bg-card pr-0.5 pl-3 text-sm ${
                 !item.enabled ? 'opacity-55' : ''
               }`}
             >
@@ -193,12 +200,12 @@ export function CatalogEditor() {
             </li>
           ))}
           {gameServers.length === 0 ? (
-            <li className="flex h-9 items-center text-xs text-muted-foreground">还没有服务器</li>
+            <li className="flex h-9 items-center ds-caption">还没有服务器</li>
           ) : null}
         </ul>
-        <div className="flex gap-2 max-w-md">
+        <div className="flex items-start gap-2">
+          <div className="w-64">
           <FormInput
-            className="flex-1"
             placeholder="新服务器名称"
             value={serverName}
             onChange={(e) => setServerName(e.target.value)}
@@ -213,9 +220,10 @@ export function CatalogEditor() {
               }
             }}
           />
+          </div>
           <Button
-            size="sm"
             variant="secondary"
+            icon={Plus}
             onClick={() =>
               run(() => {
                 addServer(safeGameId, serverName)
@@ -229,11 +237,11 @@ export function CatalogEditor() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] min-h-[320px]">
+      <div className="grid grid-cols-1 md:grid-cols-[232px_1fr] min-h-[360px]">
         {/* 左：分类 */}
-        <aside className="border-b md:border-b-0 md:border-r border-border/50 p-3 space-y-1">
-          <div className="flex items-center justify-between px-1 mb-2">
-            <span className="text-xs font-semibold text-muted-foreground">分类</span>
+        <aside className="flex flex-col gap-1 border-b md:border-b-0 md:border-r border-border p-3">
+          <div className="flex h-8 items-center justify-between pl-3 mb-1">
+            <span className="ds-caption font-medium">分类</span>
             <Button
               size="sm"
               variant="ghost"
@@ -248,36 +256,36 @@ export function CatalogEditor() {
             />
           </div>
           {cats.length === 0 ? (
-            <p className="text-xs text-muted-foreground px-2 py-6 text-center">还没有分类</p>
+            <p className="ds-caption px-2 py-6 text-center">还没有分类</p>
           ) : (
             cats.map((c) => (
               <button
                 key={c.id}
                 type="button"
                 onClick={() => setCategoryId(c.id)}
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${
+                className={`w-full h-9 text-left px-3 rounded-lg text-sm transition-colors flex items-center gap-2 ${
                   c.id === activeCatId
-                    ? 'bg-primary text-primary-foreground'
+                    ? 'bg-brand/10 text-foreground font-medium'
                     : 'hover:bg-secondary text-foreground'
                 }`}
               >
                 <span className="truncate flex-1">{c.name}</span>
                 {c.kind === 'custody' ? (
-                  <Tag tone={c.id === activeCatId ? 'default' : 'warning'}>托</Tag>
+                  <Tag tone="info">托管</Tag>
                 ) : null}
-                {!c.enabled ? <span className="opacity-60 text-[10px]">停</span> : null}
+                {!c.enabled ? <span className="ds-caption">已停用</span> : null}
               </button>
             ))
           )}
         </aside>
 
         {/* 右：项目 */}
-        <div className="p-4 space-y-3">
+        <div className="flex flex-col gap-3 p-4 pl-6">
           {activeCat ? (
             <>
-              <div className="flex flex-wrap items-center gap-2">
-                <h4 className="text-sm font-bold">{activeCat.name}</h4>
-                <Tag tone={activeCat.kind === 'custody' ? 'warning' : 'default'}>
+              <div className="flex h-8 items-center gap-2">
+                <h4 className="ds-section-title">{activeCat.name}</h4>
+                <Tag tone={activeCat.kind === 'custody' ? 'info' : 'default'}>
                   {activeCat.kind === 'custody' ? '托管' : '普通'}
                 </Tag>
                 <div className="flex-1" />
@@ -289,11 +297,13 @@ export function CatalogEditor() {
                     })
                   }
                 />
-                <span className="text-xs text-muted-foreground">启用</span>
+                <span className="ds-caption mr-2">启用</span>
                 <Button
                   size="sm"
                   variant="ghost"
                   icon={Pencil}
+                  iconOnly
+                  aria-label="编辑分类"
                   onClick={() => {
                     setCatName(activeCat.name)
                     setCatKind(activeCat.kind)
@@ -304,6 +314,8 @@ export function CatalogEditor() {
                   size="sm"
                   variant="ghost"
                   icon={Trash2}
+                  iconOnly
+                  aria-label="删除分类"
                   onClick={() => {
                     void modalConfirm({
                       title: '删除分类',
@@ -335,22 +347,20 @@ export function CatalogEditor() {
               </div>
 
               {prods.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-10 text-center">这个分类还没有项目</p>
+                <p className="rounded-lg border border-dashed border-border py-10 text-center text-sm text-muted-foreground">这个分类还没有项目</p>
               ) : (
-                <ul className="divide-y divide-border/40 rounded-lg border border-border/40 overflow-hidden">
+                <ul className="divide-y divide-border rounded-lg border border-border overflow-hidden">
                   {prods.map((p) => (
                     <li
                       key={p.id}
-                      className="flex items-center gap-3 px-3 py-2.5 bg-card hover:bg-secondary/40 transition-colors"
+                      className="flex h-12 items-center gap-2 pl-4 pr-2 bg-card hover:bg-secondary/50 transition-colors"
                     >
-                      <div className="min-w-0 flex-1">
-                        <div className={`text-sm font-medium truncate ${!p.enabled ? 'opacity-50' : ''}`}>
-                          {p.name}
-                        </div>
-                        <div className="text-xs text-muted-foreground tabular-nums">
-                          {p.price != null ? `默认 ¥${p.price}` : '无默认价'}
-                          {!p.enabled ? ' · 已停用' : ''}
-                        </div>
+                      <div className={`min-w-0 flex-1 truncate text-sm ${!p.enabled ? 'text-muted-foreground' : ''}`}>
+                        {p.name}
+                        {!p.enabled ? <span className="ds-caption ml-2">已停用</span> : null}
+                      </div>
+                      <div className="w-24 shrink-0 text-right text-sm tabular-nums text-muted-foreground mr-2">
+                        {p.price != null ? `¥${p.price.toFixed(2)}` : '未定价'}
                       </div>
                       <FormSwitch
                         checked={p.enabled}
@@ -397,10 +407,11 @@ export function CatalogEditor() {
               )}
             </>
           ) : (
-            <p className="text-sm text-muted-foreground py-16 text-center">先添加一个分类</p>
+            <p className="py-16 text-center text-sm text-muted-foreground">先添加一个分类</p>
           )}
         </div>
       </div>
+    </div>
 
       {/* 游戏弹窗 */}
       <Modal
@@ -410,7 +421,7 @@ export function CatalogEditor() {
         className="max-w-sm"
         footer={
           <>
-            <Button variant="ghost" onClick={() => setGameModal(null)}>
+            <Button variant="secondary" onClick={() => setGameModal(null)}>
               取消
             </Button>
             <Button
@@ -434,7 +445,7 @@ export function CatalogEditor() {
           </>
         }
       >
-        <div className="space-y-3">
+        <div className="flex flex-col gap-4">
           <FormInput label="名称" required value={gameName} onChange={(e) => setGameName(e.target.value)} />
           <FormInput
             label="单号前缀"
@@ -453,7 +464,7 @@ export function CatalogEditor() {
         className="max-w-sm"
         footer={
           <>
-            <Button variant="ghost" onClick={() => setCatModal(null)}>
+            <Button variant="secondary" onClick={() => setCatModal(null)}>
               取消
             </Button>
             <Button
@@ -476,7 +487,7 @@ export function CatalogEditor() {
           </>
         }
       >
-        <div className="space-y-3">
+        <div className="flex flex-col gap-4">
           <FormInput label="名称" required value={catName} onChange={(e) => setCatName(e.target.value)} />
           {catModal === 'add' ? (
             <FormSelect
@@ -500,7 +511,7 @@ export function CatalogEditor() {
         className="max-w-sm"
         footer={
           <>
-            <Button variant="ghost" onClick={() => setProdModal(null)}>
+            <Button variant="secondary" onClick={() => setProdModal(null)}>
               取消
             </Button>
             <Button
@@ -524,7 +535,7 @@ export function CatalogEditor() {
           </>
         }
       >
-        <div className="space-y-3">
+        <div className="flex flex-col gap-4">
           <FormInput label="名称" required value={prodName} onChange={(e) => setProdName(e.target.value)} />
           <FormNumberInput
             label="默认价格"
@@ -535,6 +546,6 @@ export function CatalogEditor() {
           />
         </div>
       </Modal>
-    </div>
+    </section>
   )
 }

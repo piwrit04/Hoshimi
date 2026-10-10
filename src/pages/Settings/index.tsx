@@ -1,3 +1,4 @@
+import { PageHeader } from '@/components/ui/PageHeader'
 import { useRef, useState } from 'react'
 import {
   Palette,
@@ -162,32 +163,19 @@ export default function Settings() {
     : null
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-10 px-4 md:px-8 pt-4">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-border/40">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Palette size={20} className="text-brand" />
-            <span>设置</span>
-          </h1>
-          <p className="text-sm text-muted-foreground">自定义应用体验与项目目录</p>
-        </div>
-        <div className="text-right hidden md:block opacity-60">
-          <span className="text-xs font-medium text-muted-foreground">星笺</span>
-          <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-secondary text-secondary-foreground">
-            v{APP_VERSION}
-          </span>
-        </div>
-      </header>
+    <div className="ds-page">
+      <PageHeader title="设置" description="外观、项目目录、导入导出与备份" />
 
-      <div className="space-y-4">
+      <div className="flex flex-col gap-6">
+        <SettingGroup title="通用">
         <SettingRow icon={Palette} title="外观" description="选择应用的颜色主题">
           <Dropdown
             trigger={
-              <button type="button" className="btn-secondary btn--sm inline-flex items-center gap-1.5">
+              <button type="button" className="btn-base btn-secondary btn--sm w-32 !justify-between">
                 {theme === 'system' && <Monitor size={14} />}
                 {theme === 'dark' && <Moon size={14} />}
                 {theme === 'light' && <Sun size={14} />}
-                {themeLabels[theme]}
+                <span className="inline-flex items-center gap-2">{themeLabels[theme]}</span>
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="opacity-60">
                   <path
                     d="M2 3.5L5 6.5L8 3.5"
@@ -211,18 +199,20 @@ export default function Settings() {
         <SettingRow icon={Code2} title="开发模式" description="显示调试信息和开发者工具入口">
           <FormSwitch checked={devMode} onChange={setDevMode} />
         </SettingRow>
+        </SettingGroup>
 
         <CatalogEditor />
 
+        <SettingGroup title="数据">
         <SettingRow
           icon={FileDown}
           title="导出表格"
           description="把当前账本导出为 Excel（普通单 / 托管单 / 客户）或 CSV。退款、取消的到手为 —。"
         >
-          <div className="flex items-center gap-2 flex-wrap justify-end">
+          <div className="flex items-center gap-2 justify-end">
             <button
               type="button"
-              className="btn-secondary btn--sm inline-flex items-center gap-1.5"
+              className="btn-base btn-secondary btn--sm"
               onClick={() => {
                 const snap = getSnapshot()
                 void exportXlsx({ orders: snap.orders, customers: snap.customers })
@@ -235,19 +225,19 @@ export default function Settings() {
                   .catch(() => addToast({ type: 'error', message: '导出失败' }))
               }}
             >
-              <Download size={14} />
+              <Download size={14} className="shrink-0" />
               导出 Excel
             </button>
             <button
               type="button"
-              className="btn-secondary btn--sm inline-flex items-center gap-1.5"
+              className="btn-base btn-secondary btn--sm"
               onClick={() => {
                 const snap = getSnapshot()
                 exportCsv(snap.orders)
                 addToast({ type: 'success', message: `已导出 CSV（${snap.orders.length} 单）` })
               }}
             >
-              <Download size={14} />
+              <Download size={14} className="shrink-0" />
               导出 CSV
             </button>
           </div>
@@ -266,7 +256,7 @@ export default function Settings() {
         >
           <button
             type="button"
-            className="btn-secondary btn--sm inline-flex items-center gap-1.5"
+            className="btn-base btn-secondary btn--sm"
             disabled={importReading}
             onClick={() => importRef.current?.click()}
           >
@@ -291,18 +281,18 @@ export default function Settings() {
               : '账本仅保存在本设备。更换设备或清缓存前请先下载备份。'
           }
         >
-          <div className="flex items-center gap-2 flex-wrap justify-end">
+          <div className="flex items-center gap-2 justify-end">
             <button
               type="button"
-              className="btn-primary btn--sm inline-flex items-center gap-1.5"
+              className="btn-base btn-primary btn--sm"
               onClick={downloadBackup}
             >
-              <Download size={14} />
+              <Download size={14} className="shrink-0" />
               备份数据
             </button>
             <button
               type="button"
-              className="btn-secondary btn--sm inline-flex items-center gap-1.5"
+              className="btn-base btn-secondary btn--sm"
               onClick={() => fileRef.current?.click()}
             >
               <Upload size={14} />
@@ -317,7 +307,7 @@ export default function Settings() {
             />
             <button
               type="button"
-              className="btn-ghost btn--sm inline-flex items-center gap-1.5"
+              className="btn-base btn-ghost btn--sm"
               onClick={() =>
                 addToast({ type: 'info', message: '缓存清理暂未接入，账本请用备份/还原' })
               }
@@ -327,7 +317,9 @@ export default function Settings() {
             </button>
           </div>
         </SettingRow>
+        </SettingGroup>
 
+        <SettingGroup title="关于">
         <SettingRow
           icon={RefreshCw}
           title="检查更新"
@@ -335,7 +327,7 @@ export default function Settings() {
         >
           <button
             type="button"
-            className="btn-secondary btn--sm inline-flex items-center gap-1.5"
+            className="btn-base btn-secondary btn--sm"
             onClick={() => {
               setUpdateHint('已是最新')
               addToast({ type: 'success', message: `当前已是最新版本 v${APP_VERSION}` })
@@ -352,10 +344,11 @@ export default function Settings() {
           title="关于星笺"
           description="本地代肝订单管理 · 数据仅存本机"
         >
-          <span className="text-xs font-medium text-muted-foreground tabular-nums">
+          <span className="inline-flex h-6 items-center rounded-md bg-secondary px-2 text-xs font-medium text-muted-foreground tabular-nums">
             v{APP_VERSION}
           </span>
         </SettingRow>
+        </SettingGroup>
       </div>
 
       <Modal
@@ -367,10 +360,10 @@ export default function Settings() {
         title="导入预览"
         className="max-w-2xl"
         footer={
-          <div className="flex justify-end gap-2">
+          <>
             <button
               type="button"
-              className="btn-secondary btn--sm"
+              className="btn-base btn-secondary"
               onClick={() => {
                 setImportPlan(null)
                 setImportName('')
@@ -380,13 +373,13 @@ export default function Settings() {
             </button>
             <button
               type="button"
-              className="btn-primary btn--sm"
+              className="btn-base btn-primary"
               disabled={!importPlan || importPlan.writeCount === 0}
               onClick={confirmImport}
             >
               确认导入 {importPlan ? `${importPlan.writeCount} 单` : ''}
             </button>
-          </div>
+          </>
         }
       >
         {importPlan ? <ImportPreviewBody plan={importPlan} fileName={importName} /> : null}
@@ -397,11 +390,11 @@ export default function Settings() {
 
 function ImportPreviewBody({ plan, fileName }: { plan: ImportPlan; fileName: string }) {
   return (
-    <div className="space-y-3 text-sm">
-      <p className="text-muted-foreground text-xs">
+    <div className="flex flex-col gap-4 text-sm">
+      <p className="ds-caption">
         文件：{fileName || '未命名'} · 确认前尚未写入账本
       </p>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div className="grid grid-cols-4 divide-x divide-border rounded-lg border border-border">
         <Mini label="将写入" value={`${plan.writeCount} 单`} strong />
         <Mini label="新客户" value={`${plan.newCustomerCount} 位`} />
         <Mini label="跳过重复" value={`${plan.skipCount} 单`} />
@@ -420,12 +413,20 @@ function ImportPreviewBody({ plan, fileName }: { plan: ImportPlan; fileName: str
           将新增服务器：{plan.newServers.join('、')}
         </p>
       ) : null}
-      <div className="max-h-64 overflow-auto rounded-lg border border-border/50">
-        <table className="w-full min-w-[28rem] text-left text-xs">
-          <thead className="sticky top-0 bg-card text-muted-foreground">
+      <div className="max-h-72 overflow-auto rounded-lg border border-border">
+        <table className="dd-table dd-table--compact">
+          <colgroup>
+            <col style={{ width: 72 }} />
+            <col style={{ width: 56 }} />
+            <col style={{ width: 104 }} />
+            <col />
+            <col style={{ width: 96 }} />
+            <col style={{ width: 128 }} />
+          </colgroup>
+          <thead className="sticky top-0 z-10">
             <tr>
               {['表', '行', '客户', '项目', '金额', '结果'].map((h) => (
-                <th key={h} className="px-2 py-2 font-bold">
+                <th key={h} className={h === '金额' || h === '行' ? 'dd-table__num' : undefined}>
                   {h}
                 </th>
               ))}
@@ -433,15 +434,15 @@ function ImportPreviewBody({ plan, fileName }: { plan: ImportPlan; fileName: str
           </thead>
           <tbody>
             {plan.rows.slice(0, 80).map((row) => (
-              <tr key={`${row.sheet}-${row.rowNumber}`} className="border-t border-border/40 align-top">
-                <td className="px-2 py-1.5 whitespace-nowrap">{row.sheet}</td>
-                <td className="px-2 py-1.5">{row.rowNumber}</td>
-                <td className="px-2 py-1.5 whitespace-nowrap">{row.nickname || '—'}</td>
-                <td className="px-2 py-1.5">
+              <tr key={`${row.sheet}-${row.rowNumber}`}>
+                <td className="whitespace-nowrap">{row.sheet}</td>
+                <td className="dd-table__num">{row.rowNumber}</td>
+                <td className="whitespace-nowrap">{row.nickname || '—'}</td>
+                <td>
                   {row.items.map((i) => i.product).join(' + ') || row.project || '—'}
                 </td>
-                <td className="px-2 py-1.5 tabular-nums">{row.amount.toFixed(2)}</td>
-                <td className="px-2 py-1.5">
+                <td className="dd-table__num">{row.amount.toFixed(2)}</td>
+                <td className="truncate">
                   {row.disposition === 'write'
                     ? '写入'
                     : row.disposition === 'skip-duplicate'
@@ -456,7 +457,7 @@ function ImportPreviewBody({ plan, fileName }: { plan: ImportPlan; fileName: str
           </tbody>
         </table>
         {plan.rows.length > 80 ? (
-          <p className="px-2 py-2 text-xs text-muted-foreground border-t border-border/40">
+          <p className="px-6 py-2 ds-caption border-t border-border">
             仅显示前 80 行，共 {plan.rows.length} 行
           </p>
         ) : null}
@@ -475,11 +476,9 @@ function Mini({
   strong?: boolean
 }) {
   return (
-    <div className="rounded-lg border border-border/50 bg-secondary/30 px-3 py-2">
-      <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-        {label}
-      </div>
-      <div className={`mt-0.5 tabular-nums ${strong ? 'font-bold text-foreground' : 'text-foreground'}`}>
+    <div className="flex flex-col gap-1 px-4 py-3">
+      <div className="ds-caption">{label}</div>
+      <div className={`text-base leading-6 tabular-nums ${strong ? 'font-semibold text-brand' : 'font-medium text-foreground'}`}>
         {value}
       </div>
     </div>
@@ -498,19 +497,28 @@ function SettingRow({
   children: React.ReactNode
 }) {
   return (
-    <div className="bg-card border border-border/50 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-between gap-4">
-      <div className="flex items-center gap-3.5 min-w-0">
-        <div className="w-9 h-9 rounded-full bg-brand/10 text-brand flex items-center justify-center shrink-0">
+    <div className="flex min-h-[72px] items-center justify-between gap-6 px-6 py-4">
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="size-9 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">
           <Icon size={16} />
         </div>
         <div className="min-w-0">
-          <h3 className="text-sm font-bold text-foreground">{title}</h3>
+          <h3 className="text-sm font-medium leading-5 text-foreground">{title}</h3>
           {description && (
-            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{description}</p>
+            <p className="ds-caption mt-0.5 line-clamp-2">{description}</p>
           )}
         </div>
       </div>
       <div className="shrink-0">{children}</div>
     </div>
+  )
+}
+
+function SettingGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="flex flex-col gap-3">
+      <h2 className="ds-section-title px-1">{title}</h2>
+      <div className="ds-card divide-y divide-border overflow-hidden">{children}</div>
+    </section>
   )
 }
