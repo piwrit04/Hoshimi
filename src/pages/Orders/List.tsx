@@ -10,7 +10,6 @@ import {
   X,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { DataTable, Tag, type DataTableColumn } from '@/components/ui/data'
 import { Modal } from '@/components/ui/Modal'
@@ -325,6 +324,15 @@ export default function Orders() {
     period !== 'all' ||
     search.trim().length > 0
 
+  const typeCounts = useMemo(() => {
+    const base = { mode, query: search, platform, period } as const
+    return {
+      all: filterOrders(orders, { ...base, type: 'all' }).length,
+      普通: filterOrders(orders, { ...base, type: '普通' }).length,
+      托管: filterOrders(orders, { ...base, type: '托管' }).length,
+    }
+  }, [orders, mode, search, platform, period])
+
   const doExport = async (fmt: 'xlsx' | 'csv') => {
     try {
       if (fmt === 'csv') {
@@ -354,39 +362,58 @@ export default function Orders() {
   }
 
   return (
-    <div className="ds-page">
-      <PageHeader
-        title="订单"
-        description={`共 ${rows.length} 单 · 流水 ${yuan(total)} · 到手 ${yuan(payout)}（不含退款 / 取消）`}
-        actions={
-          <>
-            <Dropdown
-              align="end"
-              trigger={
-                <span className="inline-flex">
-                  <Button variant="secondary" icon={Download}>
-                    导出
-                  </Button>
-                </span>
-              }
-              items={[
-                { key: 'xlsx', label: '导出 Excel' },
-                { key: 'csv', label: '导出 CSV' },
-              ]}
-              onSelect={(key) => void doExport(key as 'xlsx' | 'csv')}
-            />
-            <Button variant="primary" icon={PlusCircle} onClick={openNewOrder}>
-              新建订单
-            </Button>
-          </>
-        }
-      />
+    <div className="ds-page ds-page--l2g">
+      <div className="l2g-orders-head ds-rise">
+        <h1 className="l2g-orders-head__title">订单管理</h1>
+        <p className="l2g-orders-head__sub">
+          共 {rows.length} 单 · 流水 {yuan(total)} ·{' '}
+          <span className="dd-money-gold">到手 {yuan(payout)}</span>
+          （不含退款 / 取消）
+        </p>
+        <div className="l2g-orders-head__actions">
+          <Dropdown
+            align="end"
+            trigger={
+              <span className="inline-flex">
+                <Button variant="secondary" icon={Download}>
+                  导出
+                </Button>
+              </span>
+            }
+            items={[
+              { key: 'xlsx', label: '导出 Excel' },
+              { key: 'csv', label: '导出 CSV' },
+            ]}
+            onSelect={(key) => void doExport(key as 'xlsx' | 'csv')}
+          />
+          <Button variant="primary" icon={PlusCircle} onClick={openNewOrder}>
+            新建订单
+          </Button>
+        </div>
+      </div>
 
       <motion.div
         {...fade}
         transition={{ duration: 0.22 }}
-        className="flex flex-col gap-2"
+        className="l2g-filter-bar"
       >
+        <div className="l2g-seg" role="tablist" aria-label="订单类型">
+          {TYPES.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={type === t.id}
+              className={
+                type === t.id ? 'l2g-seg__btn l2g-seg__btn--on' : 'l2g-seg__btn'
+              }
+              onClick={() => setType(t.id)}
+            >
+              {t.label}
+              <span className="l2g-seg__count">{typeCounts[t.id]}</span>
+            </button>
+          ))}
+        </div>
         <div className="ds-toolbar">
           <div className="relative w-64" data-page-search>
             <Search
@@ -415,13 +442,6 @@ export default function Orders() {
               value={mode}
               onChange={(v) => setMode((v as OrderMode) ?? 'open')}
               options={MODES.map((m) => ({ value: m.id, label: m.label }))}
-            />
-          </div>
-          <div className="w-32">
-            <FormSelect
-              value={type}
-              onChange={(v) => setType((v as OrderType | 'all') ?? 'all')}
-              options={TYPES.map((t) => ({ value: t.id, label: t.label }))}
             />
           </div>
           <div className="w-32">
@@ -496,7 +516,7 @@ export default function Orders() {
       <motion.div
         {...fade}
         transition={{ duration: 0.25, delay: 0.04 }}
-        className="ds-table-card"
+        className="ds-table-card l2g-table"
       >
         <DataTable
           columns={columns}

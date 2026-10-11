@@ -3,42 +3,26 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   BarChart3,
   ChevronDown,
-  CircleDollarSign,
-  Heart,
+  ClipboardList,
   PlusCircle,
-  Sparkles,
   Users,
-  type LucideIcon,
 } from 'lucide-react'
 import { useOrdersStore } from '@/store/useOrdersStore'
 import { useNewOrderStore } from '@/store/useNewOrderStore'
-import { dashboard } from '@/domain/dashboard'
+import {
+  dashboard,
+  incomeTrend,
+  type TrendUnit,
+} from '@/domain/dashboard'
 import { Button } from '@/components/ui/Button'
+import { IncomeTrendChart } from '@/components/charts/IncomeTrendChart'
+import { yuan } from '@/lib/format'
 
 /*
  * 首页两整页 snap（对齐 Liver2Go）：
  *   page1 = 全幅问候
- *   page2 = 数据中心骨架占位（KPI 玻璃卡 + 空图表），不塞订单表/订单 KPI
+ *   page2 = 代肝数据中心：上双玻璃（收入概览|快捷操作），下走势+维度排行占位
  */
-
-const KPI_SLOTS: {
-  key: string
-  label: string
-  icon: LucideIcon
-  hint: string
-}[] = [
-  { key: 'yesterday', label: '昨日收入', icon: CircleDollarSign, hint: '占位 · 待接入' },
-  { key: 'today', label: '今日收入', icon: Sparkles, hint: '占位 · 待接入' },
-  { key: 'fans', label: '粉丝数', icon: Heart, hint: '占位 · 待接入' },
-  { key: 'served', label: '已服务', icon: Users, hint: '占位 · 待接入' },
-]
-
-const METRIC_SLOTS = [
-  { label: '服务天数', unit: '天' },
-  { label: '已成交', unit: '' },
-  { label: '累计到手', unit: '' },
-  { label: '服务用户', unit: '位' },
-]
 
 export default function Dashboard() {
   const orders = useOrdersStore((s) => s.orders)
@@ -46,10 +30,19 @@ export default function Dashboard() {
   const settings = useOrdersStore((s) => s.settings)
   const openNewOrder = useNewOrderStore((s) => s.open)
 
-  const m = useMemo(() => dashboard({ orders, customers, settings }), [orders, customers, settings])
+  const ledger = useMemo(
+    () => ({ orders, customers, settings }),
+    [orders, customers, settings],
+  )
+  const m = useMemo(() => dashboard(ledger), [ledger])
 
   const [typed, setTyped] = useState('')
   const [clock, setClock] = useState(() => formatClock())
+  const [trendUnit, setTrendUnit] = useState<TrendUnit>('day')
+  const trend = useMemo(
+    () => incomeTrend(ledger, trendUnit),
+    [ledger, trendUnit],
+  )
 
   useEffect(() => {
     const full = m.hello
@@ -75,7 +68,6 @@ export default function Dashboard() {
     return () => window.clearInterval(id)
   }, [])
 
-  /* 首页启用 scroll-snap；离开时卸掉，避免其它页被强制整页吸附 */
   useEffect(() => {
     const root = document.querySelector('[data-scroll-root]') as HTMLElement | null
     if (!root) return
@@ -98,9 +90,23 @@ export default function Dashboard() {
     }
   }
 
+  const incomeMetrics = [
+    { key: 'today', label: '今日到手', value: yuan(m.kpis.payoutToday) },
+    { key: 'month', label: '本月到手', value: yuan(m.kpis.payoutThisMonth) },
+    { key: 'open', label: '未完成', value: String(m.kpis.openCount) },
+    {
+      key: 'expiring',
+      label: '托管到期',
+      value: String(m.expiring.length),
+      hint:
+        m.expiring.length > 0
+          ? `${m.remindDays} 天内提醒`
+          : `阈值 ${m.remindDays} 天内`,
+    },
+  ]
+
   return (
     <div className="ds-page ds-page--l2g">
-      {/* —— Page 1: 全幅问候 —— */}
       <section className="l2g-snap-page l2g-hero ds-rise" aria-label="问候">
         <h1 className="l2g-hero__title">
           {typed}
@@ -121,7 +127,6 @@ export default function Dashboard() {
         </button>
       </section>
 
-      {/* —— Page 2: 数据中心骨架（占位，不塞订单） —— */}
       <section
         id="dashboard-page2"
         className="l2g-snap-page l2g-datacenter ds-rise"
@@ -134,87 +139,121 @@ export default function Dashboard() {
             <p className="l2g-datacenter__msg">{clock.message}</p>
           </header>
 
-          <nav className="l2g-datacenter__nav" aria-label="快捷入口">
-            <Link to="/orders" className="l2g-capsule">
-              订单
-            </Link>
-            <Link to="/customers" className="l2g-capsule">
-              客户
-            </Link>
-            <Link to="/todo" className="l2g-capsule">
-              待办
-            </Link>
-          </nav>
-
-          <div className="l2g-datacenter__metrics">
-            {METRIC_SLOTS.map((s) => (
-              <div key={s.label} className="l2g-metric">
-                <div className="l2g-metric__value">
-                  —{s.unit ? <span className="l2g-metric__unit">{s.unit}</span> : null}
-                </div>
-                <div className="l2g-metric__label">{s.label}</div>
+          <div className="l2g-dc-top">
+            <div className="l2g-glass-panel l2g-dc-block">
+              <h2 className="l2g-datacenter__heading l2g-datacenter__heading--inline">
+                收入概览
+              </h2>
+              <p className="l2g-glass-panel__desc">
+                代肝账本口径 · 已完成才计入到手
+                {m.usingTest ? ' · 示例数据' : ''}
+              </p>
+              <div className="l2g-dc-metrics">
+                {incomeMetrics.map((item) => (
+                  <div key={item.key} className="l2g-metric">
+                    <div className="l2g-metric__value l2g-metric__value--pink">
+                      {item.value}
+                    </div>
+                    <div className="l2g-metric__label">{item.label}</div>
+                    {item.hint ? (
+                      <div className="l2g-metric__hint">{item.hint}</div>
+                    ) : null}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
 
-          <div className="l2g-datacenter__section">
-            <h2 className="l2g-datacenter__heading">数据一览</h2>
-            <div className="l2g-kpi-grid">
-              {KPI_SLOTS.map((slot) => (
-                <PlaceholderKpi
-                  key={slot.key}
-                  icon={slot.icon}
-                  label={slot.label}
-                  hint={slot.hint}
-                />
-              ))}
+            <div className="l2g-glass-panel l2g-dc-block">
+              <h2 className="l2g-datacenter__heading l2g-datacenter__heading--inline">
+                快捷操作
+              </h2>
+              <p className="l2g-glass-panel__desc">常用入口，不塞订单明细</p>
+              <div className="l2g-dc-actions">
+                <Button variant="primary" icon={PlusCircle} onClick={openNewOrder}>
+                  新建订单
+                </Button>
+                <Link to="/orders" className="l2g-capsule l2g-capsule--ghost">
+                  <ClipboardList size={16} />
+                  订单
+                </Link>
+                <Link to="/customers" className="l2g-capsule l2g-capsule--ghost">
+                  <Users size={16} />
+                  客户
+                </Link>
+                <Link to="/todo" className="l2g-capsule l2g-capsule--ghost">
+                  待办
+                </Link>
+              </div>
+              <div className="l2g-dc-actions__meta">
+                <span>
+                  进行中 <b>{m.kpis.inProgress}</b>
+                </span>
+                <span>
+                  待处理 <b>{m.kpis.waiting}</b>
+                </span>
+                <span>
+                  活跃客户 <b>{m.kpis.activeCustomers}</b>
+                </span>
+              </div>
             </div>
           </div>
 
-          <div className="l2g-datacenter__section l2g-datacenter__chart">
-            <div className="l2g-glass-panel">
+          <div className="l2g-dc-bottom">
+            <div className="l2g-glass-panel l2g-dc-block l2g-dc-block--chart">
               <div className="l2g-glass-panel__head">
                 <div>
                   <h2 className="l2g-datacenter__heading l2g-datacenter__heading--inline">
                     收入走势
                   </h2>
-                  <p className="l2g-glass-panel__desc">占位 · 接入后显示到手趋势</p>
-                </div>
-                <div className="l2g-capsule-group" aria-hidden>
-                  <span className="l2g-capsule l2g-capsule--muted">日</span>
-                  <span className="l2g-capsule l2g-capsule--muted">周</span>
-                  <span className="l2g-capsule l2g-capsule--muted">月</span>
+                  <p className="l2g-glass-panel__desc">按完成时间统计到手</p>
                 </div>
               </div>
-              <div className="l2g-chart-empty">
-                <BarChart3 size={36} strokeWidth={1.5} className="l2g-chart-empty__icon" />
-                <p className="l2g-chart-empty__title">暂无走势数据</p>
-                <p className="l2g-chart-empty__desc">位置已留好，不在此塞订单明细</p>
+              {trend.some((p) => p.payout > 0 || p.count > 0) ? (
+                <IncomeTrendChart
+                  points={trend}
+                  unit={trendUnit}
+                  onUnitChange={setTrendUnit}
+                />
+              ) : (
+                <div className="l2g-chart-empty">
+                  <BarChart3 size={36} strokeWidth={1.5} className="l2g-chart-empty__icon" />
+                  <p className="l2g-chart-empty__title">暂无走势数据</p>
+                  <p className="l2g-chart-empty__desc">完成一单后这里会动起来</p>
+                </div>
+              )}
+            </div>
+
+            <div className="l2g-glass-panel l2g-dc-block">
+              <h2 className="l2g-datacenter__heading l2g-datacenter__heading--inline">
+                维度排行
+              </h2>
+              <p className="l2g-glass-panel__desc">占位 · 按渠道 / 类型汇总稍后接入</p>
+              <div className="l2g-rank-empty">
+                <div className="l2g-rank-empty__row">
+                  <span>微信</span>
+                  <span className="l2g-rank-empty__bar" />
+                  <span>—</span>
+                </div>
+                <div className="l2g-rank-empty__row">
+                  <span>闲鱼</span>
+                  <span className="l2g-rank-empty__bar" />
+                  <span>—</span>
+                </div>
+                <div className="l2g-rank-empty__row">
+                  <span>普通</span>
+                  <span className="l2g-rank-empty__bar" />
+                  <span>—</span>
+                </div>
+                <div className="l2g-rank-empty__row">
+                  <span>托管</span>
+                  <span className="l2g-rank-empty__bar" />
+                  <span>—</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
-    </div>
-  )
-}
-
-function PlaceholderKpi({
-  icon: Icon,
-  label,
-  hint,
-}: {
-  icon: LucideIcon
-  label: string
-  hint: string
-}) {
-  return (
-    <div className="l2g-kpi-card" title={hint}>
-      <span className="l2g-kpi-card__icon" aria-hidden>
-        <Icon size={22} strokeWidth={1.75} />
-      </span>
-      <div className="l2g-kpi-card__value">—</div>
-      <div className="l2g-kpi-card__label">{label}</div>
     </div>
   )
 }

@@ -63,9 +63,17 @@ export function dashboard(ledger: LedgerView, now = new Date()) {
   const newThisMonth = orders.filter((o) => new Date(o.createdAt).getTime() >= monthStart)
   const newThisMonthLive = newThisMonth.filter((o) => o.status !== '已退款' && o.status !== '已取消')
   const doneToday = done.filter((o) => todayISO(new Date(o.completedAt!)) === today)
+  const yest = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+  const yestISO = todayISO(yest)
+  const doneYesterday = done.filter((o) => todayISO(new Date(o.completedAt!)) === yestISO)
   const inProgress = orders.filter((o) => o.status === '进行中')
   const waiting = orders.filter((o) => o.status === '待处理')
   const openOrders = [...waiting, ...inProgress].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  let serviceDays = 0
+  if (orders.length > 0) {
+    const earliest = Math.min(...orders.map((o) => new Date(o.createdAt).getTime()))
+    serviceDays = Math.max(1, Math.floor((now.getTime() - earliest) / 86400000) + 1)
+  }
 
   const recent = [...orders].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 6)
   const statusCounts = ALL_STATUSES.map((status) => ({
@@ -92,6 +100,11 @@ export function dashboard(ledger: LedgerView, now = new Date()) {
       openCount: orders.filter(openStatus).length,
       payoutToday: sumMoney(doneToday.map((o) => o.payout)),
       completedToday: doneToday.length,
+      payoutYesterday: sumMoney(doneYesterday.map((o) => o.payout)),
+      completedYesterday: doneYesterday.length,
+      completedTotal: done.length,
+      payoutTotal: sumMoney(done.map((o) => o.payout)),
+      serviceDays,
       newThisMonth: newThisMonth.length,
       newThisMonthAmount: sumMoney(newThisMonthLive.map((o) => o.amount)),
     },

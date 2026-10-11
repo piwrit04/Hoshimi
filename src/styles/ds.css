@@ -954,6 +954,217 @@
   color: hsl(var(--muted-foreground));
 }
 
+/* —— page2 双玻璃 + 走势/排行 —— */
+.l2g-dc-top,
+.l2g-dc-bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 14px;
+}
+@media (max-width: 900px) {
+  .l2g-dc-top,
+  .l2g-dc-bottom { grid-template-columns: 1fr; }
+}
+.l2g-dc-block { min-height: 0; }
+.l2g-dc-block--chart { min-height: 220px; }
+.l2g-dc-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+@media (max-width: 720px) {
+  .l2g-dc-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.l2g-metric__value--pink {
+  color: #FF6B9D !important;
+  text-shadow: 0 0 18px rgba(255, 107, 157, 0.35) !important;
+}
+:root[data-theme="light"] .l2g-metric__value--pink {
+  text-shadow: none !important;
+}
+.l2g-metric__hint {
+  margin-top: 2px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+}
+:root[data-theme="light"] .l2g-metric__hint {
+  color: hsl(var(--muted-foreground));
+}
+.l2g-dc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+  align-items: center;
+}
+.l2g-capsule--ghost {
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.88);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: none;
+}
+.l2g-capsule--ghost:hover {
+  background: rgba(255, 107, 157, 0.18);
+  border-color: rgba(255, 107, 157, 0.55);
+  color: #fff;
+}
+:root[data-theme="light"] .l2g-capsule--ghost {
+  background: rgba(255, 107, 157, 0.08);
+  color: hsl(var(--foreground));
+  border-color: rgba(255, 107, 157, 0.22);
+}
+:root[data-theme="light"] .l2g-capsule--ghost:hover {
+  background: rgba(255, 107, 157, 0.16);
+  border-color: #FF6B9D;
+  color: #FF6B9D;
+}
+.l2g-dc-actions__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 16px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+}
+.l2g-dc-actions__meta b {
+  color: #FF6B9D;
+  font-variant-numeric: tabular-nums;
+  margin-left: 4px;
+}
+:root[data-theme="light"] .l2g-dc-actions__meta {
+  color: hsl(var(--muted-foreground));
+}
+.l2g-rank-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+.l2g-rank-empty__row {
+  display: grid;
+  grid-template-columns: 48px 1fr 28px;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+:root[data-theme="light"] .l2g-rank-empty__row {
+  color: hsl(var(--muted-foreground));
+}
+.l2g-rank-empty__bar {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 107, 157, 0.14);
+  border: 1px solid rgba(255, 107, 157, 0.28);
+}
+
+/* 订单页：居中标题 + 玻璃筛选条 */
+.l2g-orders-head {
+  text-align: center;
+  margin-bottom: 8px;
+  position: relative;
+}
+.l2g-orders-head__title {
+  font-size: clamp(1.6rem, 2.5vw, 2rem);
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
+  letter-spacing: -0.01em;
+}
+:root[data-theme="light"] .l2g-orders-head__title {
+  color: hsl(var(--foreground));
+  text-shadow: none;
+}
+.l2g-orders-head__sub {
+  margin-top: 6px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.62);
+}
+:root[data-theme="light"] .l2g-orders-head__sub {
+  color: hsl(var(--muted-foreground));
+}
+.l2g-orders-head__actions {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+@media (max-width: 720px) {
+  .l2g-orders-head__actions {
+    position: static;
+    justify-content: center;
+    margin-top: 12px;
+  }
+}
+.l2g-filter-bar {
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  box-shadow: 0 8px 28px rgba(255, 107, 157, 0.12);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+:root[data-theme="light"] .l2g-filter-bar {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(255, 107, 157, 0.22);
+  box-shadow: 0 8px 24px rgba(255, 107, 157, 0.08);
+}
+.l2g-seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.l2g-seg__btn {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .15s ease, color .15s ease, background-color .15s ease;
+}
+.l2g-seg__btn:hover {
+  border-color: rgba(255, 107, 157, 0.5);
+  color: #FFB6D2;
+}
+.l2g-seg__btn--on {
+  border-color: #FF6B9D;
+  color: #fff;
+  background: rgba(255, 107, 157, 0.14);
+}
+:root[data-theme="light"] .l2g-seg__btn {
+  border-color: rgba(255, 107, 157, 0.2);
+  color: hsl(var(--muted-foreground));
+}
+:root[data-theme="light"] .l2g-seg__btn:hover {
+  color: #FF6B9D;
+  border-color: rgba(255, 107, 157, 0.55);
+}
+:root[data-theme="light"] .l2g-seg__btn--on {
+  color: #FF6B9D;
+  background: rgba(255, 107, 157, 0.1);
+  border-color: #FF6B9D;
+}
+.l2g-seg__count {
+  margin-left: 4px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+  font-weight: 500;
+}
+.l2g-filter-bar .ds-toolbar { gap: 8px; }
+
 /* 玻璃壳：侧栏可透壁纸；顶栏实色不透壁纸，无粉紫渐变 */
 .l2g-glass-aside {
   background: rgba(15, 23, 42, 0.72) !important;
