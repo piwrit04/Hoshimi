@@ -272,7 +272,8 @@ export default function Orders() {
       {
         key: 'orderNo',
         title: '订单号',
-        width: '12%',
+        width: '11%',
+        align: 'center',
         emphasis: 'secondary',
         render: (r) => (
           <OrderNoCell order={r} onOpen={() => openEdit(r.id)} />
@@ -281,27 +282,30 @@ export default function Orders() {
       {
         key: 'customer',
         title: '客户',
-        width: '14%',
+        width: '13%',
+        align: 'center',
         emphasis: 'primary',
         render: (r) => <OrderCustomerCell order={r} />,
       },
       {
         key: 'content',
         title: '订单内容',
-        width: '18%',
+        width: '16%',
+        align: 'center',
         render: (r) => <OrderContentCell order={r} games={games} />,
       },
       {
         key: 'platform',
         title: '下单平台',
         width: '10%',
+        align: 'center',
         render: (r) => <OrderPlatformCell order={r} />,
       },
       {
         key: 'amount',
         title: '金额 · 到手',
-        width: '12%',
-        align: 'right',
+        width: '11%',
+        align: 'center',
         sortable: true,
         emphasis: 'anchor',
         render: (r) => <OrderMoneyCell order={r} />,
@@ -309,21 +313,23 @@ export default function Orders() {
       {
         key: 'dates',
         title: '下单 · 完单',
-        width: '12%',
+        width: '14%',
+        align: 'center',
         render: (r) => <OrderDatesCell order={r} />,
       },
       {
         key: 'status',
         title: '状态',
         width: '8%',
+        align: 'center',
         emphasis: 'anchor',
         render: (r) => <OrderStatusCell order={r} />,
       },
       {
         key: 'actions',
         title: '操作',
-        width: '14%',
-        align: 'right',
+        width: '13%',
+        align: 'center',
         render: (r) => (
           <OrderRowActions order={r} onMove={move} onEdit={() => openEdit(r.id)} />
         ),
@@ -608,11 +614,12 @@ export default function Orders() {
   )
 }
 
-function shortDay(iso?: string | null) {
+function shortDateTime(iso?: string | null) {
   if (!iso) return '—'
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return '—'
-  return d.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 function gameLabel(order: Order, games: { id: string; name: string }[]) {
@@ -650,7 +657,7 @@ function OrderCustomerCell({ order }: { order: Order }) {
       <div className="dd-cell-dual__top">
         <button
           type="button"
-          className="dd-cell-dual__title text-left hover:text-brand transition-colors"
+          className="dd-cell-dual__title hover:text-brand transition-colors"
           onClick={(e) => {
             e.stopPropagation()
             if (id) navigate(`/customers/${id}`)
@@ -666,7 +673,7 @@ function OrderCustomerCell({ order }: { order: Order }) {
   )
 }
 
-/** 上：游戏 / 托管；下：项目内容；托管到期小字 */
+/** 上：游戏 / 托管；下：项目内容（托管到期并入次行，最多两行） */
 function OrderContentCell({
   order,
   games,
@@ -682,6 +689,14 @@ function OrderContentCell({
   const dueDays =
     order.type === '托管' && order.endDate ? daysBetween(today, order.endDate) : null
 
+  const dueClass =
+    dueDays != null && dueDays < 0
+      ? 'dd-due--hot'
+      : dueDays != null && dueDays <= 2
+        ? 'dd-due--warn'
+        : 'dd-due--ok'
+  const botTitle = due ? `${project} · ${due}` : project
+
   return (
     <div className="dd-cell-dual">
       <div className="dd-cell-dual__top">
@@ -693,23 +708,10 @@ function OrderContentCell({
           </span>
         )}
       </div>
-      <div className="dd-cell-dual__bot truncate" title={project}>
-        {project}
+      <div className="dd-cell-dual__bot" title={botTitle}>
+        <span className="truncate">{project}</span>
+        {due ? <span className={cn('dd-cell-dual__due', dueClass)}>{due}</span> : null}
       </div>
-      {due ? (
-        <div
-          className={cn(
-            'dd-cell-dual__due',
-            dueDays != null && dueDays < 0
-              ? 'dd-due--hot'
-              : dueDays != null && dueDays <= 2
-                ? 'dd-due--warn'
-                : 'dd-due--ok',
-          )}
-        >
-          {due}
-        </div>
-      ) : null}
     </div>
   )
 }
@@ -756,7 +758,7 @@ function OrderPlatformCell({ order }: { order: Order }) {
 /** 金额主行 · 到手金（作废单不显示到手行） */
 function OrderMoneyCell({ order }: { order: Order }) {
   return (
-    <div className="dd-cell-dual dd-cell-dual--right">
+    <div className="dd-cell-dual">
       <div className="dd-cell-dual__top tabular-nums dd-money-flow">{yuan2(order.amount)}</div>
       {payoutVoid(order) ? null : (
         <div className="dd-cell-dual__bot tabular-nums dd-money-gold">{yuan2(order.payout)}</div>
@@ -770,10 +772,10 @@ function OrderDatesCell({ order }: { order: Order }) {
   return (
     <div className="dd-cell-dual">
       <div className="dd-cell-dual__top tabular-nums whitespace-nowrap">
-        {shortDay(order.createdAt)}
+        {shortDateTime(order.createdAt)}
       </div>
       <div className="dd-cell-dual__bot tabular-nums whitespace-nowrap">
-        {order.completedAt ? shortDay(order.completedAt) : '—'}
+        {order.completedAt ? shortDateTime(order.completedAt) : '—'}
       </div>
     </div>
   )
@@ -799,7 +801,7 @@ const OrderRowActions = memo(function OrderRowActions({
 
   return (
     <div
-      className="flex items-center justify-end gap-1"
+      className="flex items-center justify-center gap-1"
       onClick={(e) => e.stopPropagation()}
     >
       {main ? (

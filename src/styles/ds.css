@@ -1240,26 +1240,32 @@
   box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 }
 
-/* 订单表：行更松、斑马极淡、次文 muted */
+/* 订单表：全列居中、行高略紧、斑马极淡、次文 muted */
 .l2g-table .dd-table th {
-  padding-top: 0.875rem;
-  padding-bottom: 0.875rem;
-  padding-left: 1.25rem;
-  padding-right: 1.25rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  padding-left: 0.875rem;
+  padding-right: 0.875rem;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  text-align: center;
   color: hsl(var(--muted-foreground));
   background: hsl(var(--muted) / 0.08);
   border-bottom: 1px solid hsl(var(--border));
 }
 .l2g-table .dd-table td {
-  padding: 1.25rem;
+  padding: 1.0625rem 0.875rem; /* ~15% 矮于 1.25rem */
   font-size: 0.9375rem;
-  line-height: 1.6;
-  vertical-align: top;
+  line-height: 1.45;
+  vertical-align: middle;
+  text-align: center;
   color: hsl(var(--foreground));
+}
+.l2g-table .dd-table thead th:first-child,
+.l2g-table .dd-table tbody td:first-child {
+  text-align: center;
 }
 .l2g-table .dd-table tbody tr:nth-child(even) td {
   background-color: hsl(var(--muted) / 0.03);
@@ -1285,11 +1291,17 @@
 :root[data-theme="light"] .l2g-table .dd-cell-dual__bot.dd-money-gold {
   color: var(--brand-text-hex); /* 浅色可读粉 #B86B90 */
 }
-/* 客户双行：名与 meta 拉开一点 */
+/* 双行单元格：居中对齐，最多两行 */
 .l2g-table .dd-cell-dual {
-  gap: 0.25rem;
-  line-height: 1.5;
-  justify-content: flex-start;
+  gap: 0.2rem;
+  line-height: 1.4;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.l2g-table .dd-cell-dual__top,
+.l2g-table .dd-cell-dual__bot {
+  justify-content: center;
 }
 .l2g-table .dd-cell-dual__top {
   font-size: 0.9375rem;
@@ -1298,4 +1310,8 @@
 }
 .l2g-table .dd-cell-dual__bot {
   font-size: 0.8125rem;
+}
+.l2g-table .dd-cell-dual__due {
+  margin-top: 0;
+  flex-shrink: 0;
 }
