@@ -998,6 +998,7 @@
   gap: 0.75rem;
   flex-shrink: 0;
   align-items: center;
+  margin-top: 0.625rem; /* 新建订单略下移，不贴标题顶线 */
 }
 @media (max-width: 720px) {
   .l2g-orders-head {

@@ -1,6 +1,5 @@
 import {
   Check,
-  Download,
   LayoutList,
   MoreHorizontal,
   PenLine,
@@ -374,21 +373,6 @@ export default function Orders() {
           </p>
         </div>
         <div className="l2g-orders-head__actions">
-          <Dropdown
-            align="end"
-            trigger={
-              <span className="inline-flex">
-                <Button variant="secondary" icon={Download}>
-                  导出
-                </Button>
-              </span>
-            }
-            items={[
-              { key: 'xlsx', label: '导出 Excel' },
-              { key: 'csv', label: '导出 CSV' },
-            ]}
-            onSelect={(key) => void doExport(key as 'xlsx' | 'csv')}
-          />
           <Button variant="primary" icon={PlusCircle} onClick={openNewOrder}>
             新建订单
           </Button>
@@ -418,28 +402,6 @@ export default function Orders() {
           ))}
         </div>
         <div className="ds-toolbar">
-          <div className="relative w-64" data-page-search>
-            <Search
-              size={16}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
-            <input
-              className="dd-control w-full !pl-9 !pr-8"
-              placeholder="搜索单号 / 客户 / 项目…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            {search.trim() ? (
-              <button
-                type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                aria-label="清除搜索"
-                onClick={() => setSearch('')}
-              >
-                <X size={14} />
-              </button>
-            ) : null}
-          </div>
           <div className="w-32">
             <FormSelect
               value={mode}
@@ -481,6 +443,28 @@ export default function Orders() {
               重置
             </Button>
           ) : null}
+          <div className="relative w-64" data-page-search>
+            <Search
+              size={16}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            />
+            <input
+              className="dd-control w-full !pl-9 !pr-8"
+              placeholder="搜索单号 / 客户 / 项目…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            {search.trim() ? (
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label="清除搜索"
+                onClick={() => setSearch('')}
+              >
+                <X size={14} />
+              </button>
+            ) : null}
+          </div>
         </div>
         {search.trim() ? (
           <p className="ds-caption">
