@@ -1,6 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { useNavigate } from 'react-router-dom'
+import { Plus, Trash2, UserRound } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
+import { Drawer } from '@/components/ui/overlay'
 import { Button } from '@/components/ui/Button'
 import { DatePicker } from '@/components/ui/DatePicker'
 import { Tag } from '@/components/ui/data'
@@ -33,6 +36,8 @@ import {
 import type { SettleKind } from '@/domain/order'
 import { isTerminal, payoutVoid, NO_PAYOUT } from '@/domain/status'
 import { modalConfirm } from '@/components/ui/ModalConfirm'
+import { suggestCustomers } from '@/domain/customers'
+import type { Customer } from '@/storage/types'
 
 type Line = { key: number; category: string; product: string; price: string }
 type StatusCreate = '待处理' | '进行中' | '已完成'
@@ -82,12 +87,22 @@ function Inner({
   updateOrder: ReturnType<typeof useOrdersStore.getState>['updateOrder']
 }) {
   const isEdit = Boolean(editing)
+  const navigate = useNavigate()
   const moneyLocked = Boolean(
     editing && (editing.amountLocked || isTerminal(editing.status) || editing.status === '已完成'),
   )
 
   const [nickname, setNickname] = useState('')
   const [contact, setContact] = useState('')
+  const [suggestOpen, setSuggestOpen] = useState(false)
+  const [suggestQuery, setSuggestQuery] = useState('')
+  const [suggestField, setSuggestField] = useState<'nickname' | 'contact' | null>(null)
+  const [quickAddOpen, setQuickAddOpen] = useState(false)
+  const [quickCat, setQuickCat] = useState('')
+  const [quickName, setQuickName] = useState('')
+  const [quickPrice, setQuickPrice] = useState<number | null>(null)
+  const [quickLineKey, setQuickLineKey] = useState<number | null>(null)
+  const [quickErr, setQuickErr] = useState('')
   const [orderType, setOrderType] = useState<'普通' | '托管'>('普通')
   const [platform, setPlatform] = useState<Platform>('微信')
   const [server, setServer] = useState<string | null>('官服')
@@ -110,11 +125,39 @@ function Inner({
   const catalogGames = useOrdersStore((s) => s.games)
   const catalogServers = useOrdersStore((s) => s.servers)
   const channelFees = useOrdersStore((s) => s.channelFees)
+  const customers = useOrdersStore((s) => s.customers)
+  const addProduct = useOrdersStore((s) => s.addProduct)
+  const addCategory = useOrdersStore((s) => s.addCategory)
   const deleteOrder = useOrdersStore((s) => s.deleteOrder)
   const restoreOrder = useOrdersStore((s) => s.restoreOrder)
   const gamesSorted = useMemo(() => sortedGames(catalogGames), [catalogGames])
   const [gameId, setGameId] = useState(() => primaryGameId(catalogGames))
   const safeGameId = gamesSorted.some((g) => g.id === gameId) ? gameId : primaryGameId(catalogGames)
+
+  const customerHits = useMemo(
+    () => (suggestField ? suggestCustomers(customers, suggestQuery) : []),
+    [customers, suggestQuery, suggestField],
+  )
+
+  const pickCustomer = (c: Customer) => {
+    setNickname(c.nickname)
+    setContact(c.contact)
+    setSuggestOpen(false)
+    setSuggestField(null)
+    setSuggestQuery('')
+    setErrors((e) => {
+      const next = { ...e }
+      delete next.nickname
+      delete next.contact
+      return next
+    })
+  }
+
+  const openSuggest = (field: 'nickname' | 'contact', value: string) => {
+    setSuggestField(field)
+    setSuggestQuery(value)
+    setSuggestOpen(value.trim().length > 0)
+  }
 
   useEffect(() => {
     if (!open) return
@@ -312,9 +355,82 @@ function Inner({
         type: 'success',
         message: `已保存 ${saved.orderNo} · 到手 ¥${money.payoutAmount.toFixed(0)}`,
       })
+      resetForm()
+      onClose()
+      navigate('/orders')
+      return
     }
     resetForm()
     onClose()
+  }
+
+  const openQuickAdd = (lineKey?: number, preCat?: string) => {
+    setQuickLineKey(lineKey ?? null)
+    setQuickCat(preCat || categories[0]?.name || '')
+    setQuickName('')
+    setQuickPrice(null)
+    setQuickErr('')
+    setQuickAddOpen(true)
+  }
+
+  const confirmQuickAdd = () => {
+    const name = quickName.trim()
+    if (!quickCat) {
+      setQuickErr('请先选分类')
+      return
+    }
+    if (!name) {
+      setQuickErr('请填写项目名称')
+      return
+    }
+    let cat = categories.find((c) => c.name === quickCat)
+    try {
+      if (!cat) {
+        addCategory(safeGameId, quickCat, 'normal')
+        const refreshed = useOrdersStore.getState().categories
+        cat = refreshed.find(
+          (c) => c.gameId === safeGameId && c.name === quickCat && c.kind === 'normal',
+        )
+      }
+      if (!cat) throw new Error('分类创建失败')
+      addProduct(cat.id, name, quickPrice)
+      if (quickLineKey != null) {
+        updateLine(quickLineKey, {
+          category: cat.name,
+          product: name,
+          price: quickPrice != null ? String(quickPrice) : '',
+        })
+      } else {
+        setLines((ls) => {
+          const empty = ls.find((l) => !l.product)
+          if (empty) {
+            return ls.map((l) =>
+              l.key === empty.key
+                ? {
+                    ...l,
+                    category: cat!.name,
+                    product: name,
+                    price: quickPrice != null ? String(quickPrice) : l.price,
+                  }
+                : l,
+            )
+          }
+          return [
+            ...ls,
+            {
+              key: Date.now(),
+              category: cat!.name,
+              product: name,
+              price: quickPrice != null ? String(quickPrice) : '',
+            },
+          ]
+        })
+      }
+      setQuickAddOpen(false)
+      addToast({ type: 'success', message: `已加入目录「${name}」` })
+    } catch (err) {
+      setQuickErr(err instanceof Error ? err.message : '添加失败')
+    }
   }
 
   const title = isEdit
@@ -322,14 +438,15 @@ function Inner({
     : '新建订单'
 
   return (
-    <Modal
+    <>
+    <Drawer
       isOpen={open}
       onClose={() => {
         resetForm()
         onClose()
       }}
       title={title}
-      className="max-w-3xl"
+      width={720}
       footer={
         <>
           {isEdit && editing ? (
@@ -400,25 +517,45 @@ function Inner({
         <section className="flex flex-col gap-4">
         <h3 className="ds-section-title">客户与渠道</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-          <FormInput
+          <CustomerSuggestField
             label="昵称"
             required
             placeholder="例：小北"
             value={nickname}
-            onChange={(ev) => setNickname(ev.target.value)}
             error={errors.nickname}
-            clearable
-            onClear={() => setNickname('')}
+            active={suggestOpen && suggestField === 'nickname'}
+            hits={suggestField === 'nickname' ? customerHits : []}
+            onChange={(v) => {
+              setNickname(v)
+              openSuggest('nickname', v)
+            }}
+            onClear={() => {
+              setNickname('')
+              setSuggestOpen(false)
+            }}
+            onFocus={() => openSuggest('nickname', nickname)}
+            onBlur={() => setTimeout(() => setSuggestOpen(false), 150)}
+            onPick={pickCustomer}
           />
-          <FormInput
+          <CustomerSuggestField
             label="联系方式"
             required
             placeholder="手机号或邮箱"
             value={contact}
-            onChange={(ev) => setContact(ev.target.value)}
             error={errors.contact}
-            clearable
-            onClear={() => setContact('')}
+            active={suggestOpen && suggestField === 'contact'}
+            hits={suggestField === 'contact' ? customerHits : []}
+            onChange={(v) => {
+              setContact(v)
+              openSuggest('contact', v)
+            }}
+            onClear={() => {
+              setContact('')
+              setSuggestOpen(false)
+            }}
+            onFocus={() => openSuggest('contact', contact)}
+            onBlur={() => setTimeout(() => setSuggestOpen(false), 150)}
+            onPick={pickCustomer}
           />
         </div>
 
@@ -507,15 +644,28 @@ function Inner({
 
         {orderType === '普通' ? (
           <section className="flex flex-col gap-3">
-            <div className="flex h-8 items-center justify-between">
+            <div className="flex h-8 items-center justify-between gap-2">
               <h3 className="ds-section-title">项目明细</h3>
               {!moneyLocked && (
-                <Button variant="secondary" size="sm" icon={Plus} onClick={addLine}>
-                  添加项目
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" icon={Plus} onClick={() => openQuickAdd()}>
+                    新建目录项
+                  </Button>
+                  <Button variant="secondary" size="sm" icon={Plus} onClick={addLine}>
+                    添加一行
+                  </Button>
+                </div>
               )}
             </div>
             {errors.lines && <p className="dd-error-text">{errors.lines}</p>}
+            {!moneyLocked && categories.length === 0 ? (
+              <p className="ds-caption">
+                当前游戏还没有普通单分类。
+                <button type="button" className="ml-1 text-brand hover:underline" onClick={() => openQuickAdd()}>
+                  快速新建
+                </button>
+              </p>
+            ) : null}
             <div className="flex flex-col gap-2">
               <div className="grid grid-cols-[24px_1fr_1fr_128px_32px] items-center gap-2 ds-caption">
                 <span className="text-center">#</span>
@@ -735,7 +885,150 @@ function Inner({
           onChange={(e) => setNote(e.target.value)}
         />
       </div>
+    </Drawer>
+
+    <Modal
+      isOpen={quickAddOpen}
+      onClose={() => setQuickAddOpen(false)}
+      title="快速添加到目录"
+      className="max-w-md"
+      footer={
+        <>
+          <Button variant="secondary" onClick={() => setQuickAddOpen(false)}>取消</Button>
+          <Button variant="primary" onClick={confirmQuickAdd}>加入并选用</Button>
+        </>
+      }
+    >
+      <div className="flex flex-col gap-4">
+        <p className="ds-caption">不必去设置。新项目会写入当前游戏的普通单目录，之后记单都能选到。</p>
+        <FormInput
+          label="分类"
+          required
+          placeholder="例如：日常 / 深渊"
+          value={quickCat}
+          onChange={(e) => setQuickCat(e.target.value)}
+          list="hoshimi-quick-cats"
+        />
+        <datalist id="hoshimi-quick-cats">
+          {categories.map((c) => (
+            <option key={c.id} value={c.name} />
+          ))}
+        </datalist>
+        <FormInput
+          label="项目名称"
+          required
+          placeholder="例如：日常代肝"
+          value={quickName}
+          onChange={(e) => setQuickName(e.target.value)}
+          error={quickErr && !quickName.trim() ? quickErr : undefined}
+        />
+        <FormNumberInput
+          label="默认单价（选填）"
+          unit="元"
+          min={0}
+          controls={false}
+          value={quickPrice}
+          onChange={setQuickPrice}
+        />
+        {quickErr ? <p className="dd-error-text">{quickErr}</p> : null}
+      </div>
     </Modal>
+    </>
+  )
+}
+
+
+function CustomerSuggestField({
+  label,
+  required,
+  placeholder,
+  value,
+  error,
+  active,
+  hits,
+  onChange,
+  onClear,
+  onFocus,
+  onBlur,
+  onPick,
+}: {
+  label: string
+  required?: boolean
+  placeholder?: string
+  value: string
+  error?: string
+  active: boolean
+  hits: Customer[]
+  onChange: (v: string) => void
+  onClear: () => void
+  onFocus: () => void
+  onBlur: () => void
+  onPick: (c: Customer) => void
+}) {
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const [pos, setPos] = useState({ top: 0, left: 0, width: 0 })
+
+  useEffect(() => {
+    if (!active || hits.length === 0) return
+    const el = wrapRef.current
+    if (!el) return
+    const r = el.getBoundingClientRect()
+    setPos({ top: r.bottom + 4, left: r.left, width: r.width })
+  }, [active, hits.length, value])
+
+  return (
+    <div className="relative" ref={wrapRef}>
+      <FormInput
+        label={label}
+        required={required}
+        placeholder={placeholder}
+        value={value}
+        onChange={(ev) => onChange(ev.target.value)}
+        onFocus={onFocus}
+        onBlur={onBlur}
+        error={error}
+        clearable
+        onClear={onClear}
+        autoComplete="off"
+      />
+      {active &&
+        hits.length > 0 &&
+        createPortal(
+          <div
+            className="fixed z-[var(--z-popover)]"
+            style={{ top: pos.top, left: pos.left, minWidth: Math.max(pos.width, 220) }}
+            role="listbox"
+          >
+            <div className="dd-popover dd-popover--plain overflow-hidden">
+              <div className="max-h-56 overflow-y-auto custom-scrollbar dd-menu">
+                <div className="px-3 py-1.5 ds-caption flex items-center gap-1.5">
+                  <UserRound size={12} />
+                  匹配到已有客户，点选自动填入
+                </div>
+                {hits.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    role="option"
+                    className="dd-menu__item !items-start !flex-col !gap-0.5"
+                    onMouseDown={(e) => {
+                      e.preventDefault()
+                      onPick(c)
+                    }}
+                  >
+                    <span className="font-medium text-foreground">{c.nickname}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {c.contact || '无联系方式'}
+                      {c.note ? ` · ${c.note}` : ''}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
+    </div>
   )
 }
 

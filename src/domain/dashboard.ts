@@ -64,6 +64,8 @@ export function dashboard(ledger: LedgerView, now = new Date()) {
   const newThisMonthLive = newThisMonth.filter((o) => o.status !== '已退款' && o.status !== '已取消')
   const doneToday = done.filter((o) => todayISO(new Date(o.completedAt!)) === today)
   const inProgress = orders.filter((o) => o.status === '进行中')
+  const waiting = orders.filter((o) => o.status === '待处理')
+  const openOrders = [...waiting, ...inProgress].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
   const recent = [...orders].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 6)
   const statusCounts = ALL_STATUSES.map((status) => ({
@@ -80,7 +82,7 @@ export function dashboard(ledger: LedgerView, now = new Date()) {
       total: orders.length,
       customers: ledger.customers.filter((c) => !c.mergedIntoId).length,
       inProgress: inProgress.length,
-      waiting: orders.filter((o) => o.status === '待处理').length,
+      waiting: waiting.length,
       completedThisMonth: doneThisMonth.length,
       revenueThisMonth: sumMoney(doneThisMonth.map((o) => o.amount)),
       payoutThisMonth: sumMoney(doneThisMonth.map((o) => o.payout)),
@@ -97,6 +99,8 @@ export function dashboard(ledger: LedgerView, now = new Date()) {
     lists: {
       doneToday,
       inProgress,
+      waiting,
+      openOrders,
       newThisMonth,
       expiring,
     },

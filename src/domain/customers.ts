@@ -89,3 +89,16 @@ export function duplicatePairs(
   }
   return pairs
 }
+
+/** 记单时按昵称 / 手机 / 邮箱模糊匹配活跃客户，最多 8 条 */
+export function suggestCustomers<T extends CustomerLike>(
+  customers: T[],
+  query: string,
+  limit = 8,
+): T[] {
+  const q = query.trim()
+  if (q.length < 1) return []
+  return customers
+    .filter((c) => !c.mergedIntoId && customerMatches(c, q))
+    .slice(0, limit)
+}

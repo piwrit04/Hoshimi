@@ -5,7 +5,6 @@ import {
   CircleDollarSign,
   Hourglass,
   PlusCircle,
-  ShoppingBag,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -30,11 +29,11 @@ import { NO_PAYOUT, payoutVoid } from '@/domain/status'
 import type { Order, OrderStatus } from '@/domain/order'
 
 /*
- * 概览：4 KPI（右下水印图标）+ 约 2/3 走势图 + 约 1/3 智能提示。
- * 托管到期明细只在「托管快到期」KPI 弹层里。
+ * 概览：3 KPI（今日到手 / 未完成 / 托管到期）+ 走势图 + 智能提示。
+ * 点 KPI 弹明细；托管到期只在第三张卡。
  */
 
-type KpiKey = 'today' | 'active' | 'month' | 'due'
+type KpiKey = 'today' | 'open' | 'due'
 
 const statusTone: Record<OrderStatus, 'brand' | 'warning' | 'success' | 'danger'> = {
   待处理: 'warning',
@@ -81,8 +80,7 @@ export default function Dashboard() {
 
   const modalMeta: Record<KpiKey, { title: string; hint: string }> = {
     today: { title: '今日到手', hint: '今天「已完成」订单的到手明细' },
-    active: { title: '进行中', hint: '当前进行中的订单' },
-    month: { title: '本月新单', hint: '本月创建的订单' },
+    open: { title: '未完成', hint: '待处理 + 进行中的订单' },
     due: { title: '托管快到期', hint: `${m.remindDays} 天内到期的托管单` },
   }
 
@@ -129,35 +127,26 @@ export default function Dashboard() {
         </div>
       ) : null}
 
-      <section className="ds-stagger grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="ds-stagger grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard
           icon={CircleDollarSign}
           label="今日到手"
           en="Today"
           value={k.payoutToday}
           money
-          foot={`本月 ${money(k.payoutThisMonth)} · 上月 ${money(k.payoutLastMonth)}`}
+          foot={`完成 ${k.completedToday} 单 · 本月 ${money(k.payoutThisMonth)}`}
           tip="点击查看今日完成明细"
           variant="hero"
           onClick={() => setKpiOpen('today')}
         />
         <StatCard
           icon={Hourglass}
-          label="进行中"
-          en="Active"
-          value={k.inProgress}
-          foot={`待处理 ${k.waiting} 单`}
-          tip="点击查看进行中订单"
-          onClick={() => setKpiOpen('active')}
-        />
-        <StatCard
-          icon={ShoppingBag}
-          label="本月新单"
-          en="Month"
-          value={k.newThisMonth}
-          foot={`本月下单流水 ${money(k.newThisMonthAmount)}`}
-          tip="点击查看本月新单"
-          onClick={() => setKpiOpen('month')}
+          label="未完成"
+          en="Open"
+          value={k.openCount}
+          foot={`待处理 ${k.waiting} · 进行中 ${k.inProgress}`}
+          tip="点击查看未完成订单"
+          onClick={() => setKpiOpen('open')}
         />
         <StatCard
           icon={CalendarClock}
@@ -197,8 +186,7 @@ export default function Dashboard() {
             kind={kpiOpen}
             hint={modalMeta[kpiOpen].hint}
             doneToday={m.lists.doneToday}
-            inProgress={m.lists.inProgress}
-            newThisMonth={m.lists.newThisMonth}
+            openOrders={m.lists.openOrders}
             expiring={m.lists.expiring}
             payoutToday={k.payoutToday}
             onOpen={(id) => {
@@ -270,8 +258,7 @@ function KpiDetail({
   kind,
   hint,
   doneToday,
-  inProgress,
-  newThisMonth,
+  openOrders,
   expiring,
   payoutToday,
   onOpen,
@@ -279,8 +266,7 @@ function KpiDetail({
   kind: KpiKey
   hint: string
   doneToday: Order[]
-  inProgress: Order[]
-  newThisMonth: Order[]
+  openOrders: Order[]
   expiring: ExpiringItem[]
   payoutToday: number
   onOpen: (id: string) => void
@@ -321,8 +307,7 @@ function KpiDetail({
     )
   }
 
-  const list =
-    kind === 'today' ? doneToday : kind === 'active' ? inProgress : newThisMonth
+  const list = kind === 'today' ? doneToday : openOrders
 
   return (
     <div className="space-y-3">

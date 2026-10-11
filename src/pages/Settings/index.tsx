@@ -34,6 +34,7 @@ import { feePercentLabel } from '@/domain/money'
 import type { Platform } from '@/domain/order'
 import { exportCsv, exportXlsx } from '@/domain/export'
 import { AuthModal } from '@/components/auth/AuthModal'
+import { Tabs } from '@/components/ui/feedback'
 import { useAuthStore } from '@/store/useAuthStore'
 
 const themeLabels: Record<ThemeMode, string> = {
@@ -173,198 +174,214 @@ export default function Settings() {
 
   return (
     <div className="ds-page">
-      <PageHeader title="设置" description="外观、项目目录、导入导出与备份" />
+      <PageHeader title="设置" description="账本与系统分两栏：目录费率导入在左边，外观云同步在右边" />
 
-      <div className="flex flex-col gap-6">
-        <SettingGroup title="通用">
-        <SettingRow icon={Palette} title="外观" description="选择应用的颜色主题">
-          <Dropdown
-            trigger={
-              <button type="button" className="btn-base btn-secondary btn--sm w-32 !justify-between">
-                {theme === 'system' && <Monitor size={14} />}
-                {theme === 'dark' && <Moon size={14} />}
-                {theme === 'light' && <Sun size={14} />}
-                <span className="inline-flex items-center gap-2">{themeLabels[theme]}</span>
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="opacity-60">
-                  <path
-                    d="M2 3.5L5 6.5L8 3.5"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            }
-            items={[
-              { key: 'system', label: '跟随系统', icon: Monitor },
-              { key: 'dark', label: '深色模式', icon: Moon },
-              { key: 'light', label: '浅色模式', icon: Sun },
-            ]}
-            onSelect={(k) => setTheme(k as ThemeMode)}
-          />
-        </SettingRow>
+      <Tabs
+        variant="pill"
+        defaultActiveKey="ledger"
+        items={[
+          {
+            key: 'ledger',
+            label: '账本',
+            content: (
+              <div className="flex flex-col gap-6 pt-2">
+                <CatalogEditor />
+                <ChannelFeesSection />
+                <ExpiryOffsetsSection />
+                <SettingGroup title="导入导出">
+                  <SettingRow
+                    icon={FileDown}
+                    title="导出表格"
+                    description="把当前账本导出为 Excel（普通单 / 托管单 / 客户）或 CSV。退款、取消的到手为 —。"
+                  >
+                    <div className="flex items-center gap-2 justify-end">
+                      <button
+                        type="button"
+                        className="btn-base btn-secondary btn--sm"
+                        onClick={() => {
+                          const snap = getSnapshot()
+                          void exportXlsx({ orders: snap.orders, customers: snap.customers })
+                            .then(() =>
+                              addToast({
+                                type: 'success',
+                                message: `已导出 Excel（${snap.orders.length} 单 · ${snap.customers.filter((c) => !c.mergedIntoId).length} 客户）`,
+                              }),
+                            )
+                            .catch(() => addToast({ type: 'error', message: '导出失败' }))
+                        }}
+                      >
+                        <Download size={14} className="shrink-0" />
+                        导出 Excel
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-base btn-secondary btn--sm"
+                        onClick={() => {
+                          const snap = getSnapshot()
+                          exportCsv(snap.orders)
+                          addToast({ type: 'success', message: `已导出 CSV（${snap.orders.length} 单）` })
+                        }}
+                      >
+                        <Download size={14} className="shrink-0" />
+                        导出 CSV
+                      </button>
+                    </div>
+                  </SettingRow>
 
-        <SettingRow icon={Code2} title="开发模式" description="显示调试信息和开发者工具入口">
-          <FormSwitch checked={devMode} onChange={setDevMode} />
-        </SettingRow>
-        </SettingGroup>
+                  <SettingRow
+                    icon={FileSpreadsheet}
+                    title="从表格导入订单"
+                    description={
+                      importReading
+                        ? '正在读取…'
+                        : importName && importPlan
+                          ? `已读取：${importName}，请在预览中确认`
+                          : '支持 .xlsx / .csv。列：昵称、手机号、项目、价格、是否完单、平台等。确认前不会写入。'
+                    }
+                  >
+                    <button
+                      type="button"
+                      className="btn-base btn-secondary btn--sm"
+                      disabled={importReading}
+                      onClick={() => importRef.current?.click()}
+                    >
+                      <Upload size={14} />
+                      {importPlan ? '重新选择' : '选择文件'}
+                    </button>
+                    <input
+                      ref={importRef}
+                      type="file"
+                      accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
+                      className="hidden"
+                      onChange={(e) => void onPickImport(e.target.files?.[0] ?? null)}
+                    />
+                  </SettingRow>
 
-        <CloudSyncSection />
+                  <SettingRow
+                    icon={Database}
+                    title="缓存与数据"
+                    description={
+                      lastLabel
+                        ? `上次备份：${lastLabel}。更换设备前请先下载备份。`
+                        : '账本仅保存在本设备。更换设备或清缓存前请先下载备份。'
+                    }
+                  >
+                    <div className="flex items-center gap-2 justify-end">
+                      <button
+                        type="button"
+                        className="btn-base btn-primary btn--sm"
+                        onClick={downloadBackup}
+                      >
+                        <Download size={14} className="shrink-0" />
+                        备份数据
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-base btn-secondary btn--sm"
+                        onClick={() => fileRef.current?.click()}
+                      >
+                        <Upload size={14} />
+                        恢复数据
+                      </button>
+                      <input
+                        ref={fileRef}
+                        type="file"
+                        accept="application/json,.json"
+                        className="hidden"
+                        onChange={(e) => void onPickRestore(e.target.files?.[0] ?? null)}
+                      />
+                      <button
+                        type="button"
+                        className="btn-base btn-ghost btn--sm"
+                        onClick={() =>
+                          addToast({ type: 'info', message: '缓存清理暂未接入，账本请用备份/还原' })
+                        }
+                      >
+                        <Trash2 size={14} />
+                        清理缓存
+                      </button>
+                    </div>
+                  </SettingRow>
+                </SettingGroup>
+              </div>
+            ),
+          },
+          {
+            key: 'system',
+            label: '系统',
+            content: (
+              <div className="flex flex-col gap-6 pt-2">
+                <SettingGroup title="通用">
+                  <SettingRow icon={Palette} title="外观" description="选择应用的颜色主题">
+                    <Dropdown
+                      trigger={
+                        <button type="button" className="btn-base btn-secondary btn--sm w-32 !justify-between">
+                          {theme === 'system' && <Monitor size={14} />}
+                          {theme === 'dark' && <Moon size={14} />}
+                          {theme === 'light' && <Sun size={14} />}
+                          <span className="inline-flex items-center gap-2">{themeLabels[theme]}</span>
+                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="opacity-60">
+                            <path
+                              d="M2 3.5L5 6.5L8 3.5"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </button>
+                      }
+                      items={[
+                        { key: 'system', label: '跟随系统', icon: Monitor },
+                        { key: 'dark', label: '深色模式', icon: Moon },
+                        { key: 'light', label: '浅色模式', icon: Sun },
+                      ]}
+                      onSelect={(k) => setTheme(k as ThemeMode)}
+                    />
+                  </SettingRow>
 
-        <CatalogEditor />
+                  <SettingRow icon={Code2} title="开发模式" description="显示调试信息和开发者工具入口">
+                    <FormSwitch checked={devMode} onChange={setDevMode} />
+                  </SettingRow>
+                </SettingGroup>
 
-        <ChannelFeesSection />
+                <CloudSyncSection />
 
-        <ExpiryOffsetsSection />
+                <SettingGroup title="关于">
+                  <SettingRow
+                    icon={RefreshCw}
+                    title="检查更新"
+                    description="桌面端自动更新将接入 electron-updater；当前为占位。网页版请刷新浏览器。"
+                  >
+                    <button
+                      type="button"
+                      className="btn-base btn-secondary btn--sm"
+                      onClick={() => {
+                        setUpdateHint('已是最新')
+                        addToast({ type: 'success', message: `当前已是最新版本 v${APP_VERSION}` })
+                        window.setTimeout(() => setUpdateHint(null), 2500)
+                      }}
+                    >
+                      <RefreshCw size={14} />
+                      {updateHint ?? '检查更新'}
+                    </button>
+                  </SettingRow>
 
-        <SettingGroup title="数据">
-        <SettingRow
-          icon={FileDown}
-          title="导出表格"
-          description="把当前账本导出为 Excel（普通单 / 托管单 / 客户）或 CSV。退款、取消的到手为 —。"
-        >
-          <div className="flex items-center gap-2 justify-end">
-            <button
-              type="button"
-              className="btn-base btn-secondary btn--sm"
-              onClick={() => {
-                const snap = getSnapshot()
-                void exportXlsx({ orders: snap.orders, customers: snap.customers })
-                  .then(() =>
-                    addToast({
-                      type: 'success',
-                      message: `已导出 Excel（${snap.orders.length} 单 · ${snap.customers.filter((c) => !c.mergedIntoId).length} 客户）`,
-                    }),
-                  )
-                  .catch(() => addToast({ type: 'error', message: '导出失败' }))
-              }}
-            >
-              <Download size={14} className="shrink-0" />
-              导出 Excel
-            </button>
-            <button
-              type="button"
-              className="btn-base btn-secondary btn--sm"
-              onClick={() => {
-                const snap = getSnapshot()
-                exportCsv(snap.orders)
-                addToast({ type: 'success', message: `已导出 CSV（${snap.orders.length} 单）` })
-              }}
-            >
-              <Download size={14} className="shrink-0" />
-              导出 CSV
-            </button>
-          </div>
-        </SettingRow>
-
-        <SettingRow
-          icon={FileSpreadsheet}
-          title="从表格导入订单"
-          description={
-            importReading
-              ? '正在读取…'
-              : importName && importPlan
-                ? `已读取：${importName}，请在预览中确认`
-                : '支持 .xlsx / .csv。列：昵称、手机号、项目、价格、是否完单、平台等。确认前不会写入。'
-          }
-        >
-          <button
-            type="button"
-            className="btn-base btn-secondary btn--sm"
-            disabled={importReading}
-            onClick={() => importRef.current?.click()}
-          >
-            <Upload size={14} />
-            {importPlan ? '重新选择' : '选择文件'}
-          </button>
-          <input
-            ref={importRef}
-            type="file"
-            accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
-            className="hidden"
-            onChange={(e) => void onPickImport(e.target.files?.[0] ?? null)}
-          />
-        </SettingRow>
-
-        <SettingRow
-          icon={Database}
-          title="缓存与数据"
-          description={
-            lastLabel
-              ? `上次备份：${lastLabel}。更换设备前请先下载备份。`
-              : '账本仅保存在本设备。更换设备或清缓存前请先下载备份。'
-          }
-        >
-          <div className="flex items-center gap-2 justify-end">
-            <button
-              type="button"
-              className="btn-base btn-primary btn--sm"
-              onClick={downloadBackup}
-            >
-              <Download size={14} className="shrink-0" />
-              备份数据
-            </button>
-            <button
-              type="button"
-              className="btn-base btn-secondary btn--sm"
-              onClick={() => fileRef.current?.click()}
-            >
-              <Upload size={14} />
-              恢复数据
-            </button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="application/json,.json"
-              className="hidden"
-              onChange={(e) => void onPickRestore(e.target.files?.[0] ?? null)}
-            />
-            <button
-              type="button"
-              className="btn-base btn-ghost btn--sm"
-              onClick={() =>
-                addToast({ type: 'info', message: '缓存清理暂未接入，账本请用备份/还原' })
-              }
-            >
-              <Trash2 size={14} />
-              清理缓存
-            </button>
-          </div>
-        </SettingRow>
-        </SettingGroup>
-
-        <SettingGroup title="关于">
-        <SettingRow
-          icon={RefreshCw}
-          title="检查更新"
-          description="桌面端自动更新将接入 electron-updater；当前为占位。网页版请刷新浏览器。"
-        >
-          <button
-            type="button"
-            className="btn-base btn-secondary btn--sm"
-            onClick={() => {
-              setUpdateHint('已是最新')
-              addToast({ type: 'success', message: `当前已是最新版本 v${APP_VERSION}` })
-              window.setTimeout(() => setUpdateHint(null), 2500)
-            }}
-          >
-            <RefreshCw size={14} />
-            {updateHint ?? '检查更新'}
-          </button>
-        </SettingRow>
-
-        <SettingRow
-          icon={Info}
-          title="关于星笺"
-          description="本地代肝订单管理 · 数据仅存本机"
-        >
-          <span className="inline-flex h-6 items-center rounded-md bg-secondary px-2 text-xs font-medium text-muted-foreground tabular-nums">
-            v{APP_VERSION}
-          </span>
-        </SettingRow>
-        </SettingGroup>
-      </div>
+                  <SettingRow
+                    icon={Info}
+                    title="关于星笺"
+                    description="本地代肝订单管理 · 数据仅存本机"
+                  >
+                    <span className="inline-flex h-6 items-center rounded-md bg-secondary px-2 text-xs font-medium text-muted-foreground tabular-nums">
+                      v{APP_VERSION}
+                    </span>
+                  </SettingRow>
+                </SettingGroup>
+              </div>
+            ),
+          },
+        ]}
+      />
 
       <Modal
         isOpen={Boolean(importPlan)}
