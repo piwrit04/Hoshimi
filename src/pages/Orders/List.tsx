@@ -517,7 +517,7 @@ export default function Orders() {
       <motion.div
         {...fade}
         transition={{ duration: 0.25, delay: 0.04 }}
-        className="ds-table-card l2g-table"
+        className="table-container l2g-table"
       >
         <DataTable
           columns={columns}
