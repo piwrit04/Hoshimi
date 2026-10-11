@@ -1,9 +1,12 @@
 import { useAtmosphereStore } from '@/store/useAtmosphereStore'
 import { cn } from '@/lib/utils'
 
-/** 可选全局底层壁纸；遮罩高不透明，内容/侧栏不透图（console 皮） */
+/** 可选全局底层壁纸；默认关（实心 console）。开时遮罩仍高，内容可读。 */
 export function AppWallpaper({ className }: { className?: string }) {
+  const enabled = useAtmosphereStore((s) => s.wallpaperEnabled)
   const wallpaperPath = useAtmosphereStore((s) => s.wallpaperPath)
+
+  if (!enabled) return null
 
   return (
     <div

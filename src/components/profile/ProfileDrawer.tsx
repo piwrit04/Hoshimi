@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
+  ChevronDown,
   Cloud,
   CloudOff,
   LogIn,
@@ -10,7 +11,6 @@ import {
 } from 'lucide-react'
 import { Drawer } from '@/components/ui/overlay'
 import { Avatar } from '@/components/ui/data'
-import { Card } from '@/components/ui/Card'
 import { FormInput } from '@/components/ui/form'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { Button } from '@/components/ui/Button'
@@ -91,7 +91,13 @@ export function ProfileDrawer() {
         ? `上次同步：${new Date(lastSyncAt).toLocaleString('zh-CN', { hour12: false })}`
         : user
           ? '登录后可手动同步，或改动账本后自动推送'
-          : '登录后可跨设备同步；也可继续仅用本机'
+          : '登录后可跨设备同步'
+
+  const statusLine = user?.email
+    ? user.email
+    : configured
+      ? '未登录 · 本机资料'
+      : '本地账本 · 无需登录'
 
   return (
     <>
@@ -128,44 +134,43 @@ export function ProfileDrawer() {
             </Avatar>
             <div className="dd-profile__hero-meta min-w-0">
               <h2 className="dd-profile__name truncate">{nickname}</h2>
-              <p className="ds-caption truncate">
-                {user?.email
-                  ? user.email
-                  : configured
-                    ? '未登录 · 本机资料'
-                    : '本地账本 · 无需登录'}
-              </p>
+              <p className="ds-caption truncate">{statusLine}</p>
             </div>
-            {!editing ? (
-              <button
-                type="button"
-                className="btn-base btn-ghost btn--sm shrink-0"
-                onClick={() => {
+            <button
+              type="button"
+              className="btn-base btn-ghost btn--sm shrink-0"
+              aria-expanded={editing}
+              onClick={() => {
+                if (editing) {
+                  setDraftNick(nickname)
+                  setEditing(false)
+                } else {
                   setDraftNick(nickname)
                   setEditing(true)
-                }}
-              >
-                <Pencil size={14} />
-                编辑
-              </button>
-            ) : null}
+                }
+              }}
+            >
+              {editing ? <ChevronDown size={14} /> : <Pencil size={14} />}
+              {editing ? '收起' : '编辑'}
+            </button>
           </section>
 
+          {/* 未登录：短状态条 + 单一主登录 CTA（不另开账号卡） */}
           {configured && !user ? (
-            <Card title="账号" className="dd-profile__card">
-              <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                登录后可跨设备同步账本；也可继续仅用本机，资料照常保存在本地。
-              </p>
+            <div className="dd-profile__login-strip ds-rise">
+              <p className="dd-profile__login-strip-text">登录后可跨设备同步账本</p>
               <Button variant="primary" size="sm" className="w-full" onClick={() => setAuthOpen(true)}>
                 <LogIn size={14} />
                 登录 / 注册
               </Button>
-            </Card>
+            </div>
           ) : null}
 
+          {/* 编辑资料：默认折叠，点「编辑」展开 */}
           {editing ? (
-            <Card title="编辑资料" className="dd-profile__card">
-              <div className="flex flex-col gap-4">
+            <section className="dd-profile__section ds-rise">
+              <h3 className="dd-profile__section-title">编辑资料</h3>
+              <div className="flex flex-col gap-3">
                 <FormInput
                   label="昵称"
                   value={draftNick}
@@ -214,23 +219,21 @@ export function ProfileDrawer() {
                   </Button>
                 </div>
               </div>
-            </Card>
+            </section>
           ) : null}
 
-          <Card
-            title={
-              <span className="inline-flex items-center gap-2">
+          <section className="dd-profile__section ds-rise">
+            <h3 className="dd-profile__section-title">
+              <span className="inline-flex items-center gap-1.5">
                 {configured && user ? (
-                  <Cloud size={16} className="text-brand" />
+                  <Cloud size={14} className="text-brand" />
                 ) : (
-                  <CloudOff size={16} className="text-muted-foreground" />
+                  <CloudOff size={14} className="text-muted-foreground" />
                 )}
                 云同步
               </span>
-            }
-            className="dd-profile__card"
-          >
-            <p className="text-xs text-muted-foreground leading-relaxed mb-3">{syncLabel}</p>
+            </h3>
+            <p className="text-xs text-muted-foreground leading-relaxed mb-2.5">{syncLabel}</p>
             {configured && user ? (
               <Button
                 variant="secondary"
@@ -254,18 +257,13 @@ export function ProfileDrawer() {
                 <RefreshCw size={14} className={syncing ? 'animate-spin' : undefined} />
                 {syncing ? '同步中…' : '立即同步'}
               </Button>
-            ) : configured && !user ? (
-              <div className="dd-profile__local-hint">
-                <LogIn size={14} className="text-brand shrink-0" />
-                <span>登录后可在此手动同步，或改动账本后自动推送。</span>
-              </div>
-            ) : (
+            ) : !configured ? (
               <div className="dd-profile__local-hint">
                 <UserRound size={14} className="text-brand shrink-0" />
                 <span>账本始终写在本机 IndexedDB，云端只是可选备份。</span>
               </div>
-            )}
-          </Card>
+            ) : null}
+          </section>
         </div>
       </Drawer>
 

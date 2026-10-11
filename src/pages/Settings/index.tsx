@@ -48,6 +48,8 @@ export default function Settings() {
   const setTheme = useThemeStore((s) => s.setMode)
   const particlesEnabled = useAtmosphereStore((s) => s.particlesEnabled)
   const setParticlesEnabled = useAtmosphereStore((s) => s.setParticlesEnabled)
+  const wallpaperEnabled = useAtmosphereStore((s) => s.wallpaperEnabled)
+  const setWallpaperEnabled = useAtmosphereStore((s) => s.setWallpaperEnabled)
   const wallpaperPath = useAtmosphereStore((s) => s.wallpaperPath)
   const setWallpaperPath = useAtmosphereStore((s) => s.setWallpaperPath)
   const reopenSetup = useSetupStore((s) => s.reopenSetup)
@@ -405,25 +407,35 @@ export default function Settings() {
                   <SettingRow
                     icon={ImageIcon}
                     title="壁纸"
-                    description="当前壁纸路径（public/wallpapers；默认 Liver2Go 草地风景）"
+                    description="默认关：控制台实心底；开启后底层可见风景图（仍加遮罩）"
                   >
-                    <div className="flex items-center gap-2 justify-end max-w-xs">
-                      <input
-                        className="h-9 w-48 rounded-full border border-border bg-secondary/60 px-3 text-xs text-foreground outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
-                        value={wallpaperPath}
-                        onChange={(e) => setWallpaperPath(e.target.value || DEFAULT_WALLPAPER)}
-                        placeholder={DEFAULT_WALLPAPER}
-                        spellCheck={false}
-                      />
-                      <button
-                        type="button"
-                        className="btn-base btn-secondary btn--sm"
-                        onClick={() => setWallpaperPath(DEFAULT_WALLPAPER)}
-                      >
-                        默认
-                      </button>
-                    </div>
+                    <FormSwitch checked={wallpaperEnabled} onChange={setWallpaperEnabled} />
                   </SettingRow>
+
+                  {wallpaperEnabled ? (
+                    <SettingRow
+                      icon={ImageIcon}
+                      title="壁纸路径"
+                      description="public/wallpapers；默认 Liver2Go 草地风景"
+                    >
+                      <div className="flex items-center gap-2 justify-end max-w-xs">
+                        <input
+                          className="h-8 w-44 rounded-full border border-border bg-secondary/60 px-3 text-xs text-foreground outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                          value={wallpaperPath}
+                          onChange={(e) => setWallpaperPath(e.target.value || DEFAULT_WALLPAPER)}
+                          placeholder={DEFAULT_WALLPAPER}
+                          spellCheck={false}
+                        />
+                        <button
+                          type="button"
+                          className="btn-base btn-secondary btn--sm"
+                          onClick={() => setWallpaperPath(DEFAULT_WALLPAPER)}
+                        >
+                          默认
+                        </button>
+                      </div>
+                    </SettingRow>
+                  ) : null}
 
                   <SettingRow icon={Code2} title="开发模式" description="显示调试信息和开发者工具入口">
                     <FormSwitch checked={devMode} onChange={setDevMode} />
@@ -664,10 +676,8 @@ function SettingRow({
 }) {
   return (
     <div className="dd-settings-row">
-      <div className="flex min-w-0 items-center gap-3">
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
-          <Icon size={16} />
-        </div>
+      <div className="flex min-w-0 items-center gap-2.5">
+        <Icon size={15} className="shrink-0 text-muted-foreground" />
         <div className="min-w-0">
           <h3 className="text-sm font-medium leading-5 text-foreground">{title}</h3>
           {description ? <p className="ds-caption mt-0.5 line-clamp-2">{description}</p> : null}

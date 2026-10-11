@@ -89,11 +89,9 @@ export function CatalogEditor() {
     <section className="dd-settings-group dd-settings-rise">
     <h2 className="ds-section-title px-1">项目目录</h2>
     <div className="dd-catalog">
-      <div className="dd-catalog__head flex min-h-[64px] items-center gap-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="size-9 rounded-full bg-brand/10 text-brand flex items-center justify-center shrink-0">
-            <FolderTree size={16} />
-          </div>
+      <div className="dd-catalog__head flex min-h-0 items-center gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <FolderTree size={15} className="shrink-0 text-muted-foreground" />
           <div className="min-w-0">
             <h3 className="text-sm font-medium leading-5">游戏</h3>
             <p className="ds-caption mt-0.5">录单可选项目；改名不影响已保存订单</p>
@@ -373,7 +371,7 @@ export function CatalogEditor() {
 
               <div className="min-h-0 flex-1 overflow-y-auto">
                 {prods.length === 0 ? (
-                  <p className="rounded-xl border border-dashed border-border/70 py-10 text-center text-sm text-muted-foreground">
+                  <p className="rounded-lg border border-dashed border-border/50 py-8 text-center text-sm text-muted-foreground">
                     这个分类还没有项目
                   </p>
                 ) : (

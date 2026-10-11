@@ -1,10 +1,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-/** 氛围：壁纸路径 + 樱花粒子（默认关）。与主题 store 分开。 */
+/** 氛围：壁纸开关/路径 + 樱花粒子（默认关）。与主题 store 分开。 */
 export interface AtmosphereState {
+  /** 默认关：控制台实心底；开则底层可见壁纸（仍加遮罩） */
+  wallpaperEnabled: boolean
   wallpaperPath: string
   particlesEnabled: boolean
+  setWallpaperEnabled: (on: boolean) => void
   setWallpaperPath: (path: string) => void
   setParticlesEnabled: (on: boolean) => void
 }
@@ -23,8 +26,10 @@ export const WALLPAPER_PRESETS = [
 export const useAtmosphereStore = create<AtmosphereState>()(
   persist(
     (set) => ({
+      wallpaperEnabled: false,
       wallpaperPath: DEFAULT_WALLPAPER,
       particlesEnabled: false,
+      setWallpaperEnabled: (wallpaperEnabled) => set({ wallpaperEnabled }),
       setWallpaperPath: (wallpaperPath) => set({ wallpaperPath }),
       setParticlesEnabled: (particlesEnabled) => set({ particlesEnabled }),
     }),

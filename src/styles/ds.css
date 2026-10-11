@@ -511,16 +511,16 @@
   background: #F1F5F9 !important; /* solid light gray */
 }
 
-/* 壁纸若保留：仅全局底层；遮罩高不透明，内容区看不到透图 */
+/* 壁纸开启时：高遮罩弱化风景，内容仍可读；关闭则不渲染层 */
 .l2g-wallpaper__veil {
   position: absolute;
   inset: 0;
-  background: #0B0F17;
+  background: rgba(11, 15, 23, 0.88);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
 :root[data-theme="light"] .l2g-wallpaper__veil {
-  background: #F1F5F9;
+  background: rgba(241, 245, 249, 0.9);
 }
 .l2g-wallpaper__tint {
   display: none;
@@ -790,8 +790,82 @@
   color: hsl(var(--muted-foreground));
   border-color: rgba(var(--brand-rgb), 0.2);
 }
+.l2g-capsule--ghost {
+  background: #121826;
+  color: hsl(var(--foreground) / 0.85);
+  border: 1px solid #1e293b;
+  box-shadow: none;
+  font-weight: 600;
+}
+.l2g-capsule--ghost:hover {
+  border-color: rgba(var(--brand-rgb), 0.45);
+  color: var(--brand-hex);
+  filter: none;
+  background: rgba(var(--brand-rgb), 0.08);
+}
+:root[data-theme="light"] .l2g-capsule--ghost {
+  background: #ffffff;
+  color: hsl(var(--foreground));
+  border-color: #e2e8f0;
+}
+:root[data-theme="light"] .l2g-capsule--ghost:hover {
+  border-color: rgba(var(--brand-rgb), 0.4);
+  color: var(--brand-text-hex);
+  background: rgba(var(--brand-rgb), 0.06);
+}
 .l2g-capsule-group { display: inline-flex; gap: 6px; }
 
+/* === dashboard console (pass5) === */
+.l2g-dash {
+  gap: 16px;
+}
+.l2g-dash__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.l2g-dash__metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #1e293b;
+  background: #121826;
+}
+:root[data-theme="light"] .l2g-dash__metrics {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+@media (max-width: 720px) {
+  .l2g-dash__metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.l2g-dash__metric { text-align: center; }
+.l2g-dash__metric-value {
+  font-size: 1.15rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  color: hsl(var(--foreground));
+  line-height: 1.25;
+}
+.l2g-dash__metric-unit {
+  margin-left: 2px;
+  font-size: 0.7em;
+  font-weight: 600;
+  opacity: 0.7;
+}
+.l2g-dash__metric-label {
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: hsl(var(--muted-foreground));
+}
+/* KPI 到手：深浅均品牌柔粉 */
+.l2g-kpi-card__value.dd-money-gold {
+  color: var(--brand-hex);
+}
+:root[data-theme="light"] .l2g-kpi-card__value.dd-money-gold {
+  color: var(--brand-text-hex);
+}
 .l2g-datacenter__metrics {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -870,12 +944,16 @@
 
 .l2g-kpi-card {
   text-align: center;
-  padding: 16px 12px;
+  padding: 14px 12px;
   transition: border-color .2s ease, box-shadow .2s ease;
 }
 .l2g-kpi-card:hover {
-  border-color: #334155;
+  border-color: rgba(var(--brand-rgb), 0.4);
   box-shadow: none;
+}
+:root[data-theme="light"] .l2g-kpi-card:hover {
+  border-color: rgba(var(--brand-rgb), 0.35);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 .l2g-kpi-card__icon {
   display: inline-flex;

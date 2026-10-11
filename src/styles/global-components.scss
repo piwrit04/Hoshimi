@@ -1183,20 +1183,18 @@
   }
   .dd-settings-group__card {
     overflow: hidden;
-    border: 1px solid hsl(var(--border) / 0.7);
+    border: 1px solid hsl(var(--border) / 0.55);
     border-radius: var(--ds-r-card, 12px);
-    background:
-      radial-gradient(80% 70% at 100% 0%, rgba(var(--brand-rgb), 0.05) 0%, transparent 55%),
-      hsl(var(--card));
-    box-shadow: var(--ds-shadow-xs, 0 1px 2px rgba(15, 15, 30, 0.04));
+    background: hsl(var(--card));
+    box-shadow: none;
   }
   .dd-settings-row {
     display: flex;
-    min-height: 64px;
+    min-height: 44px;
     align-items: center;
     justify-content: space-between;
-    gap: 24px;
-    padding: 14px 20px;
+    gap: 16px;
+    padding: 10px 16px;
     transition: background-color 0.2s var(--ds-ease, cubic-bezier(0.22, 1, 0.36, 1));
   }
   .dd-settings-row + .dd-settings-row {
@@ -1266,16 +1264,14 @@
   /* 目录编辑器：减边框堆叠，保留固定分栏高度 */
   .dd-catalog {
     overflow: hidden;
-    border: 1px solid hsl(var(--border) / 0.7);
+    border: 1px solid hsl(var(--border) / 0.55);
     border-radius: var(--ds-r-card, 12px);
-    background:
-      radial-gradient(80% 70% at 100% 0%, rgba(var(--brand-rgb), 0.05) 0%, transparent 55%),
-      hsl(var(--card));
-    box-shadow: var(--ds-shadow-xs, 0 1px 2px rgba(15, 15, 30, 0.04));
+    background: hsl(var(--card));
+    box-shadow: none;
   }
   .dd-catalog__head,
   .dd-catalog__servers {
-    padding: 14px 20px;
+    padding: 10px 14px;
     border-bottom: 1px solid hsl(var(--border) / 0.45);
   }
   .dd-catalog__split {
@@ -1320,37 +1316,37 @@
   }
   .dd-catalog__cat[data-active="true"] {
     background-color: rgba(var(--brand-rgb), 0.1);
-    border-color: rgba(var(--brand-rgb), 0.22);
+    border-color: rgba(var(--brand-rgb), 0.28);
     font-weight: 600;
-    box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.06);
+    box-shadow: none;
   }
   .dd-catalog__products {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     min-height: 0;
-    padding: 14px 16px 16px 20px;
+    padding: 10px 12px 12px 14px;
   }
   .dd-catalog__product-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
   }
   .dd-catalog__product {
     display: flex;
     align-items: center;
-    gap: 8px;
-    min-height: 48px;
-    padding: 8px 10px 8px 14px;
-    border-radius: var(--ds-r-row, 12px);
-    border: 1px solid hsl(var(--border) / 0.5);
-    background: hsl(var(--card));
-    transition: background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    gap: 6px;
+    min-height: 36px;
+    padding: 4px 8px 4px 10px;
+    border-radius: 8px;
+    border: 1px solid hsl(var(--border) / 0.4);
+    background: transparent;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
   }
   .dd-catalog__product:hover {
-    border-color: rgba(var(--brand-rgb), 0.35);
+    border-color: rgba(var(--brand-rgb), 0.3);
     background-color: rgba(var(--brand-rgb), 0.04);
-    box-shadow: 0 6px 14px -6px rgba(var(--brand-rgb), 0.14);
+    box-shadow: none;
   }
   .dd-catalog__server-chip {
     display: flex;
@@ -2303,17 +2299,17 @@
   .dd-profile {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     padding-bottom: 4px;
   }
   .dd-profile__hero {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
+    gap: 10px;
+    padding: 10px 12px;
     border-radius: var(--ds-r-card, 12px);
-    border: 1px solid hsl(var(--border) / 0.7);
-    background: color-mix(in srgb, rgb(var(--brand-rgb)) 10%, hsl(var(--card)));
+    border: 1px solid hsl(var(--border) / 0.55);
+    background: hsl(var(--card));
   }
   .dd-profile__avatar {
     box-shadow: 0 6px 16px -8px rgba(var(--brand-rgb), 0.45);
@@ -2329,7 +2325,35 @@
     min-width: 0;
   }
   .dd-profile__card {
-    /* Card 自带边框；抽屉里略收紧 */
+    /* legacy Card wrapper; prefer dd-profile__section */
+  }
+  .dd-profile__section {
+    padding: 10px 12px;
+    border-radius: var(--ds-r-card, 12px);
+    border: 1px solid hsl(var(--border) / 0.55);
+    background: hsl(var(--card));
+  }
+  .dd-profile__section-title {
+    margin: 0 0 8px;
+    font-size: 13px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    color: hsl(var(--foreground));
+  }
+  .dd-profile__login-strip {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: var(--ds-r-card, 12px);
+    border: 1px solid hsl(var(--border) / 0.55);
+    background: hsl(var(--card));
+  }
+  .dd-profile__login-strip-text {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: hsl(var(--muted-foreground));
   }
   .dd-profile__hues {
     display: flex;
@@ -2354,13 +2378,13 @@
     display: flex;
     align-items: flex-start;
     gap: 8px;
-    padding: 10px 12px;
-    border-radius: var(--ds-r-card, 12px);
-    background: rgba(var(--brand-rgb), 0.05);
-    border: 1px solid hsl(var(--border) / 0.6);
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: rgba(var(--brand-rgb), 0.04);
+    border: 1px solid hsl(var(--border) / 0.5);
     font-size: 12px;
     color: hsl(var(--muted-foreground));
-    line-height: 1.45;
+    line-height: 1.4;
   }
   .dd-auth-modal {
     border-color: hsl(var(--border) / 0.8);
