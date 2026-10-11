@@ -41,7 +41,7 @@ type SortKey = 'recent' | 'spent' | 'count'
 
 type Row = {
   customer: Customer
-  orderCount: number
+  completedCount: number
   spent: number
   last: string | null
   lastOrder: Order | null
@@ -57,6 +57,24 @@ function shortDateTime(iso?: string | null) {
   if (Number.isNaN(d.getTime())) return '—'
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+/** 列表次行：相对时间；无日期时「—」 */
+function relativeTime(iso?: string | null) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return '—'
+  const sec = Math.round((Date.now() - d.getTime()) / 1000)
+  if (sec < 45) return '刚刚'
+  const min = Math.round(sec / 60)
+  if (min < 60) return `${min} 分钟前`
+  const hr = Math.round(min / 60)
+  if (hr < 24) return `${hr} 小时前`
+  const day = Math.round(hr / 24)
+  if (day < 30) return `${day} 天前`
+  const mo = Math.round(day / 30)
+  if (mo < 12) return `${mo} 个月前`
+  return `${Math.round(mo / 12)} 年前`
 }
 
 function projectLabel(order: Order) {
@@ -93,20 +111,24 @@ function useCustomerRows(search: string, sort: SortKey): Row[] {
       .filter((c) => customerMatches(c, q))
       .map((customer) => {
         const mine = orders.filter((o) => o.customerId === customer.id)
-        const active = mine.filter((o) => !payoutVoid(o))
+        const completed = mine.filter((o) => o.status === '已完成')
         const lastOrder =
           [...mine].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0] ?? null
         const last = lastOrder?.createdAt ?? null
-        const spent = active
-          .filter((o) => o.status === '已完成')
-          .reduce((s, o) => s + o.amount, 0)
-        return { customer, orderCount: active.length, spent, last, lastOrder }
+        const spent = completed.reduce((s, o) => s + o.amount, 0)
+        return {
+          customer,
+          completedCount: completed.length,
+          spent,
+          last,
+          lastOrder,
+        }
       })
       .sort((a, b) =>
         sort === 'spent'
           ? b.spent - a.spent
           : sort === 'count'
-            ? b.orderCount - a.orderCount
+            ? b.completedCount - a.completedCount
             : (b.last ?? '').localeCompare(a.last ?? ''),
       )
   }, [customers, orders, search, sort])
@@ -169,16 +191,26 @@ function CustomerList() {
         width: '22%',
         align: 'center',
         emphasis: 'primary',
-        render: (r) => (
-          <div className="dd-cell-dual">
-            <div className="dd-cell-dual__top">
-              <span className="dd-cell-dual__title">{r.customer.nickname}</span>
+        render: (r) => {
+          const contact = r.customer.contact || '无联系方式'
+          const note = r.customer.note?.trim()
+          const botTitle = note ? `${contact}\n${note}` : contact
+          return (
+            <div className="dd-cell-dual">
+              <div className="dd-cell-dual__top">
+                <span className="dd-cell-dual__title">{r.customer.nickname}</span>
+              </div>
+              <div className="dd-cell-dual__bot truncate" title={botTitle}>
+                {contact}
+              </div>
+              {note ? (
+                <div className="dd-cell-dual__bot truncate" title={note}>
+                  {note}
+                </div>
+              ) : null}
             </div>
-            <div className="dd-cell-dual__bot truncate" title={r.customer.contact || undefined}>
-              {r.customer.contact || '无联系方式'}
-            </div>
-          </div>
-        ),
+          )
+        },
       },
       {
         key: 'recent',
@@ -223,7 +255,7 @@ function CustomerList() {
         render: (r) => (
           <div className="dd-cell-dual">
             <div className="dd-cell-dual__top tabular-nums dd-money-flow">{yuan2(r.spent)}</div>
-            <div className="dd-cell-dual__bot tabular-nums">{r.orderCount} 单</div>
+            <div className="dd-cell-dual__bot tabular-nums">已完成 {r.completedCount} 单</div>
           </div>
         ),
       },
@@ -238,15 +270,7 @@ function CustomerList() {
             <div className="dd-cell-dual__top tabular-nums whitespace-nowrap">
               {shortDateTime(r.last)}
             </div>
-            <div className="dd-cell-dual__bot">
-              {r.customer.note ? (
-                <span className="truncate" title={r.customer.note}>
-                  {r.customer.note}
-                </span>
-              ) : (
-                '—'
-              )}
-            </div>
+            <div className="dd-cell-dual__bot">{relativeTime(r.last)}</div>
           </div>
         ),
       },
@@ -737,7 +761,6 @@ function CustomerDetail({ id }: { id: string }) {
   const spent = orders
     .filter((o) => o.status === '已完成')
     .reduce((s, o) => s + o.amount, 0)
-  const tail = phoneTail(customer.contact)
 
   const sorted = [...orders].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   const last = sorted[0]?.createdAt
@@ -750,9 +773,10 @@ function CustomerDetail({ id }: { id: string }) {
 
   const subParts = [
     customer.contact || '无联系方式',
-    tail ? `尾号 ${tail}` : null,
-    customer.note || null,
-  ].filter(Boolean)
+    `${orders.length} 单`,
+    `消费 ${yuan(spent)}`,
+    last ? `最近 ${shortDateTime(last)}` : '最近 —',
+  ]
 
   return (
     <div className="ds-page--console">
@@ -838,28 +862,6 @@ function CustomerDetail({ id }: { id: string }) {
           </Button>
         </div>
       ) : null}
-
-      <div className="dd-customers-kpis ds-stagger">
-        <div className="ds-card ds-stat ds-rise">
-          <div className="ds-stat__label">订单数</div>
-          <div className="ds-stat__value">{orders.length}</div>
-          <div className="ds-stat__foot">含退款 / 取消</div>
-        </div>
-        <div className="ds-card ds-stat ds-stat--hero ds-rise">
-          <div className="ds-stat__label">已完成消费</div>
-          <div className="ds-stat__value">{yuan(spent)}</div>
-          <div className="ds-stat__foot">只算「已完成」</div>
-        </div>
-        <div className="ds-card ds-stat ds-rise">
-          <div className="ds-stat__label">最近下单</div>
-          <div className="ds-stat__value">
-            {last ? shortDateTime(last) : '—'}
-          </div>
-          <div className="ds-stat__foot">
-            建档于 {new Date(customer.createdAt).toLocaleDateString('zh-CN')}
-          </div>
-        </div>
-      </div>
 
       <div className={reduceMotion ? undefined : 'ds-rise'}>
         <div className="mb-2 flex items-baseline justify-between gap-2 px-0.5">
