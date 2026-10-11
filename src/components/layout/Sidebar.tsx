@@ -88,7 +88,7 @@ const NavItem = memo(function NavItem({
         to={item.path}
         className={({ isActive }) =>
           cn(
-            'flex h-9 items-center px-3 rounded-lg transition-colors duration-150 relative overflow-hidden group',
+            'flex h-9 items-center px-3 rounded-full transition-colors duration-150 relative overflow-hidden group',
             isActive
               ? 'bg-brand/10 text-foreground font-medium'
               : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
@@ -191,7 +191,7 @@ export function Sidebar({ showLogo = true }: { showLogo?: boolean }) {
                 isLogoHovered ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
               )}
             >
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand text-on-brand text-sm font-bold">星</span>
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-on-brand text-sm font-bold">星</span>
               {!isCollapsed && (
                 <span className="flex flex-col leading-tight text-left">
                   <span className="text-sm font-semibold text-foreground">星笺</span>

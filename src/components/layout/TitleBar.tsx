@@ -64,13 +64,13 @@ export function TitleBar({ className }: TitleBarProps) {
       <div className="fixed left-1/2 top-[28px] -translate-x-1/2 -translate-y-1/2 z-50 no-drag">
         <button
           onClick={openSearch}
-          className="flex h-9 items-center gap-2 px-3 rounded-lg bg-background border border-border hover:border-brand/40 focus:border-brand focus:ring-2 focus:ring-brand/20 transition-colors group text-sm w-80"
+          className="flex h-9 items-center gap-2 px-3 rounded-full bg-background border border-border hover:border-brand/40 focus:border-brand focus:ring-2 focus:ring-brand/20 transition-colors group text-sm w-80"
         >
           <div className="flex items-center gap-2">
             <Search size={14} className="text-muted-foreground group-hover:text-primary group-focus:text-primary transition-colors" />
             <span className="text-sm text-muted-foreground">搜索订单、客户…</span>
           </div>
-          <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border border-border bg-secondary px-1.5 font-sans text-[10px] font-medium text-muted-foreground opacity-100 ml-auto">
+          <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded-full border border-border bg-secondary px-1.5 font-sans text-[10px] font-medium text-muted-foreground opacity-100 ml-auto">
             <span className="text-[10px]">Ctrl</span>K
           </kbd>
         </button>
@@ -82,7 +82,7 @@ export function TitleBar({ className }: TitleBarProps) {
           <button
             onClick={() => setShowAnnouncement(!showAnnouncement)}
             className={cn(
-              "h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors rounded-lg",
+              "h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors rounded-full",
               showAnnouncement && "text-primary bg-primary/10"
             )}
             type="button"
@@ -97,7 +97,7 @@ export function TitleBar({ className }: TitleBarProps) {
             onClick={(e) => e.preventDefault()}
             target="_blank"
             rel="noopener noreferrer"
-            className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors rounded-lg"
+            className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors rounded-full"
           >
             <Github size={16} />
           </a>
@@ -106,7 +106,7 @@ export function TitleBar({ className }: TitleBarProps) {
         <Tooltip content={getThemeTitle()} position="bottom">
           <button
             onClick={toggleTheme}
-            className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors rounded-lg"
+            className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors rounded-full"
             type="button"
           >
             {getThemeIcon()}

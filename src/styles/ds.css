@@ -7,7 +7,7 @@
  *   - 间距只用 4 / 8 / 12 / 16 / 24 / 32（8px 网格，4 只给图标间隙）
  *   - 字号：页面标题 20/28 · 区块标题 14/20 · 正文 14/20 · 辅助 12/16
  *   - 控件高度：md 36（按钮 / 输入 / 选择器统一），sm 32（表格行内、工具条）
- *   - 圆角：控件 8 · 卡片 12 · 标签 6
+ *   - 圆角：控件/标签 胶囊(999) · 卡片/面 12 · 行卡悬停 12
  *   - 卡片：1px 边框 + bg-card + 极轻阴影，不做 hover 跳动
  *   - 表格：表头 40 / 行 48，表头与单元格同一 padding（0 12px），数字列右对齐 + tabular-nums
  */
@@ -15,9 +15,10 @@
 :root {
   --ds-h-md: 36px;
   --ds-h-sm: 32px;
-  --ds-r-control: 8px;
-  --ds-r-card: 12px;
-  --ds-r-tag: 6px;
+  --ds-r-control: 999px; /* 胶囊：按钮 / 输入 / 分段槽 */
+  --ds-r-card: 12px;     /* 面：卡片 / 抽屉 / 弹窗 / 表容器 */
+  --ds-r-tag: 999px;     /* 标签 / 芯片 */
+  --ds-r-row: 12px;      /* 行卡悬停圆角 */
   --ds-cell-x: 12px;
   --ds-shadow-xs: 0 1px 2px rgba(15, 15, 30, 0.04);
   --ds-ease: cubic-bezier(0.22, 1, 0.36, 1);
@@ -177,7 +178,7 @@
 .form-radio-option {
   height: 30px;
   padding: 0 12px;
-  border-radius: 6px;
+  border-radius: var(--radius-pill);
   font-size: 13px;
   font-weight: 500;
   border: none;
@@ -204,9 +205,9 @@
 }
 
 /* ---------------- 菜单 / 浮层 ---------------- */
-.dd-popover { border-radius: 10px; box-shadow: 0 8px 24px rgba(15, 15, 30, .12); }
+.dd-popover { border-radius: var(--ds-r-card); box-shadow: 0 8px 24px rgba(15, 15, 30, .12); }
 .dd-menu { padding: 4px; }
-.dd-menu__item { height: 32px; padding: 0 8px; border-radius: 6px; font-size: 14px; }
+.dd-menu__item { height: 32px; padding: 0 8px; border-radius: var(--radius-pill); font-size: 14px; }
 
 /* ---------------- 表格 ----------------
    行卡皮 / 悬停抬升 / 错落入场 / .ds-table-card 已迁入

@@ -105,7 +105,7 @@ function ModalImpl({ isOpen, onClose, title, children, footer, className, showCl
                   type="button"
                   onClick={onClose}
                   aria-label="关闭"
-                  className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors no-drag"
+                  className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors no-drag"
                 >
                   <X className="w-4 h-4" />
                 </button>

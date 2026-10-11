@@ -84,7 +84,7 @@ function ConfirmCard({ entry }: { entry: Entry }) {
             ? { duration: 0.01 }
             : { type: 'tween', duration: 0.28, ease: [0.22, 1, 0.36, 1] }
         }
-        className="relative w-full max-w-sm bg-card border border-border rounded-lg shadow-2 p-5"
+        className="relative w-full max-w-sm bg-card border border-border rounded-xl shadow-2 p-5"
       >
         <div className="flex gap-3">
           <div

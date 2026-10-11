@@ -89,7 +89,7 @@ export function CatalogEditor() {
     <div className="dd-catalog">
       <div className="dd-catalog__head flex min-h-[64px] items-center gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="size-9 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">
+          <div className="size-9 rounded-full bg-brand/10 text-brand flex items-center justify-center shrink-0">
             <FolderTree size={16} />
           </div>
           <div className="min-w-0">

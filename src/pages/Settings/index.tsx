@@ -405,7 +405,7 @@ export default function Settings() {
                     title="关于星笺"
                     description="本地代肝订单管理 · 数据仅存本机"
                   >
-                    <span className="inline-flex h-6 items-center rounded-md bg-secondary px-2 text-xs font-medium text-muted-foreground tabular-nums">
+                    <span className="inline-flex h-6 items-center rounded-full bg-secondary px-2 text-xs font-medium text-muted-foreground tabular-nums">
                       v{APP_VERSION}
                     </span>
                   </SettingRow>
@@ -568,7 +568,7 @@ function SettingRow({
   return (
     <div className="dd-settings-row">
       <div className="flex min-w-0 items-center gap-3">
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
           <Icon size={16} />
         </div>
         <div className="min-w-0">

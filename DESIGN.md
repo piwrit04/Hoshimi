@@ -22,8 +22,8 @@
 | 间距 | 只用 4 / 8 / 12 / 16 / 24 / 32；页面 `ds-page`：内边距 24/32，区块间距 24，卡片间距 16 |
 | 字号 | 页面标题 20/28 semibold（`ds-page-title`）· 区块标题 14/20 semibold（`ds-section-title`）· 正文 14/20 · 辅助 12/16（`ds-caption`） |
 | 控件高度 | md 36（按钮 / 输入 / 选择器 / 分段控件）· sm 32（表格行内、设置行、工具条） |
-| 按钮 | 只有 `sm` / `md`。页头操作 = md；表格行内操作 = sm；弹窗底部 = md（取消 secondary + 确认 primary） |
-| 圆角 | 控件 8 · 卡片 12 · 标签 6 |
+| 按钮 | 只有 `sm` / `md`，**全高圆角胶囊**。页头操作 = md；表格行内操作 = sm；弹窗底部 = md（取消 secondary + 确认 primary） |
+| 圆角 | **控件走胶囊，面走中圆角**：按钮/标签/筛选芯片/分段滑块/步骤点/输入框 = 全高圆角（胶囊）；卡片/抽屉/弹窗/表格容器 = 12；行卡悬停 ≈ 10–12，勿切成小胶囊 |
 | 卡片 | 唯一样式 `ds-card` / `<Card>`：1px 边框 + bg-card + 极轻阴影；头 16/24，体 16/24/24；hover 不跳动 |
 | 统计卡 | `ds-stat`：标签 13 → 数值 28/36 tabular → 脚注 12 |
 | 表格 | ✅ **行卡皮已落地（`ea70b61`）**：去格子线、行悬停抬升、错落入场、主列加重；样式在 `global-components.scss` `@layer components`。布局仍用 `table-layout: fixed` + `<colgroup>`、表头 40 / 行 48、首末列 24、数字右对齐 + tabular-nums、金额两位小数。细则见「表格改法」 |
@@ -77,6 +77,38 @@
 
 `ShortcutsSheet` / `UpdateHighlights` 用现有 `Modal`（缩放淡入）。快捷键行卡 `.dd-shortcuts__row`、亮点条 `.dd-highlights__item`、`<kbd class="dd-kbd">` 均在 `@layer components`。新版本首次进主壳弹亮点；设置 · 系统可重开。空账本订单/客户空态提供「灌入演示数据」（`seedDemoLedger`）。
 
+### 圆角口径（2026-10-11）
+
+**控件走胶囊，面走中圆角**——回应「缺创意 / 太像后台」：
+
+| 对象 | 圆角 |
+|---|---|
+| 按钮、标签、筛选芯片、分段滑块、步骤点、输入框 | 全高圆角（胶囊） |
+| 卡片、抽屉、弹窗、表格容器 | 12 |
+| 行卡悬停 | ≈ 10–12，勿切成小胶囊 |
+
+### 产品差异化（做 UI 前先对齐，禁止做成通用后台）
+
+星笺**不是**通用 CRM / 网店后台 / shadcn 仪表盘换皮。和别人最大的不同：
+
+1. **代肝垂直账本**：店长一人管「接单 → 派打手 → 进度 → 结算」，领域是游戏代练，不是泛电商。
+2. **金额算法是一等公民**：渠道费率、转单、**本月到手**（按完成日归月）必须在列表/概览上被看见，不能埋进详情。
+3. **普通单 + 托管单**：托管到期提醒是特色能力，UI 要露出节奏感，不是普通状态标签凑数。
+4. **游戏 / 项目目录驱动录单**：单号前缀、服务器、默认价——录单与列表应带游戏气质，不是空白「订单号+客户+金额」表。
+
+问候卡、表格、KPI 的信息架构都要服务上面四点；说不出差异就先别画皮。
+
+### 表格信息密度（2026-10-11 反馈）
+
+当前密度**过低**。允许并鼓励**双行合并**：
+
+- 金额行下可跟手续费/到手或渠道小字
+- 下单日 + 完成日可同格双行
+- 状态 + 托管到期 / 打手 可同格
+- 主列（客户/项目）仍加重，次要信息降权但**不要靠狂加列**撑空白
+
+概览问候卡：避免大块空问候；可合并本日/本月到手、待办、托管到期等经营信息。
+
 ### 动效三原则（产品定调，落地以本节为准）
 
 1. **进场**：列表/卡片统一 `ds-rise`（上浮 10px + 淡入 ~360ms）；抽屉/弹窗用缩放+淡入，退场也要播完。问候语可用 `live` 标题 + 粉线。
@@ -87,16 +119,16 @@
 
 | 组件 | 改了什么 | 参考 |
 |---|---|---|
-| Button | 40px 胶囊 → 36/32 两档、8px 圆角、500 字重；secondary 改中性描边；去掉 hover 上浮；lg 移除 | shadcn Button / Ant Button（middle 32） |
+| Button | 36/32 两档、**全高圆角胶囊**、500 字重；secondary 改中性描边；去掉 hover 上浮；lg 移除 | 产品定调：控件胶囊（非 shadcn 8px） |
 | 输入框 / 选择器 | 40–44px → 36px；边框走 `--input`；hover 只变边框色；focus 3px 柔光环 | shadcn Input / Arco Input |
 | 分段控件（日/周/月等） | 胶囊按钮组 → 底色槽 + 白色滑块，36/32 两档 | Ant Segmented / shadcn Tabs |
 | 单选组 | 行高对齐控件高度（min-h 36），与同排输入框齐平 | Element Plus Radio |
 | DataTable | 加 colgroup + fixed 布局；表头 / 单元格同 padding；右对齐列表头同向；首末列 24 | Ant Table / shadcn Data Table |
-| Tag | 22px 高、6px 圆角、12px 字 | Arco Tag（small） |
+| Tag | 22px 高、**胶囊**圆角、12px 字 | Arco Tag（small）→ 产品定调胶囊 |
 | Card / SectionCard | 统一为 `<Card>`，去掉左侧色条和 hover 阴影 | shadcn Card |
 | PageHeader | 30px 大标题 + 图标块 → 20px 标题 + 一行说明 + 右侧 md 操作 | Ant Pro PageHeader / shadcn |
 | Modal | 头 56 / 底 64、标题 16 semibold、关闭按钮 32 方形、进场 0.98 缩放 | shadcn Dialog |
-| Dropdown 菜单 | 菜单项 32px、内边距 4、项圆角 6 | shadcn DropdownMenu |
+| Dropdown 菜单 | 菜单项 32px、内边距 4、项圆角胶囊 | 产品定调 |
 | 侧栏 | 64→60 宽，顶部主操作「新建订单」，分组标题，选中态浅底而非实心 | shadcn Sidebar（dashboard-01） |
 | 标题栏 / 搜索 | 52→56 高与侧栏头齐平；搜索框 36 高 | shadcn / Vercel dashboard |
 | 404 | 渐变大字 + 旋转装饰 → 极简空状态 | shadcn 404 block |
@@ -216,8 +248,9 @@
 **圆角**（`theme.css` 定义的是 px，`@theme inline` 里又映射成 Tailwind 的档位）：
 
 ```
---radius-xs 2px   --radius-sm 4px   --radius-md 6px   --radius-lg 8px   --radius-pill 999px
---radius: var(--radius-md)          ← 默认取 md
+--radius-xs 2px   --radius-sm 4px   --radius-md 10px   --radius-lg 12px   --radius-pill 999px
+--radius: var(--radius-lg)          ← 默认面 12
+DS: --ds-r-control/--ds-r-tag = 999（胶囊）· --ds-r-card/--ds-r-row = 12
 ```
 
 **间距**（工具箱遗留，缺了会静默失效）：`--space-2/3/4/5/6/8` = 4 / 8 / 12 / 16 / 20 / 32 px。

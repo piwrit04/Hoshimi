@@ -137,7 +137,7 @@ export function FloatingSearch() {
                 </kbd>
                 <button
                   onClick={closeSearch}
-                  className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-secondary/80 transition-colors"
+                  className="text-muted-foreground hover:text-foreground p-1 rounded-full hover:bg-secondary/80 transition-colors"
                   onMouseDown={(e) => e.stopPropagation()}
                 >
                   <X size={14} />
@@ -154,7 +154,7 @@ export function FloatingSearch() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="搜索组件（支持拼音）..."
-                  className="w-full h-11 pl-10 pr-4 rounded-lg bg-secondary/50 border border-transparent focus:bg-background focus:border-primary/50 focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/70"
+                  className="w-full h-11 pl-10 pr-4 rounded-full bg-secondary/50 border border-transparent focus:bg-background focus:border-primary/50 focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/70"
                 />
               </div>
             </div>
@@ -174,7 +174,7 @@ export function FloatingSearch() {
                       key={item.id}
                       to={`/components#${item.anchor}`}
                       onClick={closeSearch}
-                      className="flex h-11 items-center gap-3 px-3 rounded-lg hover:bg-secondary transition-colors group"
+                      className="flex h-11 items-center gap-3 px-3 rounded-full hover:bg-secondary transition-colors group"
                     >
                       <div className="size-7 rounded-md bg-secondary border border-border flex items-center justify-center">
                         <Boxes size={16} className="text-muted-foreground group-hover:text-primary transition-colors" />

@@ -52,7 +52,7 @@
   .form-select {
     @apply w-full text-sm transition-all;
     height: 44px;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-pill);
     padding: 0 16px;
     background-color: rgb(var(--surface-rgb));
     border: 1px solid rgba(var(--accent-soft-rgb), 0.9);
@@ -89,7 +89,7 @@
   .form-textarea {
     @apply w-full text-sm transition-all resize-none;
     min-height: 120px;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-pill);
     padding: 10px 14px;
     background-color: rgb(var(--surface-rgb));
     border: 1px solid rgba(var(--accent-soft-rgb), 0.9);

@@ -22,7 +22,7 @@ export function PageHeader({ icon: Icon, title, description, actions, className,
     <header className={cn('ds-page-header', className)}>
       <div className="min-w-0 flex items-center gap-3">
         {Icon && (
-          <span className="hidden sm:inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-20 text-brand">
+          <span className="hidden sm:inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-20 text-brand">
             <Icon size={18} />
           </span>
         )}

@@ -54,7 +54,7 @@ const ToastItem = ({ toast }: { toast: ToastType }) => {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
       className={cn(
-        'relative flex items-center w-full max-w-sm p-4 mb-3 border overflow-hidden rounded-lg shadow-lg bg-card',
+        'relative flex items-center w-full max-w-sm p-4 mb-3 border overflow-hidden rounded-xl shadow-lg bg-card',
         toneBorder[toast.type] || toneBorder.info,
       )}
       style={toneBorderColor[toast.type] || toneBorderColor.info}
@@ -67,7 +67,7 @@ const ToastItem = ({ toast }: { toast: ToastType }) => {
       {toast.action ? (
         <button
           type="button"
-          className="flex-shrink-0 mr-2 rounded-md px-2 py-1 text-xs font-semibold text-brand hover:bg-brand/10 transition-colors"
+          className="flex-shrink-0 mr-2 rounded-full px-2 py-1 text-xs font-semibold text-brand hover:bg-brand/10 transition-colors"
           onClick={() => {
             toast.action?.onClick()
             removeToast(toast.id)

@@ -230,7 +230,7 @@
 
   /* 统计面板操作按钮 */
   .btn-home-stat {
-    @apply px-3 py-1.5 text-xs font-bold rounded-lg;
+    @apply px-3 py-1.5 text-xs font-bold rounded-full;
     background-color: rgb(var(--surface-hover-rgb));
     color: var(--brand-text-hex);
     border: 1px solid rgba(var(--accent-soft-rgb), 0.9);
@@ -249,7 +249,7 @@
 
   /* 筛选标签按钮 */
   .btn-chip {
-    @apply px-3 py-1.5 text-xs font-bold rounded-lg;
+    @apply px-3 py-1.5 text-xs font-bold rounded-full;
     background-color: rgb(var(--surface-hover-rgb));
     color: hsl(var(--muted-foreground));
     border: 1px solid transparent;
@@ -341,7 +341,7 @@
 
   /* 抽屉切换按钮 */
   .btn-drawer-toggle {
-    @apply p-2 rounded-lg;
+    @apply p-2 rounded-full;
     background-color: rgb(var(--surface-hover-rgb));
     color: hsl(var(--muted-foreground));
     border: 1px solid rgba(var(--accent-soft-rgb), 0.9);
@@ -355,7 +355,7 @@
 
   /* 属性操作按钮 */
   .btn-attr-action {
-    @apply px-2 py-1 text-xs font-medium rounded;
+    @apply px-2 py-1 text-xs font-medium rounded-full;
     background-color: rgb(var(--surface-hover-rgb));
     color: hsl(var(--muted-foreground));
     border: 1px solid rgba(var(--accent-soft-rgb), 0.9);
@@ -416,7 +416,7 @@
 
   /* 危险操作按钮（清理缓存等） */
   .btn-settings-danger {
-    @apply px-3 py-1.5 text-xs font-bold rounded border transition-all;
+    @apply px-3 py-1.5 text-xs font-bold rounded-full border transition-all;
     background-color: rgb(var(--danger-rgb));
     color: #ffffff;
   }
@@ -431,7 +431,7 @@
 
   /* 次要设置按钮 */
   .btn-settings-secondary {
-    @apply px-3 py-1.5 text-xs font-bold rounded border transition-all;
+    @apply px-3 py-1.5 text-xs font-bold rounded-full border transition-all;
     background-color: rgb(var(--surface-hover-rgb));
     color: var(--brand-text-hex);
     border-color: rgba(var(--accent-soft-rgb), 0.9);
