@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
-import { useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   CalendarClock,
+  ChevronDown,
   CircleDollarSign,
   Hourglass,
   PlusCircle,
@@ -28,8 +29,8 @@ import { NO_PAYOUT, payoutVoid } from '@/domain/status'
 import type { Order, OrderStatus } from '@/domain/order'
 
 /*
- * 概览：问候一行 + 3 KPI（今日到手 / 未完成 / 托管到期）+ 走势图 + 智能提示。
- * 问候旁不再放经营芯片（与 KPI 重复）；点 KPI 弹明细。
+ * 概览（Liver2Go）：全幅问候 hero（大字轻打字机）→ 下滚才见 KPI/走势。
+ * 问候旁不放经营芯片；点 KPI 弹明细。
  */
 
 type KpiKey = 'today' | 'open' | 'due'
@@ -83,23 +84,62 @@ export default function Dashboard() {
     due: { title: '托管快到期', hint: `${m.remindDays} 天内到期的托管单` },
   }
 
+  const [typed, setTyped] = useState('')
+  useEffect(() => {
+    const full = m.hello
+    setTyped('')
+    let i = 0
+    const reduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduced) {
+      setTyped(full)
+      return
+    }
+    const id = window.setInterval(() => {
+      i += 1
+      setTyped(full.slice(0, i))
+      if (i >= full.length) window.clearInterval(id)
+    }, 70)
+    return () => window.clearInterval(id)
+  }, [m.hello])
+
+  const scrollToData = () => {
+    const root = document.querySelector('[data-scroll-root]')
+    const target = document.getElementById('dashboard-data')
+    if (root && target) {
+      const top =
+        target.getBoundingClientRect().top -
+        root.getBoundingClientRect().top +
+        (root as HTMLElement).scrollTop -
+        12
+      ;(root as HTMLElement).scrollTo({ top, behavior: 'smooth' })
+    }
+  }
+
   return (
-    <div className="ds-page">
-      <section className="dd-greeting ds-rise">
-        <div className="dd-greeting__left">
-          <h1 className="dd-greeting__hello">{m.hello}</h1>
-          <p className="dd-greeting__meta">
-            {m.todayLabel}
-            {m.usingTest ? ' · 当前为示例数据' : ''}
-          </p>
-        </div>
-        <div className="dd-greeting__right">
+    <div className="ds-page ds-page--l2g">
+      <section className="l2g-hero ds-rise">
+        <h1 className="l2g-hero__title">
+          {typed}
+          <span className="l2g-hero__caret" aria-hidden />
+        </h1>
+        <p className="l2g-hero__meta">
+          {m.todayLabel}
+          {m.usingTest ? ' · 当前为示例数据' : ''}
+        </p>
+        <div className="l2g-hero__actions">
           <Button variant="primary" icon={PlusCircle} onClick={openNewOrder}>
             新建订单
           </Button>
         </div>
+        <button type="button" className="l2g-hero__scroll" onClick={scrollToData}>
+          <span>向下滚动查看数据</span>
+          <ChevronDown size={20} />
+        </button>
       </section>
 
+      <div id="dashboard-data" className="l2g-dashboard-data flex flex-col gap-6">
       {showSetupTip ? (
         <div className="ds-rise flex items-center justify-between gap-4 rounded-xl border border-brand/30 bg-brand/5 px-6 py-4">
           <p className="text-sm text-foreground">
@@ -194,6 +234,7 @@ export default function Dashboard() {
           />
         ) : null}
       </Modal>
+      </div>
     </div>
   )
 }
