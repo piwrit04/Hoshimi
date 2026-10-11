@@ -55,7 +55,7 @@ const NavItem = memo(function NavItem({
     <>
       <item.icon
         size={16}
-        className={cn(iconClass, isActive ? 'text-brand' : 'text-muted-foreground group-hover:text-foreground')}
+        className={cn(iconClass, isActive ? 'text-inherit' : 'text-muted-foreground group-hover:text-foreground')}
       />
       <span className={cn(spanClass, isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100')}>
         {item.label}
@@ -90,7 +90,7 @@ const NavItem = memo(function NavItem({
           cn(
             'flex h-9 items-center px-3 rounded-full transition-colors duration-150 relative overflow-hidden group',
             isActive
-              ? 'bg-brand/10 text-foreground font-medium'
+              ? 'l2g-nav-active font-medium'
               : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
             isCollapsed ? 'justify-center' : 'gap-3'
           )

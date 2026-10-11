@@ -99,8 +99,12 @@
   transition: background-color .15s var(--ds-ease), border-color .15s var(--ds-ease), color .15s var(--ds-ease), box-shadow .15s var(--ds-ease), transform .1s var(--ds-ease);
 }
 .btn-base:active:not(:disabled) { transform: scale(0.98); }
-.btn-primary:hover:not(:disabled) { transform: none; }
-.btn-primary { box-shadow: var(--ds-shadow-xs); }
+.btn-primary:hover:not(:disabled) { /* glow lift from global-button */ }
+.btn-primary {
+  background: linear-gradient(135deg, #FF6B9D 0%, rgb(var(--l2g-purple-rgb)) 100%);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(var(--brand-rgb), 0.35);
+}
 .btn-secondary {
   background-color: hsl(var(--card));
   color: hsl(var(--foreground));
@@ -264,7 +268,7 @@
   height: 4px;
   margin-top: 8px;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--brand-hex), rgba(var(--brand-rgb), 0.15));
+  background: linear-gradient(90deg, #FF6B9D, rgb(var(--l2g-purple-rgb)), rgba(var(--l2g-cyan-rgb), 0.35));
   transform-origin: left center;
   animation: ds-accent-grow 0.55s var(--ds-ease) 0.12s both;
 }
@@ -278,9 +282,9 @@
   transition: border-color 0.2s var(--ds-ease), box-shadow 0.2s var(--ds-ease), transform 0.2s var(--ds-ease);
 }
 .ds-stat:hover {
-  border-color: rgba(var(--brand-rgb), 0.35);
-  box-shadow: 0 4px 16px rgba(15, 15, 30, 0.06);
-  transform: translateY(-1px);
+  border-color: rgba(var(--brand-rgb), 0.45);
+  box-shadow: var(--l2g-glow-sm, 0 8px 24px rgba(255, 107, 157, 0.16));
+  transform: translateY(-3px);
 }
 .ds-stat__value { font-weight: 700; position: relative; z-index: 1; }
 .ds-stat__foot { position: relative; z-index: 1; }
@@ -304,9 +308,11 @@
 
 .ds-stat--hero {
   background:
-    radial-gradient(90% 80% at 100% -10%, rgba(var(--brand-rgb), 0.22) 0%, transparent 55%),
+    radial-gradient(90% 80% at 100% -10%, rgba(var(--brand-rgb), 0.28) 0%, transparent 55%),
+    radial-gradient(70% 60% at 0% 100%, rgba(var(--l2g-purple-rgb), 0.12) 0%, transparent 50%),
     hsl(var(--card));
-  border-color: rgba(var(--brand-rgb), 0.36);
+  border: 2px solid rgba(var(--brand-rgb), 0.35);
+  box-shadow: var(--l2g-glow-sm, 0 4px 16px rgba(255, 107, 157, 0.14));
   animation:
     ds-rise 0.36s var(--ds-ease) var(--ds-delay, 0ms) both,
     ds-breathe 3.6s ease-in-out calc(var(--ds-delay, 0ms) + 0.5s) infinite;
@@ -315,6 +321,7 @@
   font-size: 36px;
   line-height: 44px;
   color: var(--brand-text-hex);
+  text-shadow: 0 0 24px rgba(var(--brand-rgb), 0.25);
 }
 .ds-stat--hero .ds-stat__mark {
   color: rgba(var(--brand-rgb), 0.16);
@@ -342,12 +349,17 @@
 /* 卡片软底纹：淡粉光斑，增加层次但不抢眼 */
 .ds-card:not(.ds-stat) {
   background:
-    radial-gradient(80% 70% at 100% 0%, rgba(var(--brand-rgb), 0.06) 0%, transparent 55%),
+    radial-gradient(80% 70% at 100% 0%, rgba(var(--brand-rgb), 0.1) 0%, transparent 55%),
+    radial-gradient(60% 50% at 0% 100%, rgba(var(--l2g-purple-rgb), 0.06) 0%, transparent 50%),
     hsl(var(--card));
+  border-color: rgba(var(--brand-rgb), 0.16);
+  box-shadow: var(--l2g-glow-sm, var(--ds-shadow-xs));
 }
 .ds-stat:not(.ds-stat--hero):not(.ds-stat--warn) {
-  background: hsl(var(--card));
-  border-color: hsl(var(--border) / 0.9);
+  background:
+    linear-gradient(135deg, rgba(var(--brand-rgb), 0.04) 0%, rgba(var(--l2g-purple-rgb), 0.04) 100%),
+    hsl(var(--card));
+  border: 1.5px solid rgba(var(--brand-rgb), 0.18);
 }
 .ds-stat__label { font-weight: 600; color: hsl(var(--foreground) / 0.72); }
 
@@ -431,4 +443,69 @@
 
 @media (prefers-reduced-motion: reduce) {
   .ds-quick:hover { transform: none; }
+}
+
+
+/* === Liver2Go shell === */
+.dd-greeting {
+  position: relative;
+  overflow: hidden;
+  border: 2px solid rgba(var(--brand-rgb), 0.28) !important;
+  box-shadow: var(--l2g-glow-sm, 0 4px 16px rgba(255, 107, 157, 0.12)) !important;
+  background:
+    radial-gradient(90% 120% at 0% 0%, rgba(var(--brand-rgb), 0.16) 0%, transparent 55%),
+    radial-gradient(70% 100% at 100% 100%, rgba(var(--l2g-purple-rgb), 0.1) 0%, transparent 50%),
+    hsl(var(--card)) !important;
+}
+.dd-greeting__hello {
+  font-size: 28px !important;
+  line-height: 36px !important;
+  letter-spacing: 0.02em !important;
+  background: linear-gradient(135deg, #FF6B9D 0%, rgb(var(--l2g-purple-rgb)) 55%, rgb(var(--l2g-cyan-rgb)) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+  text-shadow: none !important;
+}
+.dd-greeting__hello::after {
+  content: "";
+  display: inline-block;
+  width: 3px;
+  height: 0.85em;
+  margin-left: 4px;
+  vertical-align: -0.08em;
+  border-radius: 2px;
+  background: #FF6B9D;
+  animation: l2g-blink 1.2s ease-in-out infinite;
+}
+@keyframes l2g-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.dd-greeting__meta {
+  font-size: 14px !important;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* 侧栏选中：粉→紫渐变胶囊（对齐 Liver2Go nav） */
+.l2g-nav-active {
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.92) 0%, rgba(199, 121, 208, 0.92) 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 6px 18px rgba(255, 107, 157, 0.4);
+  border: 1px solid rgba(255, 182, 210, 0.45);
+}
+.l2g-nav-active svg { color: #fff !important; }
+
+.ds-table-card {
+  border: 2px solid rgba(var(--brand-rgb), 0.18) !important;
+  box-shadow: var(--l2g-glow, 0 8px 32px rgba(255, 107, 157, 0.12)) !important;
+  background:
+    radial-gradient(60% 50% at 0% 0%, rgba(var(--brand-rgb), 0.08) 0%, transparent 55%),
+    radial-gradient(50% 40% at 100% 100%, rgba(var(--l2g-cyan-rgb), 0.06) 0%, transparent 50%),
+    hsl(var(--card)) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dd-greeting__hello::after { animation: none !important; opacity: 1; }
 }

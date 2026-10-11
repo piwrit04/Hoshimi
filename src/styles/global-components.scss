@@ -520,9 +520,13 @@
     line-height: 16px;
     font-weight: 600;
     letter-spacing: 0.02em;
-    color: hsl(var(--muted-foreground));
-    background-color: hsl(var(--muted) / 0.35);
-    border-bottom: 1px solid hsl(var(--border) / 0.7);
+    color: var(--brand-text-hex);
+    background: linear-gradient(
+      135deg,
+      rgba(var(--brand-rgb), 0.12) 0%,
+      rgba(var(--l2g-purple-rgb), 0.1) 100%
+    );
+    border-bottom: 2px solid rgba(var(--brand-rgb), 0.28);
     white-space: nowrap;
   }
   .dd-table td {
@@ -687,7 +691,7 @@
     transition: background-color 0.16s ease;
   }
   .dd-table tbody tr:hover td {
-    background-color: hsl(var(--muted) / 0.45);
+    background-color: rgba(var(--brand-rgb), 0.08);
   }
   /* 选中：左侧品牌条 + 浅品牌底，无抬升 */
   .dd-table tbody tr[data-selected="true"] td {
@@ -746,7 +750,7 @@
     background-color: rgba(var(--accent-soft-rgb), 0.04);
   }
   .dd-table--striped tbody tr:hover td {
-    background-color: hsl(var(--muted) / 0.45);
+    background-color: rgba(var(--brand-rgb), 0.08);
   }
   @media (prefers-reduced-motion: reduce) {
     .dd-table tbody tr.dd-table__row--enter {

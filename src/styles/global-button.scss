@@ -87,22 +87,25 @@
      ============================================ */
 
   /* Primary Button - 主要操作按钮 */
+  /* Liver2Go：粉→紫渐变主钮 + 粉光，圆角仍走胶囊 */
   .btn-primary {
     @apply btn-base;
-    background-color: var(--brand-hex);
-    color: var(--on-brand-hex);
+    background: linear-gradient(135deg, #FF6B9D 0%, rgb(var(--l2g-purple-rgb)) 100%);
+    color: #ffffff;
     border: 1px solid transparent;
-    box-shadow: 0 1px 2px rgba(var(--brand-rgb), 0.1);
+    box-shadow: 0 4px 14px rgba(var(--brand-rgb), 0.35);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
   }
 
   .btn-primary:hover:not(:disabled) {
-    background-color: rgb(var(--brand-deep-rgb));
-    transform: translateY(-1px);
+    filter: brightness(1.05);
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 8px 22px rgba(var(--brand-rgb), 0.45);
   }
 
   .btn-primary:active:not(:disabled) {
-    filter: brightness(0.9);
-    transform: translateY(0);
+    filter: brightness(0.95);
+    transform: translateY(0) scale(0.98);
   }
 
   /* Secondary Button - 次要操作按钮 */

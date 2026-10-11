@@ -35,7 +35,7 @@
   --popover: 240 5% 11%;
   --popover-foreground: 240 5% 94%;
 
-  --primary: 344 78% 72%;
+  --primary: 340 100% 71%;
   --primary-foreground: 340 40% 10%;
 
   --secondary: 240 4% 16%;
@@ -55,18 +55,23 @@
 
   --border: 240 4% 20%;
   --input: 240 4% 24%;
-  --ring: 344 78% 72%;
+  --ring: 340 100% 71%;
 
   --text-1: 240 5% 94%;
   --text-2: 240 5% 64%;
   --text-3: 240 4% 46%;
 
-  --brand-hex: #f48aab;
-  --brand-rgb: 244, 138, 171;
-  --brand-text-hex: #ff9fbc;
+  /* Liver2Go 品牌锚：#FF6B9D + 紫/青伴色 */
+  --brand-hex: #FF6B9D;
+  --brand-rgb: 255, 107, 157;
+  --brand-text-hex: #FF8FB3;
   --on-brand-hex: #1c0a10;
 
-  --brand-deep-rgb: 226, 108, 141;
+  --brand-deep-rgb: 236, 72, 153;
+  --l2g-purple-rgb: 199, 121, 208;
+  --l2g-cyan-rgb: 75, 192, 200;
+  --l2g-glow: 0 8px 32px rgba(255, 107, 157, 0.18), 0 0 48px rgba(199, 121, 208, 0.1);
+  --l2g-glow-sm: 0 4px 16px rgba(255, 107, 157, 0.16);
   --success-rgb: 84, 196, 138;
   --warning-rgb: 232, 176, 72;
   --danger-rgb: 236, 104, 104;
@@ -119,7 +124,7 @@
   --popover: 0 0% 100%;
   --popover-foreground: 262 22% 31%;
 
-  --primary: 344 70% 68%;
+  --primary: 340 100% 71%;
   --primary-foreground: 0 0% 100%;
 
   --secondary: 262 10% 96%;
@@ -151,19 +156,23 @@
 
   --border: 262 17% 88%;
   --input: 262 17% 88%;
-  --ring: 344 70% 68%;
+  --ring: 340 100% 71%;
 
   --text-1: 262 22% 31%;
   --text-2: 262 17% 58%;
   --text-3: 262 13% 76%;
 
-  --brand-hex: #ee7093;
-  --brand-rgb: 238, 112, 147;
-  --brand-text-hex: #ee7093;
+  --brand-hex: #FF6B9D;
+  --brand-rgb: 255, 107, 157;
+  --brand-text-hex: #E85A8A;
   --on-brand-hex: #ffffff;
 
   /* ---- 语义色（浅色一套；理由见文件上方深色那份注释） ---- */
-  --brand-deep-rgb: 214, 101, 132;
+  --brand-deep-rgb: 236, 72, 153;
+  --l2g-purple-rgb: 199, 121, 208;
+  --l2g-cyan-rgb: 75, 192, 200;
+  --l2g-glow: 0 8px 28px rgba(255, 107, 157, 0.14), 0 0 40px rgba(199, 121, 208, 0.08);
+  --l2g-glow-sm: 0 4px 14px rgba(255, 107, 157, 0.12);
   --success-rgb: 34, 150, 92;
   --warning-rgb: 200, 140, 30;
   --danger-rgb: 210, 76, 76;
