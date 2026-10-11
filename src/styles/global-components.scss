@@ -1869,14 +1869,19 @@
     width: 12px;
     height: 12px;
     border-radius: 999px;
-    background: hsl(var(--muted));
-    transition: background-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+    /* 未完成点：描边 + 半透明底，深浅色都够对比，避免 --muted 融进背景 */
+    background: hsl(var(--muted-foreground) / 0.12);
+    border: 2px solid hsl(var(--muted-foreground) / 0.55);
+    box-sizing: border-box;
+    transition: background-color 0.25s ease, border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
   }
   .dd-setup__dot--done {
     background: rgba(var(--brand-rgb), 0.55);
+    border-color: rgba(var(--brand-rgb), 0.75);
   }
   .dd-setup__dot--current {
     background: hsl(var(--brand));
+    border-color: hsl(var(--brand));
     transform: scale(1.25);
     box-shadow: 0 0 0 4px rgba(var(--brand-rgb), 0.18);
   }
@@ -1888,7 +1893,7 @@
     height: 2px;
     margin: 0 8px;
     border-radius: 999px;
-    background: hsl(var(--muted));
+    background: hsl(var(--muted-foreground) / 0.35);
     transition: background-color 0.35s ease;
   }
   .dd-setup__line--done {
@@ -2112,8 +2117,8 @@
   .dd-profile {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    padding-bottom: 8px;
+    gap: 12px;
+    padding-bottom: 4px;
   }
   .dd-profile__hero {
     display: flex;

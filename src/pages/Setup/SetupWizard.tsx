@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import {
@@ -36,6 +36,7 @@ export default function SetupWizard() {
   const mode = useThemeStore((s) => s.mode)
   const setMode = useThemeStore((s) => s.setMode)
   const completeSetup = useSetupStore((s) => s.completeSetup)
+  const armWizardSession = useSetupStore((s) => s.armWizardSession)
   const configured = useAuthStore((s) => s.configured)
   const user = useAuthStore((s) => s.user)
   const setSkipCloud = useAuthStore((s) => s.setSkipCloud)
@@ -51,6 +52,11 @@ export default function SetupWizard() {
   const [demoChoice, setDemoChoice] = useState<DemoChoice>(ledgerEmpty ? null : 'blank')
   const [authOpen, setAuthOpen] = useState(false)
   const [finishing, setFinishing] = useState(false)
+
+  /* 一旦进入引导页就抑制「有账本自动完成」，避免灌演示/重开后刷新被踢出 */
+  useEffect(() => {
+    armWizardSession()
+  }, [armWizardSession])
 
   const canNext = useMemo(() => {
     if (step === 2) {

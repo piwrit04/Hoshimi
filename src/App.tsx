@@ -57,9 +57,10 @@ export function App() {
         ;(window as unknown as { __HOSHIMI_SEEDED__?: boolean }).__HOSHIMI_SEEDED__ = true;
       }
 
-      /* 已有账本的老用户：跳过强制引导（仍可在设置里重开） */
+      /* 老用户升级（从未跑过引导、未抑制）：有账本则一次性跳过强制引导。
+         设置里重开或引导进行中会 suppressLedgerAutoComplete，刷新不得自动标完成。 */
       const setup = useSetupStore.getState();
-      if (!setup.setupComplete) {
+      if (!setup.setupComplete && !setup.suppressLedgerAutoComplete) {
         const { orders, customers } = useOrdersStore.getState();
         if (orders.length > 0 || customers.length > 0) {
           setup.completeSetup();

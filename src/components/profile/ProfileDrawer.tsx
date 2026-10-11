@@ -101,31 +101,24 @@ export function ProfileDrawer() {
         title="个人中心"
         width={400}
         footer={
-          configured ? (
-            user ? (
-              <Button
-                variant="ghost"
-                className="mr-auto"
-                onClick={() => {
-                  void signOut().then(() =>
-                    addToast({ type: 'info', message: '已退出登录，本机数据保留' }),
-                  )
-                }}
-              >
-                <LogOut size={14} />
-                退出登录
-              </Button>
-            ) : (
-              <Button variant="primary" className="w-full" onClick={() => setAuthOpen(true)}>
-                <LogIn size={14} />
-                登录 / 注册
-              </Button>
-            )
-          ) : (
+          configured && user ? (
+            <Button
+              variant="ghost"
+              className="mr-auto"
+              onClick={() => {
+                void signOut().then(() =>
+                  addToast({ type: 'info', message: '已退出登录，本机数据保留' }),
+                )
+              }}
+            >
+              <LogOut size={14} />
+              退出登录
+            </Button>
+          ) : !configured ? (
             <span className="text-xs text-muted-foreground w-full text-center py-1">
               本地模式 · 登录待配置云端后可用
             </span>
-          )
+          ) : undefined
         }
       >
         <div className="dd-profile">
@@ -157,6 +150,18 @@ export function ProfileDrawer() {
               </button>
             ) : null}
           </section>
+
+          {configured && !user ? (
+            <Card title="账号" className="dd-profile__card">
+              <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                登录后可跨设备同步账本；也可继续仅用本机，资料照常保存在本地。
+              </p>
+              <Button variant="primary" size="sm" className="w-full" onClick={() => setAuthOpen(true)}>
+                <LogIn size={14} />
+                登录 / 注册
+              </Button>
+            </Card>
+          ) : null}
 
           {editing ? (
             <Card title="编辑资料" className="dd-profile__card">
@@ -250,10 +255,10 @@ export function ProfileDrawer() {
                 {syncing ? '同步中…' : '立即同步'}
               </Button>
             ) : configured && !user ? (
-              <Button variant="secondary" size="sm" onClick={() => setAuthOpen(true)}>
-                <LogIn size={14} />
-                去登录以启用同步
-              </Button>
+              <div className="dd-profile__local-hint">
+                <LogIn size={14} className="text-brand shrink-0" />
+                <span>登录后可在此手动同步，或改动账本后自动推送。</span>
+              </div>
             ) : (
               <div className="dd-profile__local-hint">
                 <UserRound size={14} className="text-brand shrink-0" />
