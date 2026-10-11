@@ -363,7 +363,7 @@ export default function Orders() {
   }
 
   return (
-    <div className="ds-page ds-page--l2g">
+    <div className="ds-page--console">
       <div className="l2g-orders-head ds-rise">
         <h1 className="l2g-orders-head__title">订单管理</h1>
         <p className="l2g-orders-head__sub">

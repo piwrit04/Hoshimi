@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { TitleBar } from "@/components/layout/TitleBar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { AppWallpaper } from "@/components/layout/AppWallpaper";
-import { SakuraParticles } from "@/components/layout/SakuraParticles";
 import { ToastContainer } from "@/components/ui/Toast";
 import { FloatingSearch } from "@/components/search/FloatingSearch";
 import { Scrollbar } from "@/components/ui/Scrollbar";
@@ -16,15 +15,14 @@ import { GlobalShortcuts } from "@/components/help/GlobalShortcuts";
 import { HighlightsBootstrap } from "@/components/help/HighlightsBootstrap";
 
 /*
- * Liver2Go 壳：壁纸仅内容区（top-14 起，可含侧栏下方），顶栏实色/磨砂不透壁纸。
- * 标题栏高度 h-14（56px）；改它要连带壁纸 top 与 404 的 min-h calc。
+ * Console 壳：实色底 #0B0F17；壁纸仅作全局底层且高不透明遮罩，侧栏/内容不透图。
+ * 标题栏高度 h-14（56px）。
  */
 export default function MainLayout() {
   const location = useLocation();
   return (
     <div className="l2g-shell relative h-screen w-screen flex overflow-hidden text-foreground font-sans transition-colors duration-300">
       <AppWallpaper />
-      <SakuraParticles />
       <FloatingSearch />
 
       <aside className="hidden md:flex md:flex-col shrink-0 h-full relative z-20">

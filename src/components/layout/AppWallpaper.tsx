@@ -1,7 +1,7 @@
 import { useAtmosphereStore } from '@/store/useAtmosphereStore'
 import { cn } from '@/lib/utils'
 
-/** 内容区固定壁纸（自标题栏下缘起，含侧栏下方；不压顶栏）+ 深浅实色遮罩 */
+/** 可选全局底层壁纸；遮罩高不透明，内容/侧栏不透图（console 皮） */
 export function AppWallpaper({ className }: { className?: string }) {
   const wallpaperPath = useAtmosphereStore((s) => s.wallpaperPath)
 

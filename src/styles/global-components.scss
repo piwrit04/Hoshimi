@@ -513,28 +513,36 @@
   }
   /* 去后台感：轻字重、透明底、仅发丝底边，无厚底/斑马默认 */
   .dd-table th {
-    height: 40px;
+    height: 44px;
     padding-top: 12px;
     padding-bottom: 12px;
     font-size: 12px;
     line-height: 16px;
     font-weight: 600;
     letter-spacing: 0.02em;
-    color: var(--brand-text-hex);
-    background: rgba(var(--brand-rgb), 0.12);
-    border-bottom: 2px solid rgba(var(--brand-rgb), 0.28);
+    color: #94A3B8;
+    background: transparent;
+    border-bottom: 1px solid #1e293b;
     white-space: nowrap;
   }
+  :root[data-theme="light"] .dd-table th {
+    color: #64748b;
+    border-bottom-color: #e2e8f0;
+  }
   .dd-table td {
-    min-height: 52px;
+    min-height: 56px;
     height: auto;
-    padding-top: 12px;
-    padding-bottom: 12px;
+    padding-top: 14px;
+    padding-bottom: 14px;
     line-height: 20px;
-    color: hsl(var(--foreground));
-    border-bottom: 1px solid hsl(var(--border) / 0.45);
+    color: #F8FAFC;
+    border-bottom: 1px solid rgba(30, 41, 59, 0.8);
     background-color: transparent;
     transition: background-color 0.16s ease;
+  }
+  :root[data-theme="light"] .dd-table td {
+    color: #0f172a;
+    border-bottom-color: #f1f5f9;
   }
   .dd-table th:first-child,
   .dd-table td:first-child { padding-left: 16px; }
@@ -597,9 +605,9 @@
   .dd-order-no {
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 12.5px;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.02em;
-    color: hsl(var(--muted-foreground));
+    color: #94A3B8;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
     flex-shrink: 0;
@@ -610,15 +618,18 @@
   }
   .dd-order-no:hover { color: var(--brand-text-hex); }
   .dd-order-no--always { opacity: 1; }
-  /* Liver2Go：到手粉强调（非成功绿） */
+  /* 到手：克制软粉，无荧光光晕 */
   .dd-money-gold {
-    color: #FF6B9D;
-    font-weight: 700;
-    text-shadow: 0 0 18px rgba(255, 107, 157, 0.35);
+    color: #F472B6;
+    font-weight: 600;
+    text-shadow: none;
   }
   .dd-money-flow {
-    color: rgba(255, 182, 210, 0.95);
+    color: #F8FAFC;
     font-weight: 600;
+  }
+  :root[data-theme="light"] .dd-money-flow {
+    color: #0f172a;
   }
   .dd-cell-dual__due {
     font-size: 11.5px;
@@ -637,9 +648,7 @@
     padding: 16px 20px;
     border-radius: var(--ds-r-card, 12px);
     border: 1px solid hsl(var(--border) / 0.7);
-    background:
-      radial-gradient(80% 120% at 0% 0%, rgba(var(--brand-rgb), 0.1) 0%, transparent 55%),
-      hsl(var(--card));
+    background: hsl(var(--card));
     box-shadow: var(--ds-shadow-xs, 0 1px 2px rgba(15, 15, 30, 0.04));
   }
   .dd-greeting__left { min-width: 0; }
@@ -688,29 +697,36 @@
   .dd-greeting__chip--warn strong { color: rgb(var(--warning-rgb)); }
   .dd-greeting__chip--muted strong { color: hsl(var(--foreground)); }
 
-  /* Liver2Go：行悬停 = 粉描边，不做粉底铺满 */
+  /* Console：斑马 + 悬停微亮，粉仅作选中左边条 */
   .dd-table tbody tr {
-    transition: box-shadow 0.16s ease, background-color 0.16s ease;
+    transition: background-color 0.16s ease;
+  }
+  .dd-table tbody tr:nth-child(even) td {
+    background-color: rgba(30, 41, 59, 0.35);
+  }
+  :root[data-theme="light"] .dd-table tbody tr:nth-child(even) td {
+    background-color: rgba(241, 245, 249, 0.7);
   }
   .dd-table tbody tr:hover td {
-    background-color: transparent;
+    background-color: rgba(30, 41, 59, 0.55) !important;
+  }
+  :root[data-theme="light"] .dd-table tbody tr:hover td {
+    background-color: rgba(241, 245, 249, 0.95) !important;
   }
   .dd-table tbody tr:hover td:first-child {
-    box-shadow: inset 2px 0 0 0 #FF6B9D;
+    box-shadow: none;
   }
   .dd-table tbody tr:hover {
-    outline: 1px solid rgba(255, 107, 157, 0.45);
-    outline-offset: -1px;
+    outline: none;
   }
-  /* 选中：左侧粉条，底仍透明 */
   .dd-table tbody tr[data-selected="true"] td {
-    background-color: transparent;
+    background-color: rgba(244, 114, 182, 0.08) !important;
   }
   .dd-table tbody tr[data-selected="true"] td:first-child {
-    box-shadow: inset 3px 0 0 0 #FF6B9D;
+    box-shadow: inset 2px 0 0 0 #F472B6;
   }
   .dd-table tbody tr[data-selected="true"]:hover td {
-    background-color: transparent;
+    background-color: rgba(244, 114, 182, 0.12) !important;
   }
   /* 错落入场（y:10 + 淡入，delay 由 --dd-row-delay 注入，组件侧封顶） */
   @keyframes dd-table-rise {
@@ -1708,7 +1724,7 @@
   .dd-money {
     @apply tabular-nums font-semibold whitespace-nowrap;
   }
-  .dd-money--income { color: #FF6B9D; }
+  .dd-money--income { color: #F472B6; }
   .dd-money--expense { color: rgb(var(--danger-rgb)); }
   .dd-money--fee { color: rgb(var(--warning-rgb)); }
   .dd-money--muted { color: hsl(var(--muted-foreground)); }
@@ -2019,7 +2035,7 @@
     background: rgba(var(--brand-rgb), 0.55);
   }
   .dd-setup__line--breathe {
-    background: #FF6B9D;
+    background: #F472B6;
     animation: dd-setup-line 2.4s ease-in-out infinite;
   }
   @keyframes dd-setup-breathe {

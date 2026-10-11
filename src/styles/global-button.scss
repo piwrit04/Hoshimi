@@ -89,41 +89,51 @@
   /* Primary Button - 实色粉主钮 + 粉光，圆角仍走胶囊 */
   .btn-primary {
     @apply btn-base;
-    background: #FF6B9D;
+    background: #F472B6;
     color: #ffffff;
     border: 1px solid transparent;
-    box-shadow: 0 4px 14px rgba(var(--brand-rgb), 0.35);
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    text-shadow: none;
   }
 
   .btn-primary:hover:not(:disabled) {
-    filter: brightness(1.05);
-    transform: translateY(-2px) scale(1.01);
-    box-shadow: 0 8px 22px rgba(var(--brand-rgb), 0.45);
+    filter: brightness(1.06);
+    transform: none;
+    box-shadow: 0 2px 8px rgba(var(--brand-rgb), 0.28);
   }
 
   .btn-primary:active:not(:disabled) {
-    filter: brightness(0.95);
-    transform: translateY(0) scale(0.98);
+    filter: brightness(0.96);
+    transform: scale(0.98);
   }
 
   /* Secondary Button - 次要操作按钮 */
   .btn-secondary {
     @apply btn-base;
-    background-color: rgb(var(--surface-rgb));
-    color: var(--brand-text-hex);
-    border: 1px solid rgba(var(--accent-soft-rgb), 0.9);
-    box-shadow: 0 1px 2px rgba(var(--brand-rgb), 0.05);
+    background-color: transparent;
+    color: #94A3B8;
+    border: 1px solid #334155;
+    box-shadow: none;
   }
 
   .btn-secondary:hover:not(:disabled) {
-    background-color: rgb(var(--surface-hover-rgb));
-    border-color: var(--brand-hex);
-    color: var(--brand-text-hex);
+    background-color: rgba(30, 41, 59, 0.55);
+    border-color: #475569;
+    color: #F8FAFC;
   }
 
   .btn-secondary:active:not(:disabled) {
-    background-color: rgb(var(--surface-hover-rgb));
+    background-color: rgba(30, 41, 59, 0.75);
+  }
+
+  :root[data-theme="light"] .btn-secondary {
+    color: #64748b;
+    border-color: #cbd5e1;
+  }
+  :root[data-theme="light"] .btn-secondary:hover:not(:disabled) {
+    background-color: #f1f5f9;
+    border-color: #94a3b8;
+    color: #0f172a;
   }
 
   /* Ghost Button - 幽灵按钮 */
@@ -514,3 +524,32 @@
     @apply w-full;
   }
 }
+
+
+  /* 行内低饱和线框胶囊（开始/完成） */
+  .btn-outline-action {
+    @apply btn-base;
+    height: var(--ds-h-sm, 32px);
+    min-height: var(--ds-h-sm, 32px);
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 500;
+    background: transparent;
+    color: #94A3B8;
+    border: 1px solid #334155;
+    border-radius: 999px;
+    box-shadow: none;
+  }
+  .btn-outline-action:hover:not(:disabled) {
+    background: rgba(30, 41, 59, 0.55);
+    color: #F8FAFC;
+    border-color: #475569;
+  }
+  :root[data-theme="light"] .btn-outline-action {
+    color: #64748b;
+    border-color: #cbd5e1;
+  }
+  :root[data-theme="light"] .btn-outline-action:hover:not(:disabled) {
+    background: #f1f5f9;
+    color: #0f172a;
+  }
