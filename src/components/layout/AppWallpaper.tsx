@@ -1,13 +1,16 @@
 import { useAtmosphereStore } from '@/store/useAtmosphereStore'
 import { cn } from '@/lib/utils'
 
-/** 全站固定壁纸 + 深浅实色遮罩（深暗纱 / 浅暖白霜；氛围靠壁纸+玻璃，不用线性渐变） */
+/** 内容区固定壁纸（自标题栏下缘起，含侧栏下方；不压顶栏）+ 深浅实色遮罩 */
 export function AppWallpaper({ className }: { className?: string }) {
   const wallpaperPath = useAtmosphereStore((s) => s.wallpaperPath)
 
   return (
     <div
-      className={cn('l2g-wallpaper pointer-events-none fixed inset-0 z-0 overflow-hidden', className)}
+      className={cn(
+        'l2g-wallpaper pointer-events-none fixed top-14 inset-x-0 bottom-0 z-0 overflow-hidden',
+        className,
+      )}
       aria-hidden
     >
       <img

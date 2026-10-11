@@ -16,8 +16,8 @@ import { GlobalShortcuts } from "@/components/help/GlobalShortcuts";
 import { HighlightsBootstrap } from "@/components/help/HighlightsBootstrap";
 
 /*
- * Liver2Go 壳：全站壁纸 + 暗玻璃侧栏/顶栏；内容区透明叠壁纸。
- * 标题栏高度 h-14（56px）；改它要连带 404 的 min-h calc。
+ * Liver2Go 壳：壁纸仅内容区（top-14 起，可含侧栏下方），顶栏实色/磨砂不透壁纸。
+ * 标题栏高度 h-14（56px）；改它要连带壁纸 top 与 404 的 min-h calc。
  */
 export default function MainLayout() {
   const location = useLocation();

@@ -521,19 +521,30 @@
 :root[data-theme="light"] .l2g-wallpaper__tint {
   background: rgba(255, 107, 157, 0.05);
 }
-.l2g-glass-aside,
-.l2g-glass-header {
+.l2g-glass-aside {
   background: rgba(15, 23, 42, 0.62) !important;
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border-color: rgba(255, 255, 255, 0.12) !important;
   box-shadow: 0 8px 32px rgba(255, 107, 157, 0.14);
 }
-:root[data-theme="light"] .l2g-glass-aside,
-:root[data-theme="light"] .l2g-glass-header {
+:root[data-theme="light"] .l2g-glass-aside {
   background: rgba(255, 255, 255, 0.62) !important;
   border-color: rgba(255, 107, 157, 0.22) !important;
   box-shadow: 0 8px 28px rgba(255, 107, 157, 0.10);
+}
+/* 顶栏：实色磨砂，壁纸不进入 title bar 区域 */
+.l2g-glass-header {
+  background: hsl(var(--background)) !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: none;
+}
+:root[data-theme="light"] .l2g-glass-header {
+  background: hsl(var(--background)) !important;
+  border-color: rgba(255, 107, 157, 0.18) !important;
+  box-shadow: none;
 }
 .l2g-glass-aside {
   border-right: 1px solid rgba(255, 255, 255, 0.12) !important;
@@ -943,20 +954,30 @@
   color: hsl(var(--muted-foreground));
 }
 
-/* 玻璃壳：深浅双适配，实色+透明度，无粉紫渐变 */
-.l2g-glass-aside,
-.l2g-glass-header {
+/* 玻璃壳：侧栏可透壁纸；顶栏实色不透壁纸，无粉紫渐变 */
+.l2g-glass-aside {
   background: rgba(15, 23, 42, 0.72) !important;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-color: rgba(255, 255, 255, 0.12) !important;
   box-shadow: 0 8px 32px rgba(255, 107, 157, 0.1);
 }
-:root[data-theme="light"] .l2g-glass-aside,
-:root[data-theme="light"] .l2g-glass-header {
+:root[data-theme="light"] .l2g-glass-aside {
   background: rgba(255, 255, 255, 0.78) !important;
   border-color: rgba(255, 107, 157, 0.18) !important;
   box-shadow: 0 8px 28px rgba(255, 107, 157, 0.1);
+}
+.l2g-glass-header {
+  background: hsl(var(--background)) !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: none;
+}
+:root[data-theme="light"] .l2g-glass-header {
+  background: hsl(var(--background)) !important;
+  border-color: rgba(255, 107, 157, 0.18) !important;
+  box-shadow: none;
 }
 .ds-table-card.l2g-table,
 .l2g-table.ds-table-card {
