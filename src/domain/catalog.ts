@@ -119,6 +119,25 @@ export function categoriesForOrderType(
   )
 }
 
+/** 某游戏某订单类型下所有分类的启用项目（跨分类聚合，同名去重保序） */
+export function productsForOrderType(
+  categories: CatalogCategory[],
+  products: CatalogProduct[],
+  gameId: string,
+  type: '普通' | '托管',
+): CatalogProduct[] {
+  const seen = new Set<string>()
+  const out: CatalogProduct[] = []
+  for (const cat of categoriesForOrderType(categories, gameId, type)) {
+    for (const p of productsOfCategory(products, cat.id)) {
+      if (seen.has(p.name)) continue
+      seen.add(p.name)
+      out.push(p)
+    }
+  }
+  return out
+}
+
 export function cleanPrefix(raw: string | null | undefined, fallback = DEFAULT_PREFIX): string {
   const text = String(raw ?? '')
     .replace(/[^A-Za-z0-9]/g, '')

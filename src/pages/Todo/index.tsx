@@ -113,11 +113,11 @@ export default function TodoPage() {
   if (orders.length === 0) {
     return (
       <div className="ds-page">
-        <PageHeader title="待办" description="催单 + 托管到期" />
+        <PageHeader title="待办" description="催单 + 进行中托管到期" />
         <div className="ds-card items-center py-16 text-center text-muted-foreground">
           <ListTodo size={36} className="mx-auto mb-3 opacity-30" />
           <p className="text-sm text-foreground/80">还没有订单</p>
-          <p className="ds-caption mt-1 mb-4">记第一单后，待处理 / 即将到期会出现在这里</p>
+          <p className="ds-caption mt-1 mb-4">记第一单后，催单与进行中托管到期会出现在这里</p>
           <div className="flex flex-wrap items-center justify-center gap-2">
             <Button variant="primary" icon={PlusCircle} onClick={openNew}>
               新建订单
@@ -157,7 +157,7 @@ export default function TodoPage() {
         <Stat
           label="待跟进"
           value={follow}
-          sub="催单 + 即将到期托管"
+          sub="催单 + 进行中托管到期"
           variant={follow ? 'warn' : undefined}
         />
       </div>
@@ -197,7 +197,7 @@ export default function TodoPage() {
             : tab === 'chase'
               ? '没有待催的普通单'
               : tab === 'due'
-                ? '没有即将到期的托管'
+                ? '没有即将到期的进行中托管'
                 : '今天没有待处理的订单'}
         </div>
       ) : null}
@@ -229,7 +229,7 @@ export default function TodoPage() {
 
       {visibleDue.length > 0 ? (
         <section className="flex flex-col gap-3">
-          <SectionHead title="到期 · 托管" count={visibleDue.length} />
+          <SectionHead title="到期 · 进行中托管" count={visibleDue.length} />
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
             {visibleDue.slice(0, expireLimit).map((order, i) => (
               <OrderCard
@@ -280,7 +280,9 @@ function FreeTodosPanel() {
         <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary px-1.5 text-xs font-medium tabular-nums text-muted-foreground">
           {open}
         </span>
-        <span className="ds-caption">本机备忘，不进账本</span>
+        <span className="ds-caption">
+          未完成{done > 0 ? ' · 含已完成' : ' · 本机备忘'}
+        </span>
         <div className="flex-1" />
         {done > 0 ? (
           <Button size="sm" variant="ghost" onClick={() => clearDone()}>

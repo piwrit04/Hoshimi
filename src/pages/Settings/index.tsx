@@ -835,7 +835,7 @@ function ExpiryOffsetsSection() {
       <SettingRow
         icon={Info}
         title="到期提醒"
-        description="距结束日不超过所选天数的托管单，会出现在待办和概览。"
+        description="距结束日不超过所选天数、且状态为进行中的托管单，会出现在待办和概览（待处理未开工不提醒）。"
       >
         <div className="flex items-center gap-2 justify-end">
           {[1, 3, 7].map((day) => {

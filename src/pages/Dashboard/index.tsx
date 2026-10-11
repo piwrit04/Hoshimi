@@ -142,7 +142,7 @@ export default function Dashboard() {
     },
     due: {
       title: '托管快到期',
-      hint: `含未设到期日 · ${m.remindDays} 天内到期的进行中/待处理托管`,
+      hint: `含未设到期日 · ${m.remindDays} 天内到期的进行中托管（不含待处理）`,
       moreTo: '/todo?tab=due',
       moreLabel: '去待办 · 到期',
     },

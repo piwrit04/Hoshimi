@@ -29,6 +29,7 @@ import {
 } from '@/domain/money'
 import {
   categoriesForOrderType,
+  productsForOrderType,
   productsOfCategory,
   primaryGameId,
   serversOf,
@@ -219,11 +220,13 @@ function Inner({
     () => serversOf(catalogServers, safeGameId).map((s) => s.name),
     [catalogServers, safeGameId],
   )
-  const custodyOptions = useMemo(() => {
-    const custodyCat = categoriesForOrderType(catalogCategories, safeGameId, '托管')[0]
-    if (!custodyCat) return [] as string[]
-    return productsOfCategory(catalogProducts, custodyCat.id).map((p) => p.name)
-  }, [catalogCategories, catalogProducts, safeGameId])
+  const custodyOptions = useMemo(
+    () =>
+      productsForOrderType(catalogCategories, catalogProducts, safeGameId, '托管').map(
+        (p) => p.name,
+      ),
+    [catalogCategories, catalogProducts, safeGameId],
+  )
 
   const productNamesOf = (categoryName: string) => {
     const cat = categories.find((c) => c.name === categoryName)
@@ -379,7 +382,7 @@ function Inner({
       const saved = addOrder(payload)
       addToast({
         type: 'success',
-        message: `已保存 ${saved.orderNo} · 到手 ¥${money.payoutAmount.toFixed(0)}`,
+        message: `已记下 ${saved.orderNo} · 到手 ¥${money.payoutAmount.toFixed(0)}`,
       })
       resetForm()
       onClose()
@@ -588,7 +591,7 @@ function Inner({
             <CustomerSuggestField
               label="联系方式"
               required
-              placeholder="手机号或邮箱"
+              placeholder="微信 / 手机 / 闲鱼号等"
               value={contact}
               error={errors.contact}
               active={suggestOpen && suggestField === 'contact'}
@@ -836,7 +839,20 @@ function Inner({
                   error={!!errors.startDate}
                 />
               </Field>
-              <Field label="结束日" required error={errors.endDate}>
+              <Field
+                label="结束日"
+                required
+                error={errors.endDate}
+                help={
+                  settleKind === '周结'
+                    ? '周结按 7 天自动算结束日，可再手改'
+                    : settleKind === '日结'
+                      ? '日结结束日同开始日'
+                      : settleKind === '月结'
+                        ? '月结按一个月自动算结束日，可再手改'
+                        : undefined
+                }
+              >
                 <DatePicker
                   value={endDate}
                   disabled={moneyLocked}
@@ -872,6 +888,7 @@ function Inner({
           />
           {transferEnabled ? (
             <div className="dd-order-transfer">
+              <p className="ds-caption">默认打手拿成 80%，可按实际改</p>
               {errors.transfer ? <p className="dd-error-text">{errors.transfer}</p> : null}
               <FormRadioGroup
                 label="转出方式"

@@ -272,9 +272,9 @@ export function CatalogEditor() {
                     data-active={c.id === activeCatId || undefined}
                   >
                     <span className="truncate flex-1">{c.name}</span>
-                    {c.kind === 'custody' ? (
-                      <Tag tone="info">托管</Tag>
-                    ) : null}
+                    <Tag tone={c.kind === 'custody' ? 'info' : 'default'}>
+                      {c.kind === 'custody' ? '托管' : '普通'}
+                    </Tag>
                     {!c.enabled ? <span className="ds-caption">已停用</span> : null}
                   </button>
                   <div className="flex shrink-0 flex-col">
@@ -326,14 +326,15 @@ export function CatalogEditor() {
                   size="sm"
                   variant="ghost"
                   icon={Pencil}
-                  iconOnly
                   aria-label="编辑分类"
                   onClick={() => {
                     setCatName(activeCat.name)
                     setCatKind(activeCat.kind)
                     setCatModal('edit')
                   }}
-                />
+                >
+                  编辑
+                </Button>
                 <Button
                   size="sm"
                   variant="ghost"

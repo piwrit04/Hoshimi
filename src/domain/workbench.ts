@@ -1,5 +1,5 @@
 /**
- * 待办 / 工作台 —— 普通未完成（催单）+ 即将到期 / 未设到期日的托管
+ * 待办 / 工作台 —— 普通未完成（催单）+ 进行中托管即将到期 / 未设到期日
  * 示例单规则同概览（statOrders）
  */
 
@@ -40,9 +40,9 @@ export function workbench(
     .filter((o) => o.type === '普通' && openStatus(o))
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
-  /** 未设结束日也进到期区，避免托管单在待办里「消失」 */
+  /** 仅「进行中」托管进到期；待处理未开工不催。未设结束日也进区，避免进行中托管「消失」 */
   const expiringAll = scoped
-    .filter((o) => o.type === '托管' && openStatus(o))
+    .filter((o) => o.type === '托管' && o.status === '进行中')
     .filter((o) => !o.endDate || daysBetween(today, o.endDate) <= threshold)
     .sort((a, b) => {
       if (!a.endDate && !b.endDate) return b.createdAt.localeCompare(a.createdAt)

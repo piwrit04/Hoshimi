@@ -140,7 +140,7 @@ function CustomerList() {
       },
       {
         key: 'spent',
-        title: '消费 · 近况',
+        title: '消费 · 已完成',
         width: '148px',
         align: 'right',
         emphasis: 'anchor',

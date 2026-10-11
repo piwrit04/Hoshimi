@@ -44,6 +44,8 @@ export function dashboard(ledger: LedgerView, now = new Date()) {
   const lastMonth = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}`
   const doneLastMonth = done.filter((o) => monthKey(o.completedAt!) === lastMonth)
   const custodyActive = orders.filter((o) => o.type === '托管' && openStatus(o))
+  /** 到期只盯已开工（进行中）；待处理未开工不进快到期 */
+  const custodyStarted = orders.filter((o) => o.type === '托管' && o.status === '进行中')
   const since30 = now.getTime() - 30 * 86400000
   const activeCustomers = new Set(
     orders
@@ -52,8 +54,8 @@ export function dashboard(ledger: LedgerView, now = new Date()) {
   ).size
 
   const threshold = expiryThreshold(ledger.settings.expiryOffsets)
-  /** 未设结束日也算进「快到期」，与待办 workbench 一致，避免托管在概览「消失」 */
-  const expiring: ExpiringItem[] = custodyActive
+  /** 未设结束日也算进「快到期」，与待办 workbench 一致；仅进行中 */
+  const expiring: ExpiringItem[] = custodyStarted
     .filter((o) => !o.endDate || daysBetween(today, o.endDate) <= threshold)
     .map((o) => ({
       order: o,
