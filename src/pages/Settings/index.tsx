@@ -59,6 +59,7 @@ export default function Settings() {
   const [devMode, setDevMode] = useState(false)
   const getSnapshot = useOrdersStore((s) => s.getSnapshot)
   const replaceSnapshot = useOrdersStore((s) => s.replaceSnapshot)
+  const updateSettings = useOrdersStore((s) => s.updateSettings)
   const addToast = useToastStore((s) => s.addToast)
   const fileRef = useRef<HTMLInputElement>(null)
   const importRef = useRef<HTMLInputElement>(null)
@@ -301,9 +302,36 @@ export default function Settings() {
                       <button
                         type="button"
                         className="btn-base btn-ghost btn--sm"
-                        onClick={() =>
-                          addToast({ type: 'info', message: '缓存清理暂未接入，账本请用备份/还原' })
-                        }
+                        onClick={() => {
+                          void (async () => {
+                            const ok = await Modal.confirm({
+                              title: '清理缓存？',
+                              content:
+                                '将清理浏览器临时缓存和部分界面偏好（如搜索窗位置）。订单、客户、项目目录不会删除。清空账本请先备份再还原。',
+                              okText: '清理',
+                              tone: 'danger',
+                            })
+                            if (!ok) return
+                            try {
+                              if (typeof caches !== 'undefined') {
+                                const keys = await caches.keys()
+                                await Promise.all(keys.map((k) => caches.delete(k)))
+                              }
+                              try {
+                                localStorage.removeItem('search-window-pos')
+                              } catch {
+                                /* ignore */
+                              }
+                              updateSettings({ recentProductIds: [] })
+                              addToast({
+                                type: 'success',
+                                message: '已清理临时缓存；账本未改动',
+                              })
+                            } catch {
+                              addToast({ type: 'error', message: '清理缓存失败' })
+                            }
+                          })()
+                        }}
                       >
                         <Trash2 size={14} />
                         清理缓存

@@ -14,6 +14,8 @@ import {
   removeGame as gameRemove,
   removeProduct as prodRemove,
   removeServer as srvRemove,
+  reorderCategory as catReorder,
+  reorderProduct as prodReorder,
   resolveOrderPrefix,
   updateCategory as catUpdate,
   updateGame as gameUpdate,
@@ -83,15 +85,17 @@ interface OrdersState {
   addGame: (name: string, prefix: string) => string
   updateGame: (id: string, patch: { name?: string; orderPrefix?: string }) => void
   removeGame: (id: string) => void
-  addCategory: (gameId: string, name: string, kind: CatalogKind) => void
+  addCategory: (gameId: string, name: string, kind: CatalogKind) => string
   updateCategory: (id: string, patch: { name?: string; enabled?: boolean }) => void
   removeCategory: (id: string) => void
-  addProduct: (categoryId: string, name: string, price?: number | null) => void
+  reorderCategory: (id: string, direction: -1 | 1) => void
+  addProduct: (categoryId: string, name: string, price?: number | null) => string
   updateProduct: (
     id: string,
     patch: { name?: string; price?: number | null; enabled?: boolean },
   ) => void
   removeProduct: (id: string) => void
+  reorderProduct: (id: string, direction: -1 | 1) => void
   addServer: (gameId: string, name: string) => void
   updateServer: (id: string, patch: { name?: string; enabled?: boolean }) => void
   removeServer: (id: string) => void
@@ -487,8 +491,10 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
     schedulePersist(get, set)
   },
   addCategory: (gameId, name, kind) => {
-    applyCatalog(set, catAdd(get().catalogSlice(), gameId, name, kind))
+    const { slice, categoryId } = catAdd(get().catalogSlice(), gameId, name, kind)
+    applyCatalog(set, slice)
     schedulePersist(get, set)
+    return categoryId
   },
   updateCategory: (id, patch) => {
     applyCatalog(set, catUpdate(get().catalogSlice(), id, patch))
@@ -498,9 +504,15 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
     applyCatalog(set, catRemove(get().catalogSlice(), id))
     schedulePersist(get, set)
   },
-  addProduct: (categoryId, name, price = null) => {
-    applyCatalog(set, prodAdd(get().catalogSlice(), categoryId, name, price))
+  reorderCategory: (id, direction) => {
+    applyCatalog(set, catReorder(get().catalogSlice(), id, direction))
     schedulePersist(get, set)
+  },
+  addProduct: (categoryId, name, price = null) => {
+    const { slice, productId } = prodAdd(get().catalogSlice(), categoryId, name, price)
+    applyCatalog(set, slice)
+    schedulePersist(get, set)
+    return productId
   },
   updateProduct: (id, patch) => {
     applyCatalog(set, prodUpdate(get().catalogSlice(), id, patch))
@@ -508,6 +520,10 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
   },
   removeProduct: (id) => {
     applyCatalog(set, prodRemove(get().catalogSlice(), id))
+    schedulePersist(get, set)
+  },
+  reorderProduct: (id, direction) => {
+    applyCatalog(set, prodReorder(get().catalogSlice(), id, direction))
     schedulePersist(get, set)
   },
   addServer: (gameId, name) => {

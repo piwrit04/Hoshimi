@@ -207,25 +207,29 @@ export function addCategory(
   gameId: string,
   name: string,
   kind: CatalogKind,
-): CatalogSlice {
+): { slice: CatalogSlice; categoryId: string } {
   const label = name.trim()
   if (!label) throw new Error('请填写分类名称')
   const siblings = slice.categories.filter((c) => c.gameId === gameId)
   if (siblings.some((c) => c.name === label)) throw new Error(`已有分类「${label}」`)
+  const categoryId = crypto.randomUUID()
   return {
-    ...slice,
-    categories: [
-      ...slice.categories,
-      {
-        id: crypto.randomUUID(),
-        gameId,
-        code: kind === 'custody' ? '托' : '新',
-        name: label,
-        kind,
-        enabled: true,
-        sort: siblings.reduce((m, c) => Math.max(m, c.sort), -1) + 1,
-      },
-    ],
+    categoryId,
+    slice: {
+      ...slice,
+      categories: [
+        ...slice.categories,
+        {
+          id: categoryId,
+          gameId,
+          code: kind === 'custody' ? '托' : '新',
+          name: label,
+          kind,
+          enabled: true,
+          sort: siblings.reduce((m, c) => Math.max(m, c.sort), -1) + 1,
+        },
+      ],
+    },
   }
 }
 
@@ -267,25 +271,29 @@ export function addProduct(
   categoryId: string,
   name: string,
   price: number | null = null,
-): CatalogSlice {
+): { slice: CatalogSlice; productId: string } {
   const label = name.trim()
   if (!label) throw new Error('请填写项目名称')
   if (!slice.categories.some((c) => c.id === categoryId)) throw new Error('分类不存在')
   const siblings = slice.products.filter((p) => p.categoryId === categoryId)
   if (siblings.some((p) => p.name === label)) throw new Error(`该分类已有「${label}」`)
+  const productId = crypto.randomUUID()
   return {
-    ...slice,
-    products: [
-      ...slice.products,
-      {
-        id: crypto.randomUUID(),
-        categoryId,
-        name: label,
-        price: cleanPrice(price),
-        enabled: true,
-        sort: siblings.reduce((m, p) => Math.max(m, p.sort), -1) + 1,
-      },
-    ],
+    productId,
+    slice: {
+      ...slice,
+      products: [
+        ...slice.products,
+        {
+          id: productId,
+          categoryId,
+          name: label,
+          price: cleanPrice(price),
+          enabled: true,
+          sort: siblings.reduce((m, p) => Math.max(m, p.sort), -1) + 1,
+        },
+      ],
+    },
   }
 }
 
@@ -321,6 +329,53 @@ export function removeProduct(slice: CatalogSlice, productId: string): CatalogSl
     products: slice.products.filter((p) => p.id !== productId),
   }
 }
+
+export function reorderCategory(
+  slice: CatalogSlice,
+  categoryId: string,
+  direction: -1 | 1,
+): CatalogSlice {
+  const current = slice.categories.find((c) => c.id === categoryId)
+  if (!current) return slice
+  const siblings = slice.categories
+    .filter((c) => c.gameId === current.gameId)
+    .sort((a, b) => a.sort - b.sort)
+  const idx = siblings.findIndex((c) => c.id === categoryId)
+  const other = siblings[idx + direction]
+  if (!other) return slice
+  return {
+    ...slice,
+    categories: slice.categories.map((c) => {
+      if (c.id === current.id) return { ...c, sort: other.sort }
+      if (c.id === other.id) return { ...c, sort: current.sort }
+      return c
+    }),
+  }
+}
+
+export function reorderProduct(
+  slice: CatalogSlice,
+  productId: string,
+  direction: -1 | 1,
+): CatalogSlice {
+  const current = slice.products.find((p) => p.id === productId)
+  if (!current) return slice
+  const siblings = slice.products
+    .filter((p) => p.categoryId === current.categoryId)
+    .sort((a, b) => a.sort - b.sort)
+  const idx = siblings.findIndex((p) => p.id === productId)
+  const other = siblings[idx + direction]
+  if (!other) return slice
+  return {
+    ...slice,
+    products: slice.products.map((p) => {
+      if (p.id === current.id) return { ...p, sort: other.sort }
+      if (p.id === other.id) return { ...p, sort: current.sort }
+      return p
+    }),
+  }
+}
+
 
 /** @deprecated 兼容旧 import；请用 seed / store */
 export const SERVERS = ['官服', '国际服', 'B服']

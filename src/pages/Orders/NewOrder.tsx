@@ -221,9 +221,8 @@ function Inner({
   )
   const custodyOptions = useMemo(() => {
     const custodyCat = categoriesForOrderType(catalogCategories, safeGameId, '托管')[0]
-    if (!custodyCat) return ['普托', '全托']
-    const list = productsOfCategory(catalogProducts, custodyCat.id).map((p) => p.name)
-    return list.length ? list : ['普托', '全托']
+    if (!custodyCat) return [] as string[]
+    return productsOfCategory(catalogProducts, custodyCat.id).map((p) => p.name)
   }, [catalogCategories, catalogProducts, safeGameId])
 
   const productNamesOf = (categoryName: string) => {
@@ -399,11 +398,8 @@ function Inner({
     let cat = categories.find((c) => c.name === quickCat)
     try {
       if (!cat) {
-        addCategory(safeGameId, quickCat, 'normal')
-        const refreshed = useOrdersStore.getState().categories
-        cat = refreshed.find(
-          (c) => c.gameId === safeGameId && c.name === quickCat && c.kind === 'normal',
-        )
+        const categoryId = addCategory(safeGameId, quickCat, 'normal')
+        cat = useOrdersStore.getState().categories.find((c) => c.id === categoryId)
       }
       if (!cat) throw new Error('分类创建失败')
       addProduct(cat.id, name, quickPrice)

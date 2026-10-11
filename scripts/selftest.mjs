@@ -115,8 +115,14 @@ try {
   )
 
   // ZZZ 分类：普通 vs 托管隔离
-  slice = catalog.addCategory(slice, zzzId, '开荒', 'normal')
-  slice = catalog.addCategory(slice, zzzId, '日常托管', 'custody')
+  {
+    const r = catalog.addCategory(slice, zzzId, '开荒', 'normal')
+    slice = r.slice
+  }
+  {
+    const r = catalog.addCategory(slice, zzzId, '日常托管', 'custody')
+    slice = r.slice
+  }
   const normalCats = catalog.categoriesForOrderType(slice.categories, zzzId, '普通')
   const custodyCats = catalog.categoriesForOrderType(slice.categories, zzzId, '托管')
   assert(
@@ -128,11 +134,30 @@ try {
     'custody order type sees only custody cats',
   )
   const openCat = normalCats.find((c) => c.name === '开荒')
-  slice = catalog.addProduct(slice, openCat.id, '零号空洞', 88)
+  {
+    const r = catalog.addProduct(slice, openCat.id, '零号空洞', 88)
+    slice = r.slice
+  }
   assert(
     catalog.productsOfCategory(slice.products, openCat.id).some((p) => p.name === '零号空洞'),
     'product under ZZZ category',
   )
+  // 排序：分类 / 项目上下移
+  {
+    const r2 = catalog.addProduct(slice, openCat.id, '香蕉洞', 10)
+    slice = r2.slice
+  }
+  const before = catalog.productsOfCategory(slice.products, openCat.id).map((p) => p.name)
+  assert(before[0] === '零号空洞' && before[1] === '香蕉洞', `product order before reorder: ${before}`)
+  const firstId = catalog.productsOfCategory(slice.products, openCat.id)[0].id
+  slice = catalog.reorderProduct(slice, firstId, 1)
+  const after = catalog.productsOfCategory(slice.products, openCat.id).map((p) => p.name)
+  assert(after[0] === '香蕉洞' && after[1] === '零号空洞', `product order after down: ${after}`)
+  const catIds = catalog.categoriesOf(slice.categories, zzzId).map((c) => c.id)
+  assert(catIds.length >= 2, 'zzz has >=2 cats for reorder')
+  slice = catalog.reorderCategory(slice, catIds[0], 1)
+  const catNames = catalog.categoriesOf(slice.categories, zzzId).map((c) => c.name)
+  assert(catNames[0] === '日常托管' && catNames[1] === '开荒', `cat reorder: ${catNames}`)
 
   // --- fees ---
   const fees = ledger.defaultChannelFees()

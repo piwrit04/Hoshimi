@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { FolderTree, Plus, Trash2, Pencil, Server } from 'lucide-react'
+import { FolderTree, Plus, Trash2, Pencil, Server, ChevronUp, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { FormInput, FormNumberInput, FormSelect, FormSwitch } from '@/components/ui/form'
 import { Modal } from '@/components/ui/Modal'
@@ -33,6 +33,8 @@ export function CatalogEditor() {
   const addProduct = useOrdersStore((s) => s.addProduct)
   const updateProduct = useOrdersStore((s) => s.updateProduct)
   const removeProduct = useOrdersStore((s) => s.removeProduct)
+  const reorderCategory = useOrdersStore((s) => s.reorderCategory)
+  const reorderProduct = useOrdersStore((s) => s.reorderProduct)
   const servers = useOrdersStore((s) => s.servers)
   const addServer = useOrdersStore((s) => s.addServer)
   const updateServer = useOrdersStore((s) => s.updateServer)
@@ -258,20 +260,44 @@ export function CatalogEditor() {
             {cats.length === 0 ? (
               <p className="ds-caption px-2 py-6 text-center">还没有分类</p>
             ) : (
-              cats.map((c) => (
-                <button
+              cats.map((c, catIdx) => (
+                <div
                   key={c.id}
-                  type="button"
-                  onClick={() => setCategoryId(c.id)}
-                  className="dd-catalog__cat"
-                  data-active={c.id === activeCatId || undefined}
+                  className="dd-catalog__cat-row flex items-center gap-0.5"
                 >
-                  <span className="truncate flex-1">{c.name}</span>
-                  {c.kind === 'custody' ? (
-                    <Tag tone="info">托管</Tag>
-                  ) : null}
-                  {!c.enabled ? <span className="ds-caption">已停用</span> : null}
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setCategoryId(c.id)}
+                    className="dd-catalog__cat min-w-0 flex-1"
+                    data-active={c.id === activeCatId || undefined}
+                  >
+                    <span className="truncate flex-1">{c.name}</span>
+                    {c.kind === 'custody' ? (
+                      <Tag tone="info">托管</Tag>
+                    ) : null}
+                    {!c.enabled ? <span className="ds-caption">已停用</span> : null}
+                  </button>
+                  <div className="flex shrink-0 flex-col">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      icon={ChevronUp}
+                      iconOnly
+                      disabled={catIdx === 0}
+                      aria-label={`上移分类「${c.name}」`}
+                      onClick={() => run(() => reorderCategory(c.id, -1))}
+                    />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      icon={ChevronDown}
+                      iconOnly
+                      disabled={catIdx === cats.length - 1}
+                      aria-label={`下移分类「${c.name}」`}
+                      onClick={() => run(() => reorderCategory(c.id, 1))}
+                    />
+                  </div>
+                </div>
               ))
             )}
           </div>
@@ -351,8 +377,28 @@ export function CatalogEditor() {
                   </p>
                 ) : (
                   <ul className="dd-catalog__product-list">
-                    {prods.map((p) => (
+                    {prods.map((p, prodIdx) => (
                       <li key={p.id} className="dd-catalog__product">
+                        <div className="flex shrink-0 flex-col">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            icon={ChevronUp}
+                            iconOnly
+                            disabled={prodIdx === 0}
+                            aria-label={`上移「${p.name}」`}
+                            onClick={() => run(() => reorderProduct(p.id, -1))}
+                          />
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            icon={ChevronDown}
+                            iconOnly
+                            disabled={prodIdx === prods.length - 1}
+                            aria-label={`下移「${p.name}」`}
+                            onClick={() => run(() => reorderProduct(p.id, 1))}
+                          />
+                        </div>
                         <div className={`min-w-0 flex-1 truncate text-sm font-medium ${!p.enabled ? 'text-muted-foreground' : ''}`}>
                           {p.name}
                           {!p.enabled ? <span className="ds-caption ml-2 font-normal">已停用</span> : null}
@@ -477,7 +523,8 @@ export function CatalogEditor() {
               onClick={() =>
                 run(() => {
                   if (catModal === 'add') {
-                    addCategory(safeGameId, catName, catKind)
+                    const id = addCategory(safeGameId, catName, catKind)
+                    setCategoryId(id)
                     addToast({ type: 'success', message: '已添加分类' })
                   } else if (activeCat) {
                     updateCategory(activeCat.id, { name: catName })
