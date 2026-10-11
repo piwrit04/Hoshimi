@@ -1233,8 +1233,19 @@
   background-color: hsl(var(--accent) / 0.7) !important;
 }
 .l2g-table .dd-order-no,
-.l2g-table .dd-cell-dual__bot {
+.l2g-table .dd-cell-dual__bot:not(.dd-money-gold) {
   color: hsl(var(--muted-foreground));
+}
+/* 到手：深浅均用品牌柔粉，不被 dual__bot 的 muted 盖掉 */
+.l2g-table .dd-money-gold,
+.l2g-table .dd-cell-dual__bot.dd-money-gold {
+  color: var(--brand-hex); /* 深色 #D8A0BC */
+  font-weight: 600;
+  text-shadow: none;
+}
+:root[data-theme="light"] .l2g-table .dd-money-gold,
+:root[data-theme="light"] .l2g-table .dd-cell-dual__bot.dd-money-gold {
+  color: var(--brand-text-hex); /* 浅色可读粉 #B86B90 */
 }
 /* 客户双行：名与 meta 拉开一点 */
 .l2g-table .dd-cell-dual {

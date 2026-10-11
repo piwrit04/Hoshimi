@@ -305,10 +305,16 @@
     color: hsl(var(--muted-foreground));
     border-color: rgba(var(--accent-soft-rgb), 0.35);
   }
+  /* 进行中等 brand 胶囊：浅深同皮（软描边粉），深色略抬底避免发灰 */
   .dd-tag--brand {
-    background-color: rgba(var(--brand-rgb), 0.08);
+    background-color: rgba(var(--brand-rgb), 0.14);
     color: var(--brand-text-hex);
-    border-color: rgba(var(--brand-rgb), 0.4);
+    border-color: rgba(var(--brand-rgb), 0.5);
+  }
+  :root[data-theme="light"] .dd-tag--brand {
+    background-color: rgba(var(--brand-rgb), 0.12);
+    color: var(--brand-text-hex);
+    border-color: rgba(var(--brand-rgb), 0.42);
   }
   .dd-tag--success {
     background-color: rgba(var(--success-rgb), 0.14);
