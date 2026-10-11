@@ -86,7 +86,7 @@ interface OrdersState {
   updateGame: (id: string, patch: { name?: string; orderPrefix?: string }) => void
   removeGame: (id: string) => void
   addCategory: (gameId: string, name: string, kind: CatalogKind) => string
-  updateCategory: (id: string, patch: { name?: string; enabled?: boolean }) => void
+  updateCategory: (id: string, patch: { name?: string; enabled?: boolean; kind?: CatalogKind }) => void
   removeCategory: (id: string) => void
   reorderCategory: (id: string, direction: -1 | 1) => void
   addProduct: (categoryId: string, name: string, price?: number | null) => string

@@ -236,7 +236,7 @@ export function addCategory(
 export function updateCategory(
   slice: CatalogSlice,
   categoryId: string,
-  patch: { name?: string; enabled?: boolean },
+  patch: { name?: string; enabled?: boolean; kind?: CatalogKind },
 ): CatalogSlice {
   const current = slice.categories.find((c) => c.id === categoryId)
   if (!current) return slice
@@ -250,10 +250,19 @@ export function updateCategory(
     throw new Error(`已有分类「${name}」`)
   }
   const enabled = patch.enabled ?? current.enabled
+  const kind = patch.kind ?? current.kind
+  const code =
+    patch.kind && patch.kind !== current.kind
+      ? patch.kind === 'custody'
+        ? '托'
+        : current.code === '托'
+          ? '新'
+          : current.code
+      : current.code
   return {
     ...slice,
     categories: slice.categories.map((c) =>
-      c.id === categoryId ? { ...c, name, enabled } : c,
+      c.id === categoryId ? { ...c, name, enabled, kind, code } : c,
     ),
   }
 }

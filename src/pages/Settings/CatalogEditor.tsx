@@ -527,7 +527,7 @@ export function CatalogEditor() {
                     setCategoryId(id)
                     addToast({ type: 'success', message: '已添加分类' })
                   } else if (activeCat) {
-                    updateCategory(activeCat.id, { name: catName })
+                    updateCategory(activeCat.id, { name: catName, kind: catKind })
                     addToast({ type: 'success', message: '已更新分类' })
                   }
                   setCatModal(null)
@@ -541,17 +541,20 @@ export function CatalogEditor() {
       >
         <div className="flex flex-col gap-4">
           <FormInput label="名称" required value={catName} onChange={(e) => setCatName(e.target.value)} />
-          {catModal === 'add' ? (
-            <FormSelect
-              label="类型"
-              value={catKind}
-              onChange={(v) => setCatKind((v as CatalogKind) ?? 'normal')}
-              options={[
-                { value: 'normal', label: '普通' },
-                { value: 'custody', label: '托管' },
-              ]}
-            />
-          ) : null}
+          <FormSelect
+            label="类型"
+            value={catKind}
+            onChange={(v) => setCatKind((v as CatalogKind) ?? 'normal')}
+            options={[
+              { value: 'normal', label: '普通（录普通单明细）' },
+              { value: 'custody', label: '托管（录托管安排）' },
+            ]}
+            help={
+              catModal === 'edit'
+                ? '改类型只影响之后录单可选，已有订单仍保留当时写下的文字'
+                : undefined
+            }
+          />
         </div>
       </Modal>
 
