@@ -23,9 +23,9 @@
    这里保持原样 —— 少一套机制，就少一处可能不同步的地方。
    ============================================================ */
 :root {
-  /* ---- 深色（默认）—— Linear / Raycast 精致控制台
-     底 #0B0F17 · 卡片 #121826 · 主文 #F8FAFC · 次文 #94A3B8
-     品牌软粉 #F472B6（非荧光 #FF6B9D），仅主钮/激活 Tab 点缀。 */
+  /* ---- 深色（默认）—— Linear 克制控制台
+     底 #0B0F17 · 侧栏/表卡 #121826 略抬 · 主文 #F8FAFC · 次文 #64748B
+     品牌柔粉 #D8A0BC（EC4899 降饱和、比 E9A5D1 更灰柔），仅主钮/激活点缀。 */
   --background: 220 39% 7%; /* #0B0F17 */
   --foreground: 210 40% 98%; /* #F8FAFC */
 
@@ -35,37 +35,38 @@
   --popover: 222 33% 12%;
   --popover-foreground: 210 40% 98%;
 
-  --primary: 330 86% 70%; /* #F472B6 */
-  --primary-foreground: 0 0% 100%;
+  --primary: 330 42% 74%; /* #D8A0BC */
+  --primary-foreground: 222 47% 11%;
 
   --secondary: 217 25% 14%;
   --secondary-soft: 217 25% 16%;
   --secondary-foreground: 210 40% 98%;
 
-  --accent: 330 86% 70%;
-  --accent-foreground: 0 0% 100%;
+  /* 悬停面：slate-800，非品牌粉 */
+  --accent: 217 32% 17%; /* #1e293b */
+  --accent-foreground: 210 40% 98%;
 
-  --muted: 217 25% 14%;
-  --muted-foreground: 215 16% 65%; /* #94A3B8 */
+  --muted: 215 20% 35%;
+  --muted-foreground: 215 16% 47%; /* #64748B */
 
   --destructive: 0 70% 62%;
   --destructive-foreground: 0 0% 100%;
   --success: 150 50% 52%;
   --warning: 38 85% 60%;
 
-  --border: 217 33% 17%; /* slate-800 #1e293b */
+  --border: 217 33% 17%; /* #1e293b */
   --input: 217 25% 18%;
-  --ring: 330 86% 70%;
+  --ring: 330 42% 74%;
 
   --text-1: 210 40% 98%;
-  --text-2: 215 16% 65%;
-  --text-3: 215 14% 46%;
+  --text-2: 215 16% 47%;
+  --text-3: 215 14% 40%;
 
-  /* 品牌锚：克制软粉 #F472B6 */
-  --brand-hex: #F472B6;
-  --brand-rgb: 244, 114, 182;
-  --brand-text-hex: #F9A8D4;
-  --on-brand-hex: #ffffff;
+  /* 品牌锚：柔粉 #D8A0BC */
+  --brand-hex: #D8A0BC;
+  --brand-rgb: 216, 160, 188;
+  --brand-text-hex: #D8A0BC;
+  --on-brand-hex: #1a1020;
 
   --brand-deep-rgb: 219, 39, 119;
   --l2g-purple-rgb: 167, 139, 250;
@@ -87,7 +88,7 @@
   --radius-xs: 2px;
   --radius-sm: 4px;
   --radius-md: 10px;   /* 行卡悬停等中档 */
-  --radius-lg: 12px;   /* 卡片 / 抽屉 / 弹窗 / 表容器 */
+  --radius-lg: 10px;   /* 卡片 / 抽屉 / 弹窗 / 表容器 */
   --radius-pill: 999px; /* 按钮 / 标签 / 芯片 / 分段 / 输入 */
   --radius: var(--radius-lg);
 
@@ -124,18 +125,18 @@
   --popover: 0 0% 100%;
   --popover-foreground: 262 22% 31%;
 
-  --primary: 330 86% 70%;
-  --primary-foreground: 0 0% 100%;
+  --primary: 330 42% 74%; /* #D8A0BC */
+  --primary-foreground: 222 47% 11%;
 
-  --secondary: 262 10% 96%;
-  --secondary-soft: 262 10% 96%;
-  --secondary-foreground: 262 22% 31%;
+  --secondary: 210 20% 96%;
+  --secondary-soft: 210 20% 96%;
+  --secondary-foreground: 222 47% 11%;
 
-  --accent: 244 85% 65%;
-  --accent-foreground: 0 0% 100%;
+  --accent: 210 20% 94%;
+  --accent-foreground: 222 47% 11%;
 
-  --muted: 262 10% 96%;
-  --muted-foreground: 215 16% 47%;
+  --muted: 210 16% 93%;
+  --muted-foreground: 215 16% 47%; /* #64748B */
 
   /* ⚠️ 修复记录：这三个值原来是 344 70% 68% / 224 65% 48% / 344 70% 68%，
      也就是 --destructive 和 --primary **完全相同**、--warning 也是那个品牌粉，
@@ -156,16 +157,16 @@
 
   --border: 214 32% 91%;
   --input: 214 32% 91%;
-  --ring: 330 86% 70%;
+  --ring: 330 42% 74%;
 
   --text-1: 222 47% 11%;
-  --text-2: 262 17% 58%;
-  --text-3: 262 13% 76%;
+  --text-2: 215 16% 47%;
+  --text-3: 215 14% 60%;
 
-  --brand-hex: #F472B6;
-  --brand-rgb: 244, 114, 182;
-  --brand-text-hex: #DB2777;
-  --on-brand-hex: #ffffff;
+  --brand-hex: #D8A0BC;
+  --brand-rgb: 216, 160, 188;
+  --brand-text-hex: #B86B90;
+  --on-brand-hex: #1a1020;
 
   /* ---- 语义色（浅色：实色干净，无壁纸洗） ---- */
   --brand-deep-rgb: 219, 39, 119;
@@ -247,7 +248,7 @@
   /* 与 :root 对齐，避免 calc 把 lg 压成 10 */
   --radius-sm: 0.25rem;   /* 4px */
   --radius-md: 0.625rem;  /* 10px */
-  --radius-lg: 0.75rem;   /* 12px */
+  --radius-lg: 0.625rem; /* 10px */
   --radius-xl: 0.75rem;   /* 面统一 12，不再放大成 24 */
   --radius-2xl: 1rem;
   --radius-3xl: 1.25rem;

@@ -89,15 +89,15 @@
   /* Primary Button - 实色粉主钮 + 粉光，圆角仍走胶囊 */
   .btn-primary {
     @apply btn-base;
-    background: #F472B6;
-    color: #ffffff;
+    background: var(--brand-hex);
+    color: var(--on-brand-hex);
     border: 1px solid transparent;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
     text-shadow: none;
   }
 
   .btn-primary:hover:not(:disabled) {
-    filter: brightness(1.06);
+    filter: brightness(1.05);
     transform: none;
     box-shadow: 0 2px 8px rgba(var(--brand-rgb), 0.28);
   }
@@ -108,31 +108,33 @@
   }
 
   /* Secondary Button - 次要操作按钮 */
+  /* 线框胶囊：默认空心，悬停才实心微亮 */
   .btn-secondary {
     @apply btn-base;
     background-color: transparent;
-    color: #94A3B8;
-    border: 1px solid #334155;
+    color: hsl(var(--foreground));
+    border: 1px solid hsl(var(--border));
     box-shadow: none;
   }
 
   .btn-secondary:hover:not(:disabled) {
-    background-color: rgba(30, 41, 59, 0.55);
-    border-color: #475569;
-    color: #F8FAFC;
+    background-color: hsl(var(--accent));
+    border-color: hsl(var(--muted-foreground) / 0.35);
+    color: hsl(var(--foreground));
   }
 
   .btn-secondary:active:not(:disabled) {
-    background-color: rgba(30, 41, 59, 0.75);
+    background-color: hsl(var(--accent));
+    filter: brightness(0.95);
   }
 
   :root[data-theme="light"] .btn-secondary {
-    color: #64748b;
-    border-color: #cbd5e1;
+    color: #0f172a;
+    border-color: #e2e8f0;
   }
   :root[data-theme="light"] .btn-secondary:hover:not(:disabled) {
     background-color: #f1f5f9;
-    border-color: #94a3b8;
+    border-color: #cbd5e1;
     color: #0f172a;
   }
 

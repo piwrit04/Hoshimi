@@ -463,7 +463,7 @@
   margin-left: 4px;
   vertical-align: -0.08em;
   border-radius: 2px;
-  background: #F472B6;
+  background: var(--brand-hex);
   animation: l2g-blink 1.2s ease-in-out infinite;
 }
 @keyframes l2g-blink {
@@ -476,14 +476,21 @@
   letter-spacing: 0.02em;
 }
 
-/* 侧栏选中：实色粉胶囊 */
+/* 侧栏选中：浅底 + 左侧细竖线，非整块粉胶囊 */
 .l2g-nav-active {
-  background: var(--brand-hex) !important;
-  color: #fff !important;
-  box-shadow: none;
+  background: rgba(var(--brand-rgb), 0.12) !important;
+  color: var(--brand-hex) !important;
+  box-shadow: inset 3px 0 0 0 var(--brand-hex);
   border: 1px solid transparent;
+  border-radius: 10px !important;
 }
-.l2g-nav-active svg { color: #fff !important; }
+.l2g-nav-active svg { color: var(--brand-hex) !important; }
+:root[data-theme="light"] .l2g-nav-active {
+  background: rgba(var(--brand-rgb), 0.12) !important;
+  color: var(--brand-text-hex) !important;
+  box-shadow: inset 3px 0 0 0 var(--brand-text-hex);
+}
+:root[data-theme="light"] .l2g-nav-active svg { color: var(--brand-text-hex) !important; }
 
 .ds-table-card {
   border: 1px solid hsl(var(--border)) !important;
@@ -552,14 +559,15 @@
   background: transparent !important;
 }
 
-/* 表容器：独立圆角深色卡 + slate-800 边 */
+/* 表容器：独立圆角深色卡 + 细边 */
 .ds-table-card {
   background: #121826 !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  border: 1px solid #1e293b !important;
-  border-radius: 12px !important;
-  box-shadow: none !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  overflow: hidden;
   transition: border-color 0.15s ease;
 }
 :root[data-theme="light"] .ds-table-card {
@@ -656,7 +664,7 @@
   margin-left: 6px;
   vertical-align: -0.05em;
   border-radius: 2px;
-  background: #F472B6;
+  background: var(--brand-hex);
   animation: l2g-blink 1.2s ease-in-out infinite;
 }
 .l2g-hero__meta {
@@ -690,7 +698,7 @@
 :root[data-theme="light"] .l2g-hero__scroll {
   color: hsl(var(--muted-foreground));
 }
-.l2g-hero__scroll:hover { color: #F472B6; }
+.l2g-hero__scroll:hover { color: var(--brand-hex); }
 @keyframes l2g-bounce {
   0%, 100% { transform: translateX(-50%) translateY(0); }
   50% { transform: translateX(-50%) translateY(6px); }
@@ -760,13 +768,13 @@
   font-weight: 600;
   text-decoration: none;
   color: #fff;
-  background: #F472B6;
+  background: var(--brand-hex);
   border: 1px solid transparent;
   box-shadow: none;
   transition: background-color .15s ease, filter .15s ease;
 }
 .l2g-capsule:hover {
-  background: #F472B6;
+  background: var(--brand-hex);
   filter: brightness(1.06);
   transform: none;
 }
@@ -778,9 +786,9 @@
   cursor: default;
 }
 :root[data-theme="light"] .l2g-capsule--muted {
-  background: rgba(244, 114, 182, 0.08);
+  background: rgba(var(--brand-rgb), 0.08);
   color: hsl(var(--muted-foreground));
-  border-color: rgba(244, 114, 182, 0.2);
+  border-color: rgba(var(--brand-rgb), 0.2);
 }
 .l2g-capsule-group { display: inline-flex; gap: 6px; }
 
@@ -871,7 +879,7 @@
 }
 .l2g-kpi-card__icon {
   display: inline-flex;
-  color: #F472B6;
+  color: var(--brand-hex);
   margin-bottom: 6px;
 }
 .l2g-kpi-card__value {
@@ -924,14 +932,14 @@
   justify-content: center;
   gap: 6px;
   border-radius: 12px;
-  border: 1px dashed rgba(244, 114, 182, 0.35);
-  background: rgba(244, 114, 182, 0.06);
+  border: 1px dashed rgba(var(--brand-rgb), 0.35);
+  background: rgba(var(--brand-rgb), 0.06);
 }
 :root[data-theme="light"] .l2g-chart-empty {
-  background: rgba(244, 114, 182, 0.05);
-  border-color: rgba(244, 114, 182, 0.28);
+  background: rgba(var(--brand-rgb), 0.05);
+  border-color: rgba(var(--brand-rgb), 0.28);
 }
-.l2g-chart-empty__icon { color: #F472B6; opacity: 0.85; }
+.l2g-chart-empty__icon { color: var(--brand-hex); opacity: 0.85; }
 .l2g-chart-empty__title {
   font-size: 14px;
   font-weight: 650;
@@ -948,27 +956,27 @@
   color: hsl(var(--muted-foreground));
 }
 
-/* 订单页：居中标题 + 玻璃筛选条 */
+/* 订单页：居中标题 + 实底筛选卡 */
 .l2g-orders-head {
   text-align: center;
-  margin-bottom: 8px;
+  margin-bottom: 0;
   position: relative;
 }
 .l2g-orders-head__title {
-  font-size: clamp(1.6rem, 2.5vw, 2rem);
+  font-size: 1.75rem;
   font-weight: 700;
-  color: #F8FAFC;
+  color: hsl(var(--foreground));
   text-shadow: none;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.025em;
 }
 :root[data-theme="light"] .l2g-orders-head__title {
   color: #0f172a;
   text-shadow: none;
 }
 .l2g-orders-head__sub {
-  margin-top: 6px;
-  font-size: 13px;
-  color: #94A3B8;
+  margin-top: 0.5rem;
+  font-size: 0.9375rem;
+  color: hsl(var(--muted-foreground));
 }
 :root[data-theme="light"] .l2g-orders-head__sub {
   color: #64748b;
@@ -978,7 +986,7 @@
   right: 0;
   top: 0;
   display: flex;
-  gap: 8px;
+  gap: 12px;
   align-items: center;
 }
 @media (max-width: 720px) {
@@ -989,16 +997,16 @@
   }
 }
 .l2g-filter-bar {
-  background: #121826;
+  background: hsl(var(--card));
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  border: 1px solid #1e293b;
-  border-radius: 12px;
-  box-shadow: none;
-  padding: 12px 14px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  padding: 1rem 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 :root[data-theme="light"] .l2g-filter-bar {
   background: #ffffff;
@@ -1008,41 +1016,42 @@
 .l2g-seg {
   display: inline-flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px;
   align-items: center;
+  padding: 4px;
+  background: hsl(var(--muted) / 0.12);
+  border-radius: var(--radius-lg);
 }
 .l2g-seg__btn {
   height: 34px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid #1e293b;
+  padding: 0 16px;
+  border-radius: calc(var(--radius-lg) - 2px);
+  border: 1px solid transparent;
   background: transparent;
-  color: #94A3B8;
-  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: border-color .15s ease, color .15s ease, background-color .15s ease;
+  transition: border-color .15s ease, color .15s ease, background-color .15s ease, box-shadow .15s ease;
 }
 .l2g-seg__btn:hover {
-  border-color: #334155;
-  color: #F8FAFC;
+  color: hsl(var(--foreground));
 }
 .l2g-seg__btn--on {
   border-color: transparent;
-  color: #fff;
-  background: #F472B6;
+  color: hsl(var(--primary-foreground));
+  background: var(--brand-hex);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 :root[data-theme="light"] .l2g-seg__btn {
-  border-color: #e2e8f0;
   color: #64748b;
 }
 :root[data-theme="light"] .l2g-seg__btn:hover {
   color: #0f172a;
-  border-color: #cbd5e1;
 }
 :root[data-theme="light"] .l2g-seg__btn--on {
-  color: #fff;
-  background: #F472B6;
+  color: hsl(var(--primary-foreground));
+  background: var(--brand-hex);
   border-color: transparent;
 }
 .l2g-seg__count {
@@ -1101,15 +1110,15 @@
   margin-right: auto;
 }
 :root[data-theme="light"] .ds-table-card {
-  background: rgba(255, 255, 255, 0.78) !important;
-  border-color: rgba(244, 114, 182, 0.2) !important;
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
 }
 :root[data-theme="light"] .dd-money-flow {
   color: #0f172a;
   font-weight: 600;
 }
 :root[data-theme="light"] .dd-money-gold {
-  color: #DB2777;
+  color: var(--brand-text-hex);
   font-weight: 600;
   text-shadow: none;
 }
@@ -1129,9 +1138,40 @@
   padding: 24px 32px 40px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 @media (max-width: 768px) {
-  .ds-page--console { padding: 16px; gap: 12px; }
+  .ds-page--console { padding: 16px; gap: 14px; }
 }
 .l2g-orders-head { margin-bottom: 0; }
+
+/* 订单表：行更松、斑马极淡、次文 muted */
+.l2g-table .dd-table th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  font-size: 0.8125rem;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted) / 0.1);
+}
+.l2g-table .dd-table td {
+  padding-top: 16px;
+  padding-bottom: 16px;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: hsl(var(--foreground));
+}
+.l2g-table .dd-table tbody tr:nth-child(even) td {
+  background-color: hsl(var(--muted) / 0.03);
+}
+.l2g-table .dd-table tbody tr:hover td {
+  background-color: hsl(var(--accent) / 0.5) !important;
+}
+:root[data-theme="light"] .l2g-table .dd-table tbody tr:hover td {
+  background-color: hsl(var(--accent) / 0.7) !important;
+}
+.l2g-table .dd-order-no,
+.l2g-table .dd-cell-dual__bot {
+  color: hsl(var(--muted-foreground));
+}

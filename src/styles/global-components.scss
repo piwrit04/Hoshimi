@@ -295,8 +295,8 @@
      ------------------------------------------------------------ */
   .dd-tag {
     @apply inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap;
-    border-radius: var(--radius-sm);
-    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    padding: 0.25rem 0.75rem;
     border: 1px solid transparent;
     line-height: 18px;
   }
@@ -306,9 +306,9 @@
     border-color: rgba(var(--accent-soft-rgb), 0.35);
   }
   .dd-tag--brand {
-    background-color: rgba(var(--brand-rgb), 0.14);
+    background-color: rgba(var(--brand-rgb), 0.08);
     color: var(--brand-text-hex);
-    border-color: rgba(var(--brand-rgb), 0.35);
+    border-color: rgba(var(--brand-rgb), 0.4);
   }
   .dd-tag--success {
     background-color: rgba(var(--success-rgb), 0.14);
@@ -513,16 +513,16 @@
   }
   /* 去后台感：轻字重、透明底、仅发丝底边，无厚底/斑马默认 */
   .dd-table th {
-    height: 44px;
-    padding-top: 12px;
-    padding-bottom: 12px;
+    height: 48px;
+    padding-top: 14px;
+    padding-bottom: 14px;
     font-size: 12px;
     line-height: 16px;
     font-weight: 600;
-    letter-spacing: 0.02em;
-    color: #94A3B8;
-    background: transparent;
-    border-bottom: 1px solid #1e293b;
+    letter-spacing: 0.025em;
+    color: hsl(var(--muted-foreground));
+    background: hsl(var(--muted) / 0.1);
+    border-bottom: 1px solid hsl(var(--border));
     white-space: nowrap;
   }
   :root[data-theme="light"] .dd-table th {
@@ -530,24 +530,27 @@
     border-bottom-color: #e2e8f0;
   }
   .dd-table td {
-    min-height: 56px;
+    min-height: 64px;
     height: auto;
-    padding-top: 14px;
-    padding-bottom: 14px;
-    line-height: 20px;
-    color: #F8FAFC;
-    border-bottom: 1px solid rgba(30, 41, 59, 0.8);
+    padding-top: 16px;
+    padding-bottom: 16px;
+    padding-left: 20px;
+    padding-right: 20px;
+    line-height: 1.5;
+    font-size: 0.9375rem;
+    color: hsl(var(--foreground));
+    border-bottom: 1px solid hsl(var(--border));
     background-color: transparent;
-    transition: background-color 0.16s ease;
+    transition: background-color 0.15s ease;
   }
   :root[data-theme="light"] .dd-table td {
     color: #0f172a;
     border-bottom-color: #f1f5f9;
   }
   .dd-table th:first-child,
-  .dd-table td:first-child { padding-left: 16px; }
+  .dd-table td:first-child { padding-left: 20px; }
   .dd-table th:last-child,
-  .dd-table td:last-child { padding-right: 16px; }
+  .dd-table td:last-child { padding-right: 20px; }
   .dd-table tbody tr:last-child td {
     border-bottom: none;
   }
@@ -607,7 +610,7 @@
     font-size: 12.5px;
     font-weight: 600;
     letter-spacing: 0.02em;
-    color: #94A3B8;
+    color: hsl(var(--muted-foreground));
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
     flex-shrink: 0;
@@ -620,12 +623,12 @@
   .dd-order-no--always { opacity: 1; }
   /* 到手：克制软粉，无荧光光晕 */
   .dd-money-gold {
-    color: #F472B6;
+    color: var(--brand-hex);
     font-weight: 600;
     text-shadow: none;
   }
   .dd-money-flow {
-    color: #F8FAFC;
+    color: hsl(var(--foreground));
     font-weight: 600;
   }
   :root[data-theme="light"] .dd-money-flow {
@@ -697,21 +700,21 @@
   .dd-greeting__chip--warn strong { color: rgb(var(--warning-rgb)); }
   .dd-greeting__chip--muted strong { color: hsl(var(--foreground)); }
 
-  /* Console：斑马 + 悬停微亮，粉仅作选中左边条 */
+  /* Console：斑马极淡 + 悬停微亮，粉仅作选中左边条 */
   .dd-table tbody tr {
-    transition: background-color 0.16s ease;
+    transition: background-color 0.15s ease;
   }
   .dd-table tbody tr:nth-child(even) td {
-    background-color: rgba(30, 41, 59, 0.35);
+    background-color: hsl(var(--muted) / 0.03);
   }
   :root[data-theme="light"] .dd-table tbody tr:nth-child(even) td {
-    background-color: rgba(241, 245, 249, 0.7);
+    background-color: rgba(15, 23, 42, 0.02);
   }
   .dd-table tbody tr:hover td {
-    background-color: rgba(30, 41, 59, 0.55) !important;
+    background-color: hsl(var(--accent) / 0.5) !important;
   }
   :root[data-theme="light"] .dd-table tbody tr:hover td {
-    background-color: rgba(241, 245, 249, 0.95) !important;
+    background-color: hsl(var(--accent) / 0.85) !important;
   }
   .dd-table tbody tr:hover td:first-child {
     box-shadow: none;
@@ -720,13 +723,13 @@
     outline: none;
   }
   .dd-table tbody tr[data-selected="true"] td {
-    background-color: rgba(244, 114, 182, 0.08) !important;
+    background-color: rgba(var(--brand-rgb), 0.08) !important;
   }
   .dd-table tbody tr[data-selected="true"] td:first-child {
-    box-shadow: inset 2px 0 0 0 #F472B6;
+    box-shadow: inset 2px 0 0 0 var(--brand-hex);
   }
   .dd-table tbody tr[data-selected="true"]:hover td {
-    background-color: rgba(244, 114, 182, 0.12) !important;
+    background-color: rgba(var(--brand-rgb), 0.12) !important;
   }
   /* 错落入场（y:10 + 淡入，delay 由 --dd-row-delay 注入，组件侧封顶） */
   @keyframes dd-table-rise {
@@ -1724,7 +1727,7 @@
   .dd-money {
     @apply tabular-nums font-semibold whitespace-nowrap;
   }
-  .dd-money--income { color: #F472B6; }
+  .dd-money--income { color: var(--brand-hex); }
   .dd-money--expense { color: rgb(var(--danger-rgb)); }
   .dd-money--fee { color: rgb(var(--warning-rgb)); }
   .dd-money--muted { color: hsl(var(--muted-foreground)); }
@@ -2035,7 +2038,7 @@
     background: rgba(var(--brand-rgb), 0.55);
   }
   .dd-setup__line--breathe {
-    background: #F472B6;
+    background: var(--brand-hex);
     animation: dd-setup-line 2.4s ease-in-out infinite;
   }
   @keyframes dd-setup-breathe {

@@ -15,7 +15,7 @@ import { GlobalShortcuts } from "@/components/help/GlobalShortcuts";
 import { HighlightsBootstrap } from "@/components/help/HighlightsBootstrap";
 
 /*
- * Console 壳：实色底 #0B0F17；壁纸仅作全局底层且高不透明遮罩，侧栏/内容不透图。
+ * Console 壳：实色底 #0B0F17 · 侧栏/表卡 #121826；柔粉仅点缀；侧栏选中浅底+竖线。
  * 标题栏高度 h-14（56px）。
  */
 export default function MainLayout() {
