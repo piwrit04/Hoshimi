@@ -1,7 +1,7 @@
 import { useAtmosphereStore } from '@/store/useAtmosphereStore'
 import { cn } from '@/lib/utils'
 
-/** 全站固定壁纸 + 深浅实色遮罩（氛围靠壁纸+玻璃透明度，不用粉紫渐变） */
+/** 全站固定壁纸 + 深浅实色遮罩（深暗纱 / 浅暖白霜；氛围靠壁纸+玻璃，不用线性渐变） */
 export function AppWallpaper({ className }: { className?: string }) {
   const wallpaperPath = useAtmosphereStore((s) => s.wallpaperPath)
 

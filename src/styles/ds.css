@@ -497,49 +497,55 @@
   background: transparent !important;
 }
 
-/* 壁纸遮罩：实色+透明度，深浅双适配 */
+/*
+ * 壁纸遮罩：对齐 Liver2Go App.vue（slate-900/40）。
+ * 深色：偏暗蓝黑纱，壁纸透出多；粉 tint 轻微发光。
+ * 浅色：暖白霜纱（绝非近黑 chrome），壁纸仍能 peek，粉实色强调。
+ */
 .l2g-wallpaper__veil {
   position: absolute;
   inset: 0;
-  background: rgba(2, 6, 23, 0.55);
+  background: rgba(15, 23, 42, 0.38);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
 }
 :root[data-theme="light"] .l2g-wallpaper__veil {
-  background: rgba(255, 255, 255, 0.48);
+  background: rgba(255, 248, 252, 0.28);
 }
 .l2g-wallpaper__tint {
   position: absolute;
   inset: 0;
-  background: rgba(255, 107, 157, 0.08);
+  background: rgba(255, 107, 157, 0.10);
+  pointer-events: none;
 }
 :root[data-theme="light"] .l2g-wallpaper__tint {
-  background: rgba(255, 107, 157, 0.06);
+  background: rgba(255, 107, 157, 0.05);
 }
 .l2g-glass-aside,
 .l2g-glass-header {
-  background: rgba(15, 23, 42, 0.72) !important;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(15, 23, 42, 0.62) !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   border-color: rgba(255, 255, 255, 0.12) !important;
-  box-shadow: 0 8px 32px rgba(255, 107, 157, 0.1);
+  box-shadow: 0 8px 32px rgba(255, 107, 157, 0.14);
 }
 :root[data-theme="light"] .l2g-glass-aside,
 :root[data-theme="light"] .l2g-glass-header {
-  background: rgba(255, 255, 255, 0.78) !important;
-  border-color: rgba(255, 107, 157, 0.18) !important;
+  background: rgba(255, 255, 255, 0.62) !important;
+  border-color: rgba(255, 107, 157, 0.22) !important;
+  box-shadow: 0 8px 28px rgba(255, 107, 157, 0.10);
 }
 .l2g-glass-aside {
   border-right: 1px solid rgba(255, 255, 255, 0.12) !important;
 }
 :root[data-theme="light"] .l2g-glass-aside {
-  border-right-color: rgba(255, 107, 157, 0.18) !important;
+  border-right-color: rgba(255, 107, 157, 0.22) !important;
 }
 .l2g-glass-header {
   border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
 }
 :root[data-theme="light"] .l2g-glass-header {
-  border-bottom-color: rgba(255, 107, 157, 0.18) !important;
+  border-bottom-color: rgba(255, 107, 157, 0.22) !important;
 }
 .l2g-content {
   background: transparent !important;
@@ -547,16 +553,17 @@
 
 /* 玻璃表：粉悬停边（实色，无紫青光） */
 .ds-table-card {
-  background: rgba(15, 23, 42, 0.55) !important;
+  background: rgba(15, 23, 42, 0.48) !important;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
-  box-shadow: 0 8px 32px rgba(255, 107, 157, 0.12) !important;
+  box-shadow: 0 8px 32px rgba(255, 107, 157, 0.14) !important;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 :root[data-theme="light"] .ds-table-card {
-  background: rgba(255, 255, 255, 0.78) !important;
-  border-color: rgba(255, 107, 157, 0.2) !important;
+  background: rgba(255, 255, 255, 0.68) !important;
+  border-color: rgba(255, 107, 157, 0.22) !important;
+  box-shadow: 0 8px 24px rgba(255, 107, 157, 0.10) !important;
 }
 .ds-table-card:hover {
   border-color: rgba(255, 107, 157, 0.45) !important;
@@ -635,7 +642,8 @@
 }
 :root[data-theme="light"] .l2g-hero__title {
   color: hsl(var(--foreground));
-  text-shadow: 0 2px 16px rgba(255, 255, 255, 0.65), 0 0 28px rgba(255, 107, 157, 0.2);
+  /* 浅色：白雾 + 轻暗边，壁纸透出时标题仍可读 */
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9), 0 2px 18px rgba(255, 255, 255, 0.75), 0 0 24px rgba(255, 107, 157, 0.22);
 }
 .l2g-hero__caret {
   display: inline-block;
@@ -833,18 +841,18 @@
 
 .l2g-kpi-card,
 .l2g-glass-panel {
-  background: rgba(15, 23, 42, 0.55);
+  background: rgba(15, 23, 42, 0.48);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1.5px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
-  box-shadow: 0 8px 28px rgba(255, 107, 157, 0.1);
+  box-shadow: 0 8px 28px rgba(255, 107, 157, 0.14);
 }
 :root[data-theme="light"] .l2g-kpi-card,
 :root[data-theme="light"] .l2g-glass-panel {
-  background: rgba(255, 255, 255, 0.72);
-  border-color: rgba(255, 107, 157, 0.22);
-  box-shadow: 0 8px 24px rgba(255, 107, 157, 0.12);
+  background: rgba(255, 255, 255, 0.64);
+  border-color: rgba(255, 107, 157, 0.24);
+  box-shadow: 0 8px 24px rgba(255, 107, 157, 0.10);
 }
 
 .l2g-kpi-card {

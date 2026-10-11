@@ -343,7 +343,7 @@ export default function Settings() {
                   <SettingRow
                     icon={ImageIcon}
                     title="壁纸"
-                    description="当前壁纸路径（可换成本地 public 资源；默认抽象渐变）"
+                    description="当前壁纸路径（public/wallpapers；默认 Liver2Go 草地风景）"
                   >
                     <div className="flex items-center gap-2 justify-end max-w-xs">
                       <input
