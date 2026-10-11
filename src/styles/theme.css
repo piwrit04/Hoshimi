@@ -225,13 +225,11 @@
   --color-brand-60: rgba(var(--brand-rgb), 0.6);
   --color-on-brand: var(--on-brand-hex);
 
-  /* UI 圆体：优先筑紫A丸（本机/public/fonts），过渡用 M PLUS Rounded 1c（OFL） */
-  --font-sans: "筑紫A丸ゴシック", "Tsukushi A Round Gothic", "M PLUS Rounded 1c",
-    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC",
-    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-display: "筑紫A丸ゴシック", "Tsukushi A Round Gothic", "M PLUS Rounded 1c",
-    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC",
-    ui-sans-serif, system-ui, sans-serif;
+  /* UI：工具箱同款 Maple UI */
+  --font-sans: "Maple UI", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB",
+    "Noto Sans SC", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: "Maple UI", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB",
+    "Noto Sans SC", ui-sans-serif, system-ui, sans-serif;
   /* 金额数字：Inter，不用圆体 */
   --font-num: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", monospace;

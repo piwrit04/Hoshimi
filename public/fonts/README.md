@@ -1,13 +1,9 @@
-# 本地字体（筑紫A丸）
+# 本地字体（Maple UI）
 
-筑紫A丸ゴシック（Tsukushi A Round Gothic）是 Fontworks 商用字体，**不能随仓库分发**。
+与 Rhythm Toolbox 同款：
 
-当前 UI 暂用开源圆体 **M PLUS Rounded 1c**（OFL）。你电脑开机后，把已授权的字体文件放到本目录即可自动优先使用：
+- `Maple UI.ttf`（字重 400）
+- `Maple UI Bold.ttf`（字重 700）
+- `Comfortaa-Regular.woff2`（品牌英文）
 
-建议文件名（任选存在即可）：
-
-- `TsukushiARoundGothic-Regular.otf` / `.ttf`（字重 400）
-- `TsukushiARoundGothic-Medium.otf` / `.ttf`（字重 500，可选）
-- `TsukushiARoundGothic-Bold.otf` / `.ttf`（字重 700，可选）
-
-放好后重新 `npm run build` / 启动应用。CSS 已用 `@font-face` 引用上述路径；未放置时浏览器会跳过，继续用 M PLUS Rounded 1c。
+金额数字仍走 Inter（npm `@fontsource-variable/inter`）。
