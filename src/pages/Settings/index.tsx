@@ -4,9 +4,6 @@ import {
   Palette,
   Code2,
   Database,
-  Monitor,
-  Moon,
-  Sun,
   Download,
   Upload,
   Trash2,
@@ -20,8 +17,7 @@ import {
   LogOut,
   CloudOff,
 } from 'lucide-react'
-import { Dropdown } from '@/components/ui/overlay'
-import { FormSwitch } from '@/components/ui/form'
+import { FormSwitch, FormSegmentedControl } from '@/components/ui/form'
 import { Modal } from '@/components/ui/Modal'
 import { useThemeStore, type ThemeMode } from '@/store/useThemeStore'
 import { useOrdersStore } from '@/store/useOrdersStore'
@@ -36,12 +32,6 @@ import { exportCsv, exportXlsx } from '@/domain/export'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { Tabs } from '@/components/ui/feedback'
 import { useAuthStore } from '@/store/useAuthStore'
-
-const themeLabels: Record<ThemeMode, string> = {
-  system: '跟随系统',
-  dark: '深色模式',
-  light: '浅色模式',
-}
 
 const BACKUP_KEY = 'hoshimi.lastBackupAt'
 const APP_VERSION = __APP_VERSION__
@@ -173,18 +163,19 @@ export default function Settings() {
     : null
 
   return (
-    <div className="ds-page">
+    <div className="ds-page dd-settings-page">
       <PageHeader title="设置" description="账本与系统分两栏：目录费率导入在左边，外观云同步在右边" />
 
       <Tabs
         variant="pill"
+        className="dd-settings-rise"
         defaultActiveKey="ledger"
         items={[
           {
             key: 'ledger',
             label: '账本',
             content: (
-              <div className="flex flex-col gap-6 pt-2">
+              <div className="flex flex-col gap-6 pt-2 dd-settings-rise">
                 <CatalogEditor />
                 <ChannelFeesSection />
                 <ExpiryOffsetsSection />
@@ -310,33 +301,17 @@ export default function Settings() {
             key: 'system',
             label: '系统',
             content: (
-              <div className="flex flex-col gap-6 pt-2">
+              <div className="flex flex-col gap-6 pt-2 dd-settings-rise">
                 <SettingGroup title="通用">
                   <SettingRow icon={Palette} title="外观" description="选择应用的颜色主题">
-                    <Dropdown
-                      trigger={
-                        <button type="button" className="btn-base btn-secondary btn--sm w-32 !justify-between">
-                          {theme === 'system' && <Monitor size={14} />}
-                          {theme === 'dark' && <Moon size={14} />}
-                          {theme === 'light' && <Sun size={14} />}
-                          <span className="inline-flex items-center gap-2">{themeLabels[theme]}</span>
-                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="opacity-60">
-                            <path
-                              d="M2 3.5L5 6.5L8 3.5"
-                              stroke="currentColor"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </button>
-                      }
-                      items={[
-                        { key: 'system', label: '跟随系统', icon: Monitor },
-                        { key: 'dark', label: '深色模式', icon: Moon },
-                        { key: 'light', label: '浅色模式', icon: Sun },
+                    <FormSegmentedControl
+                      value={theme}
+                      onChange={(v) => setTheme(v as ThemeMode)}
+                      options={[
+                        { value: 'system', label: '系统' },
+                        { value: 'dark', label: '深色' },
+                        { value: 'light', label: '浅色' },
                       ]}
-                      onSelect={(k) => setTheme(k as ThemeMode)}
                     />
                   </SettingRow>
 
@@ -426,7 +401,7 @@ function ImportPreviewBody({ plan, fileName }: { plan: ImportPlan; fileName: str
       <p className="ds-caption">
         文件：{fileName || '未命名'} · 确认前尚未写入账本
       </p>
-      <div className="grid grid-cols-4 divide-x divide-border rounded-lg border border-border">
+      <div className="dd-settings-import-stats">
         <Mini label="将写入" value={`${plan.writeCount} 单`} strong />
         <Mini label="新客户" value={`${plan.newCustomerCount} 位`} />
         <Mini label="跳过重复" value={`${plan.skipCount} 单`} />
@@ -445,51 +420,57 @@ function ImportPreviewBody({ plan, fileName }: { plan: ImportPlan; fileName: str
           将新增服务器：{plan.newServers.join('、')}
         </p>
       ) : null}
-      <div className="max-h-72 overflow-auto rounded-lg border border-border">
-        <table className="dd-table dd-table--compact">
-          <colgroup>
-            <col style={{ width: 72 }} />
-            <col style={{ width: 56 }} />
-            <col style={{ width: 104 }} />
-            <col />
-            <col style={{ width: 96 }} />
-            <col style={{ width: 128 }} />
-          </colgroup>
-          <thead className="sticky top-0 z-10">
-            <tr>
-              {['表', '行', '客户', '项目', '金额', '结果'].map((h) => (
-                <th key={h} className={h === '金额' || h === '行' ? 'dd-table__num' : undefined}>
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {plan.rows.slice(0, 80).map((row) => (
-              <tr key={`${row.sheet}-${row.rowNumber}`}>
-                <td className="whitespace-nowrap">{row.sheet}</td>
-                <td className="dd-table__num">{row.rowNumber}</td>
-                <td className="whitespace-nowrap">{row.nickname || '—'}</td>
-                <td>
-                  {row.items.map((i) => i.product).join(' + ') || row.project || '—'}
-                </td>
-                <td className="dd-table__num">{row.amount.toFixed(2)}</td>
-                <td className="truncate">
-                  {row.disposition === 'write'
-                    ? '写入'
-                    : row.disposition === 'skip-duplicate'
-                      ? '跳过（已导入）'
-                      : row.disposition === 'skip-zero'
-                        ? '不导入'
-                        : row.error}
-                  {row.warnings.length ? ` · ${row.warnings.join('；')}` : ''}
-                </td>
+      <div className="ds-table-card dd-settings-import-table">
+        <div className="dd-table-wrap">
+          <table className="dd-table dd-table--compact">
+            <colgroup>
+              <col style={{ width: 72 }} />
+              <col style={{ width: 56 }} />
+              <col style={{ width: 104 }} />
+              <col />
+              <col style={{ width: 96 }} />
+              <col style={{ width: 128 }} />
+            </colgroup>
+            <thead className="sticky top-0 z-10 bg-card">
+              <tr>
+                {['表', '行', '客户', '项目', '金额', '结果'].map((h) => (
+                  <th key={h} className={h === '金额' || h === '行' ? 'dd-table__num' : undefined}>
+                    {h}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {plan.rows.slice(0, 80).map((row, i) => (
+                <tr
+                  key={`${row.sheet}-${row.rowNumber}`}
+                  className="dd-table__row--enter"
+                  style={{ ['--dd-row-delay' as string]: `${Math.min(i, 8) * 40}ms` }}
+                >
+                  <td className="whitespace-nowrap dd-table__cell--secondary">{row.sheet}</td>
+                  <td className="dd-table__num dd-table__cell--secondary">{row.rowNumber}</td>
+                  <td className="whitespace-nowrap dd-table__cell--primary">{row.nickname || '—'}</td>
+                  <td className="dd-table__cell--primary">
+                    {row.items.map((it) => it.product).join(' + ') || row.project || '—'}
+                  </td>
+                  <td className="dd-table__num dd-table__cell--anchor">{row.amount.toFixed(2)}</td>
+                  <td className="truncate dd-table__cell--secondary">
+                    {row.disposition === 'write'
+                      ? '写入'
+                      : row.disposition === 'skip-duplicate'
+                        ? '跳过（已导入）'
+                        : row.disposition === 'skip-zero'
+                          ? '不导入'
+                          : row.error}
+                    {row.warnings.length ? ` · ${row.warnings.join('；')}` : ''}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {plan.rows.length > 80 ? (
-          <p className="px-6 py-2 ds-caption border-t border-border">
+          <p className="px-6 py-2 ds-caption border-t border-border/60">
             仅显示前 80 行，共 {plan.rows.length} 行
           </p>
         ) : null}
@@ -508,11 +489,9 @@ function Mini({
   strong?: boolean
 }) {
   return (
-    <div className="flex flex-col gap-1 px-4 py-3">
+    <div className={`dd-settings-import-stat${strong ? ' dd-settings-import-stat--strong' : ''}`}>
       <div className="ds-caption">{label}</div>
-      <div className={`text-base leading-6 tabular-nums ${strong ? 'font-semibold text-brand' : 'font-medium text-foreground'}`}>
-        {value}
-      </div>
+      <div className="dd-settings-import-stat__value">{value}</div>
     </div>
   )
 }
@@ -529,16 +508,14 @@ function SettingRow({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex min-h-[72px] items-center justify-between gap-6 px-6 py-4">
-      <div className="flex items-center gap-3 min-w-0">
-        <div className="size-9 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">
+    <div className="dd-settings-row">
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
           <Icon size={16} />
         </div>
         <div className="min-w-0">
           <h3 className="text-sm font-medium leading-5 text-foreground">{title}</h3>
-          {description && (
-            <p className="ds-caption mt-0.5 line-clamp-2">{description}</p>
-          )}
+          {description ? <p className="ds-caption mt-0.5 line-clamp-2">{description}</p> : null}
         </div>
       </div>
       <div className="shrink-0">{children}</div>
@@ -548,9 +525,9 @@ function SettingRow({
 
 function SettingGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="flex flex-col gap-3">
+    <section className="dd-settings-group dd-settings-rise">
       <h2 className="ds-section-title px-1">{title}</h2>
-      <div className="ds-card divide-y divide-border overflow-hidden">{children}</div>
+      <div className="dd-settings-group__card ds-card">{children}</div>
     </section>
   )
 }
@@ -665,12 +642,12 @@ function ChannelFeesSection() {
         description="手续费 = 金额 × 费率。修改只影响之后新存的订单，旧单按保存时的费率。"
       >
         <div className="flex flex-wrap items-center gap-2 justify-end">
-          {fees.map((fee) => {
+          {fees.map((fee, i) => {
             const pct = drafts[fee.platform] ?? Math.round(fee.rate * 10000) / 100
             return (
               <label
                 key={fee.platform}
-                className="flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm"
+                className={`dd-settings-fee${i === 0 ? ' dd-settings-fee--anchor' : ''}`}
               >
                 <span className="shrink-0 font-medium text-muted-foreground">{fee.platform}</span>
                 <input

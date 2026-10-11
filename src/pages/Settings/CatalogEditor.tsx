@@ -84,10 +84,10 @@ export function CatalogEditor() {
   }
 
   return (
-    <section className="flex flex-col gap-3">
+    <section className="dd-settings-group dd-settings-rise">
     <h2 className="ds-section-title px-1">项目目录</h2>
-    <div className="ds-card overflow-hidden">
-      <div className="flex min-h-[72px] items-center gap-3 px-6 py-4 border-b border-border">
+    <div className="dd-catalog">
+      <div className="dd-catalog__head flex min-h-[64px] items-center gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <div className="size-9 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">
             <FolderTree size={16} />
@@ -158,7 +158,7 @@ export function CatalogEditor() {
 
 
       {/* 当前游戏的服务器 */}
-      <div className="flex flex-col gap-3 px-6 py-4 border-b border-border">
+      <div className="dd-catalog__servers flex flex-col gap-3">
         <div className="flex items-center gap-2">
           <Server size={14} className="text-muted-foreground" />
           <span className="text-[13px] font-medium">服务器</span>
@@ -168,9 +168,7 @@ export function CatalogEditor() {
           {gameServers.map((item) => (
             <li
               key={item.id}
-              className={`flex h-9 items-center gap-2 rounded-lg border border-border bg-card pr-0.5 pl-3 text-sm ${
-                !item.enabled ? 'opacity-55' : ''
-              }`}
+              className={`dd-catalog__server-chip ${!item.enabled ? 'opacity-55' : ''}`}
             >
               <span className="font-medium">{item.name}</span>
               <FormSwitch
@@ -238,10 +236,10 @@ export function CatalogEditor() {
       </div>
 
       {/* 左右分栏：固定高度，各自独立滚动，左边不随右边变长 */}
-      <div className="grid grid-cols-1 md:grid-cols-[232px_1fr] h-[420px] overflow-hidden">
+      <div className="dd-catalog__split">
         {/* 左：分类 */}
-        <aside className="flex flex-col min-h-0 border-b md:border-b-0 md:border-r border-border p-3">
-          <div className="flex h-8 shrink-0 items-center justify-between pl-3 mb-1">
+        <aside className="dd-catalog__cats min-h-0">
+          <div className="mb-1 flex h-8 shrink-0 items-center justify-between pl-3">
             <span className="ds-caption font-medium">分类</span>
             <Button
               size="sm"
@@ -265,11 +263,8 @@ export function CatalogEditor() {
                   key={c.id}
                   type="button"
                   onClick={() => setCategoryId(c.id)}
-                  className={`w-full h-9 text-left px-3 rounded-lg text-sm transition-colors flex items-center gap-2 ${
-                    c.id === activeCatId
-                      ? 'bg-brand/10 text-foreground font-medium'
-                      : 'hover:bg-secondary text-foreground'
-                  }`}
+                  className="dd-catalog__cat"
+                  data-active={c.id === activeCatId || undefined}
                 >
                   <span className="truncate flex-1">{c.name}</span>
                   {c.kind === 'custody' ? (
@@ -283,7 +278,7 @@ export function CatalogEditor() {
         </aside>
 
         {/* 右：项目 */}
-        <div className="flex flex-col min-h-0 gap-3 p-4 pl-6">
+        <div className="dd-catalog__products min-h-0">
           {activeCat ? (
             <>
               <div className="flex h-8 shrink-0 items-center gap-2">
@@ -349,21 +344,20 @@ export function CatalogEditor() {
                 </Button>
               </div>
 
-              <div className="flex-1 min-h-0 overflow-y-auto">
+              <div className="min-h-0 flex-1 overflow-y-auto">
                 {prods.length === 0 ? (
-                  <p className="rounded-lg border border-dashed border-border py-10 text-center text-sm text-muted-foreground">这个分类还没有项目</p>
+                  <p className="rounded-xl border border-dashed border-border/70 py-10 text-center text-sm text-muted-foreground">
+                    这个分类还没有项目
+                  </p>
                 ) : (
-                  <ul className="divide-y divide-border rounded-lg border border-border overflow-hidden">
+                  <ul className="dd-catalog__product-list">
                     {prods.map((p) => (
-                      <li
-                        key={p.id}
-                        className="flex h-12 items-center gap-2 pl-4 pr-2 bg-card hover:bg-secondary/50 transition-colors"
-                      >
-                        <div className={`min-w-0 flex-1 truncate text-sm ${!p.enabled ? 'text-muted-foreground' : ''}`}>
+                      <li key={p.id} className="dd-catalog__product">
+                        <div className={`min-w-0 flex-1 truncate text-sm font-medium ${!p.enabled ? 'text-muted-foreground' : ''}`}>
                           {p.name}
-                          {!p.enabled ? <span className="ds-caption ml-2">已停用</span> : null}
+                          {!p.enabled ? <span className="ds-caption ml-2 font-normal">已停用</span> : null}
                         </div>
-                        <div className="w-24 shrink-0 text-right text-sm tabular-nums text-muted-foreground mr-2">
+                        <div className="mr-1 w-24 shrink-0 text-right text-sm tabular-nums font-semibold text-foreground/85">
                           {p.price != null ? `¥${p.price.toFixed(2)}` : '未定价'}
                         </div>
                         <FormSwitch
