@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Check, ListTodo, Play, PlusCircle, Search, X } from 'lucide-react'
+import { Check, ListTodo, Play, Plus, PlusCircle, Search, Trash2, X } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
@@ -21,6 +21,7 @@ import { actionLabel, nextStatuses, payoutVoid, NO_PAYOUT } from '@/domain/statu
 import { cn } from '@/lib/utils'
 import { yuan2 } from '@/lib/format'
 import { CountUp } from '@/lib/count-up'
+import { useFreeTodosStore } from '@/store/useFreeTodosStore'
 
 const PAGE = 24
 
@@ -130,6 +131,9 @@ export default function TodoPage() {
               灌入演示账本
             </Button>
           </div>
+        </div>
+        <div className="mt-6">
+          <FreeTodosPanel />
         </div>
       </div>
     )
@@ -248,7 +252,105 @@ export default function TodoPage() {
           ) : null}
         </section>
       ) : null}
+
+      <FreeTodosPanel />
     </div>
+  )
+}
+
+function FreeTodosPanel() {
+  const items = useFreeTodosStore((s) => s.items)
+  const add = useFreeTodosStore((s) => s.add)
+  const toggle = useFreeTodosStore((s) => s.toggle)
+  const remove = useFreeTodosStore((s) => s.remove)
+  const clearDone = useFreeTodosStore((s) => s.clearDone)
+  const [draft, setDraft] = useState('')
+  const open = items.filter((it) => !it.done).length
+  const done = items.length - open
+
+  const submit = () => {
+    if (!add(draft)) return
+    setDraft('')
+  }
+
+  return (
+    <section className="flex flex-col gap-3">
+      <div className="flex h-8 items-center gap-2">
+        <h2 className="ds-section-title">自由待办</h2>
+        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary px-1.5 text-xs font-medium tabular-nums text-muted-foreground">
+          {open}
+        </span>
+        <span className="ds-caption">本机备忘，不进账本</span>
+        <div className="flex-1" />
+        {done > 0 ? (
+          <Button size="sm" variant="ghost" onClick={() => clearDone()}>
+            清除已完成（{done}）
+          </Button>
+        ) : null}
+      </div>
+      <div className="ds-card flex flex-col gap-3 p-4">
+        <div className="flex gap-2">
+          <div className="min-w-0 flex-1">
+            <FormInput
+              placeholder="随手记一件事…"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  submit()
+                }
+              }}
+            />
+          </div>
+          <Button variant="secondary" icon={Plus} onClick={submit} disabled={!draft.trim()}>
+            添加
+          </Button>
+        </div>
+        {items.length === 0 ? (
+          <p className="ds-caption py-2 text-center">还没有自由待办</p>
+        ) : (
+          <ul className="flex flex-col gap-1">
+            {items.map((it) => (
+              <li
+                key={it.id}
+                className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-secondary/50"
+              >
+                <button
+                  type="button"
+                  className={cn(
+                    'flex h-5 w-5 shrink-0 items-center justify-center rounded border',
+                    it.done
+                      ? 'border-brand bg-brand/15 text-brand'
+                      : 'border-border text-transparent',
+                  )}
+                  aria-label={it.done ? '标为未完成' : '标为完成'}
+                  onClick={() => toggle(it.id)}
+                >
+                  <Check size={12} />
+                </button>
+                <span
+                  className={cn(
+                    'min-w-0 flex-1 truncate text-sm',
+                    it.done && 'text-muted-foreground line-through',
+                  )}
+                >
+                  {it.text}
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  icon={Trash2}
+                  iconOnly
+                  aria-label="删除"
+                  onClick={() => remove(it.id)}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
   )
 }
 
