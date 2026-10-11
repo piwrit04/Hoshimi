@@ -34,6 +34,7 @@ try {
   const excel = await server.ssrLoadModule('/src/domain/excel.ts')
   const dashboard = await server.ssrLoadModule('/src/domain/dashboard.ts')
   const workbench = await server.ssrLoadModule('/src/domain/workbench.ts')
+  const selectors = await server.ssrLoadModule('/src/domain/selectors.ts')
 
   // --- catalog products purity in fixtures ---
   const seed = catalog.seedCatalog()
@@ -603,6 +604,66 @@ try {
   assert(money.parseMoney('¥128.00') === 128, 'parseMoney yuan')
   assert(money.parseMoney('1,280.5') === 1280.5, 'parseMoney comma')
   assert(money.parseMoney('') == null, 'parseMoney empty')
+
+
+  // periodAnchor: 今日到手按完成日
+  {
+    const now = new Date('2026-10-12T15:00:00+08:00')
+    const base = {
+      id: 'x',
+      orderNo: '#T',
+      type: '普通',
+      status: '已完成',
+      nickname: '测',
+      contact: '1',
+      platform: '微信',
+      server: '官服',
+      items: [],
+      amount: 10,
+      feeRate: 0,
+      feeAmount: 0,
+      payout: 10,
+      transferEnabled: false,
+      transferMode: 'ratio',
+      transferRatio: 0,
+      transferAmount: 0,
+      note: '',
+      createdAt: '2026-10-10T10:00:00.000Z',
+      completedAt: '2026-10-12T02:00:00.000Z',
+    }
+    const byCreated = selectors.filterOrders([base], {
+      mode: '已完成',
+      period: 'today',
+      periodAnchor: 'createdAt',
+      now,
+    })
+    const byDone = selectors.filterOrders([base], {
+      mode: '已完成',
+      period: 'today',
+      periodAnchor: 'completedAt',
+      now,
+    })
+    assert(byCreated.length === 0, 'today+createdAt misses old created order')
+    assert(byDone.length === 1, 'today+completedAt hits completed today')
+    const noDone = selectors.filterOrders(
+      [{ ...base, completedAt: undefined, status: '进行中' }],
+      { period: 'today', periodAnchor: 'completedAt', now },
+    )
+    assert(noDone.length === 0, 'completedAt anchor skips orders without completedAt')
+  }
+
+  // catalog updateCategory kind
+  {
+    let catSlice = catalog.seedCatalog()
+    const custody = catSlice.categories.find((c) => c.kind === 'custody')
+    assert(custody, 'seed has custody category')
+    catSlice = catalog.updateCategory(catSlice, custody.id, { kind: 'normal' })
+    const flipped = catSlice.categories.find((c) => c.id === custody.id)
+    assert(flipped.kind === 'normal', 'updateCategory can change kind to normal')
+    catSlice = catalog.updateCategory(catSlice, custody.id, { kind: 'custody', name: '托管改' })
+    const back = catSlice.categories.find((c) => c.id === custody.id)
+    assert(back.kind === 'custody' && back.name === '托管改', 'updateCategory kind+name')
+  }
 
   if (failed) {
     console.error(`\n${failed} failed`)

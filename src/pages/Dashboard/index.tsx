@@ -124,9 +124,9 @@ export default function Dashboard() {
   const modalMeta: Record<KpiKey, { title: string; hint: string; moreTo: string; moreLabel: string }> = {
     today: {
       title: '今日到手',
-      hint: '今天「已完成」订单的到手明细',
-      moreTo: '/orders?mode=已完成',
-      moreLabel: '去订单 · 已完成',
+      hint: '今天按「完成日」计入的到手明细',
+      moreTo: '/orders?mode=已完成&period=today&anchor=completed',
+      moreLabel: '去订单 · 今日完成',
     },
     active: {
       title: '进行中',

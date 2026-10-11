@@ -6,6 +6,8 @@ import type { Order, OrderStatus, OrderType, Platform } from '@/domain/order'
 
 export type OrderMode = 'open' | 'all' | OrderStatus
 export type Period = 'all' | 'today' | '7d' | 'month' | 'lastMonth'
+/** 时间筛按哪一列：下单日（默认）或完成日（概览「今日到手」深链） */
+export type PeriodAnchor = 'createdAt' | 'completedAt'
 export type OrderSortKey = 'createdAt' | 'amount' | 'completedAt'
 export type OrderSortDir = 'asc' | 'desc'
 
@@ -34,9 +36,16 @@ export function matchesQuery(order: Order, query: string): boolean {
   return orderHaystack(order).includes(q)
 }
 
-export function inPeriod(order: Order, period: Period, now = new Date()): boolean {
+export function inPeriod(
+  order: Order,
+  period: Period,
+  now = new Date(),
+  anchor: PeriodAnchor = 'createdAt',
+): boolean {
   if (period === 'all') return true
-  const t = new Date(order.createdAt)
+  const raw = anchor === 'completedAt' ? order.completedAt : order.createdAt
+  if (!raw) return false
+  const t = new Date(raw)
   if (Number.isNaN(t.getTime())) return false
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   if (period === 'today') return t >= startOfDay
@@ -55,6 +64,8 @@ export function filterOrders(
     query?: string
     platform?: Platform | 'all'
     period?: Period
+    /** 默认按 createdAt；概览今日到手用 completedAt */
+    periodAnchor?: PeriodAnchor
     now?: Date
   },
 ): Order[] {
@@ -62,6 +73,7 @@ export function filterOrders(
   const mode = options.mode ?? 'all'
   const platform = options.platform ?? 'all'
   const period = options.period ?? 'all'
+  const periodAnchor = options.periodAnchor ?? 'createdAt'
   const query = options.query ?? ''
   return orders
     .filter((order) => type === 'all' || order.type === type)
@@ -71,7 +83,7 @@ export function filterOrders(
       return order.status === mode
     })
     .filter((order) => platform === 'all' || order.platform === platform)
-    .filter((order) => inPeriod(order, period, options.now))
+    .filter((order) => inPeriod(order, period, options.now, periodAnchor))
     .filter((order) => matchesQuery(order, query))
 }
 

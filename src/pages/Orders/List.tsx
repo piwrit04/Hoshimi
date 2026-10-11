@@ -40,6 +40,7 @@ import {
   type OrderSortDir,
   type OrderSortKey,
   type Period,
+  type PeriodAnchor,
 } from '@/domain/selectors'
 import { exportCsv, exportXlsx } from '@/domain/export'
 import { useState, memo, useMemo, useEffect } from 'react'
@@ -138,6 +139,7 @@ export default function Orders() {
   const [mode, setModeState] = useState<OrderMode>(ordersListState.mode)
   const [platform, setPlatformState] = useState<Platform | 'all'>(ordersListState.platform)
   const [period, setPeriodState] = useState<Period>(ordersListState.period)
+  const [periodAnchor, setPeriodAnchor] = useState<PeriodAnchor>('createdAt')
   const [search, setSearchState] = useState(ordersListState.search)
   const [sortBy, setSortByState] = useState<OrderSortKey>(ordersListState.sortBy)
   const [sortDir, setSortDirState] = useState<OrderSortDir>(ordersListState.sortDir)
@@ -147,6 +149,7 @@ export default function Orders() {
     const modeQ = searchParams.get('mode') as OrderMode | null
     const periodQ = searchParams.get('period') as Period | null
     const typeQ = searchParams.get('type')
+    const anchorQ = searchParams.get('anchor')
     const next: Partial<typeof ordersListState> = {}
     if (modeQ && MODES.some((m) => m.id === modeQ)) {
       setModeState(modeQ)
@@ -159,6 +162,16 @@ export default function Orders() {
     if (typeQ === 'all' || typeQ === '普通' || typeQ === '托管') {
       setTypeState(typeQ)
       next.type = typeQ
+    }
+    if (anchorQ === 'completed' || anchorQ === 'completedAt') {
+      setPeriodAnchor('completedAt')
+      // 今日到手深链：按完成日看，默认按完成时间新→旧
+      setSortByState('completedAt')
+      setSortDirState('desc')
+      next.sortBy = 'completedAt'
+      next.sortDir = 'desc'
+    } else if (anchorQ === 'created' || anchorQ === 'createdAt') {
+      setPeriodAnchor('createdAt')
     }
     if (Object.keys(next).length) writeListState(next)
     // only apply once from URL when landing
@@ -202,11 +215,18 @@ export default function Orders() {
   const rows = useMemo(
     () =>
       sortOrders(
-        filterOrders(orders, { type, mode, query: search, platform, period }),
+        filterOrders(orders, {
+          type,
+          mode,
+          query: search,
+          platform,
+          period,
+          periodAnchor,
+        }),
         sortBy,
         sortDir,
       ),
-    [orders, type, mode, search, platform, period, sortBy, sortDir],
+    [orders, type, mode, search, platform, period, periodAnchor, sortBy, sortDir],
   )
 
   const move = (order: Order, to: OrderStatus) => {
@@ -373,13 +393,13 @@ export default function Orders() {
     search.trim().length > 0
 
   const typeCounts = useMemo(() => {
-    const base = { mode, query: search, platform, period } as const
+    const base = { mode, query: search, platform, period, periodAnchor } as const
     return {
       all: filterOrders(orders, { ...base, type: 'all' }).length,
       普通: filterOrders(orders, { ...base, type: '普通' }).length,
       托管: filterOrders(orders, { ...base, type: '托管' }).length,
     }
-  }, [orders, mode, search, platform, period])
+  }, [orders, mode, search, platform, period, periodAnchor])
 
   const doExport = async (fmt: 'xlsx' | 'csv') => {
     try {
