@@ -1090,9 +1090,25 @@
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
+/* 订单表：列合计 max-content 左对齐，剩余空白在表右侧（不进列间） */
+.l2g-table .dd-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+.l2g-table .dd-table {
+  width: max-content;
+  max-width: 100%;
+  table-layout: fixed;
+  margin-left: 0;
+  margin-right: auto;
+}
 :root[data-theme="light"] .ds-table-card {
   background: rgba(255, 255, 255, 0.78) !important;
   border-color: rgba(255, 107, 157, 0.2) !important;
+}
+:root[data-theme="light"] .dd-money-flow {
+  color: #c43d6e;
+  font-weight: 600;
 }
 
 @media (prefers-reduced-motion: reduce) {

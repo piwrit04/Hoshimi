@@ -273,13 +273,14 @@ export default function Orders() {
       {
         key: 'customer',
         title: '客户',
+        width: '22rem',
         emphasis: 'primary',
         render: (r) => <OrderCustomerCell order={r} games={games} />,
       },
       {
         key: 'orderNo',
         title: '单号',
-        width: '148px',
+        width: '136px',
         emphasis: 'secondary',
         render: (r) => (
           <OrderNoCell order={r} onOpen={() => openEdit(r.id)} />
@@ -288,7 +289,7 @@ export default function Orders() {
       {
         key: 'amount',
         title: '金额 · 到手',
-        width: '128px',
+        width: '112px',
         align: 'right',
         sortable: true,
         emphasis: 'anchor',
@@ -297,14 +298,14 @@ export default function Orders() {
       {
         key: 'status',
         title: '状态',
-        width: '112px',
+        width: '100px',
         emphasis: 'anchor',
         render: (r) => <OrderStatusCell order={r} />,
       },
       {
         key: 'actions',
         title: '操作',
-        width: '152px',
+        width: '148px',
         align: 'right',
         render: (r) => (
           <OrderRowActions order={r} onMove={move} onEdit={() => openEdit(r.id)} />
