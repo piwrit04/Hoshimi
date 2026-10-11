@@ -1061,31 +1061,44 @@
   color: hsl(var(--foreground) / 0.85);
   background: hsl(var(--muted) / 0.2);
 }
+/* 激活态 B：浅粉底 + 粉字 + 细粉边（非实心粉底） */
 .l2g-seg__btn--on,
 .l2g-seg button.active,
 .l2g-seg button.l2g-seg__btn--on {
-  border-color: transparent;
-  color: hsl(var(--primary-foreground));
-  background: hsl(var(--primary));
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  background: hsl(var(--primary) / 0.15);
+  color: var(--brand-hex); /* #D8A0BC */
+  border-color: hsl(var(--primary) / 0.45);
+  box-shadow: none;
 }
-/* 品牌粉填充优先（与现有 --brand-hex 一致） */
-.l2g-seg__btn--on {
-  background: var(--brand-hex);
+.l2g-seg__btn--on:hover,
+.l2g-seg button.active:hover,
+.l2g-seg button.l2g-seg__btn--on:hover {
+  background: hsl(var(--primary) / 0.22);
+  color: var(--brand-hex);
+  border-color: hsl(var(--primary) / 0.55);
 }
 :root[data-theme="light"] .l2g-seg__btn,
 :root[data-theme="light"] .l2g-seg button {
-  color: hsl(var(--foreground) / 0.5);
+  color: hsl(var(--foreground) / 0.6);
 }
 :root[data-theme="light"] .l2g-seg__btn:hover,
 :root[data-theme="light"] .l2g-seg button:hover {
-  color: hsl(var(--foreground) / 0.75);
+  color: hsl(var(--foreground) / 0.85);
 }
 :root[data-theme="light"] .l2g-seg__btn--on,
-:root[data-theme="light"] .l2g-seg button.active {
-  color: hsl(var(--primary-foreground));
-  background: var(--brand-hex);
-  border-color: transparent;
+:root[data-theme="light"] .l2g-seg button.active,
+:root[data-theme="light"] .l2g-seg button.l2g-seg__btn--on {
+  background: hsl(var(--primary) / 0.15);
+  color: var(--brand-hex);
+  border-color: hsl(var(--primary) / 0.45);
+  box-shadow: none;
+}
+:root[data-theme="light"] .l2g-seg__btn--on:hover,
+:root[data-theme="light"] .l2g-seg button.active:hover,
+:root[data-theme="light"] .l2g-seg button.l2g-seg__btn--on:hover {
+  background: hsl(var(--primary) / 0.22);
+  color: var(--brand-hex);
+  border-color: hsl(var(--primary) / 0.55);
 }
 .l2g-seg__count {
   margin-left: 4px;
