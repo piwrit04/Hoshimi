@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { pushOverlay } from '@/lib/overlay-stack'
@@ -59,6 +59,7 @@ function ConfirmCard({ entry }: { entry: Entry }) {
     })
   }, [entry.id, busy])
 
+  const reduceMotion = useReducedMotion()
   const tone = entry.tone ?? 'danger'
 
   return (
@@ -67,6 +68,7 @@ function ConfirmCard({ entry }: { entry: Entry }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
+        transition={{ duration: reduceMotion ? 0.01 : 0.2 }}
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={() => !busy && closeEntry(entry.id, false)}
         aria-hidden="true"
@@ -74,9 +76,14 @@ function ConfirmCard({ entry }: { entry: Entry }) {
       <motion.div
         role="alertdialog"
         aria-modal="true"
-        initial={{ opacity: 0, scale: 0.96, y: 12 }}
+        initial={reduceMotion ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.98, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96, y: 12 }}
+        exit={reduceMotion ? { opacity: 0, scale: 1, y: 0 } : { opacity: 0, scale: 0.98, y: 8 }}
+        transition={
+          reduceMotion
+            ? { duration: 0.01 }
+            : { type: 'tween', duration: 0.28, ease: [0.22, 1, 0.36, 1] }
+        }
         className="relative w-full max-w-sm bg-card border border-border rounded-lg shadow-2 p-5"
       >
         <div className="flex gap-3">

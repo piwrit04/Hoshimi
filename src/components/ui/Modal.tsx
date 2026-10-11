@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import ReactDOM from 'react-dom';
@@ -18,6 +18,7 @@ interface ModalProps {
 }
 
 function ModalImpl({ isOpen, onClose, title, children, footer, className, showClose = true }: ModalProps) {
+  const reduceMotion = useReducedMotion();
   const onCloseRef = React.useRef(onClose);
   const panelRef = React.useRef<HTMLDivElement>(null);
 
@@ -75,15 +76,20 @@ function ModalImpl({ isOpen, onClose, title, children, footer, className, showCl
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: reduceMotion ? 0.01 : 0.2 }}
             onClick={onClose}
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             aria-hidden="true"
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.98, y: 8 }}
+            initial={reduceMotion ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.98, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.98, y: 8 }}
-            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            exit={reduceMotion ? { opacity: 0, scale: 1, y: 0 } : { opacity: 0, scale: 0.98, y: 8 }}
+            transition={
+              reduceMotion
+                ? { duration: 0.01 }
+                : { type: 'tween', duration: 0.28, ease: [0.22, 1, 0.36, 1] }
+            }
             className={cn(
               "relative w-full max-w-lg bg-card text-card-foreground border border-border rounded-xl shadow-2 overflow-hidden flex flex-col max-h-[90vh]",
               className
