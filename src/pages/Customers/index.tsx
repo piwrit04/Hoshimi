@@ -1,15 +1,15 @@
 import { useMemo, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ChevronRight, Download, GitMerge, PenLine, Plus, PlusCircle, Search, Trash2, Users } from 'lucide-react'
+import { ChevronRight, Download, GitMerge, MoreHorizontal, PenLine, Plus, PlusCircle, Search, Trash2, Users, X } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { yuan, yuan2 } from '@/lib/format'
-import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { DataTable, Avatar, Tag, type DataTableColumn } from '@/components/ui/data'
-import { FormInput, FormSelect, FormSegmentedControl, FormTextarea } from '@/components/ui/form'
+import { FormInput, FormSelect, FormTextarea } from '@/components/ui/form'
 import { Modal } from '@/components/ui/Modal'
 import { modalConfirm } from '@/components/ui/ModalConfirm'
+import { Dropdown } from '@/components/ui/overlay'
 import { useOrdersStore, type Order } from '@/store/useOrdersStore'
 import { useToastStore } from '@/store/useToastStore'
 import { useNewOrderStore } from '@/store/useNewOrderStore'
@@ -171,17 +171,42 @@ function CustomerList() {
   )
 
   return (
-    <div className="ds-page">
-      <PageHeader
-        title="客户"
-        description={`共 ${totalActive} 位 · 当前显示 ${rows.length} 位 · 记单时自动建档`}
-        actions={
-          <>
-            <Button
-              variant="secondary"
-              icon={Download}
-              disabled={rows.length === 0}
-              onClick={() => {
+    <div className="ds-page--console">
+      <div className="l2g-orders-head ds-rise">
+        <div className="l2g-orders-head__title-group">
+          <h1 className="l2g-orders-head__title title">客户</h1>
+          <p className="l2g-orders-head__sub subtitle">
+            共 {totalActive} 位 · 当前显示 {rows.length} 位 · 记单时自动建档
+          </p>
+        </div>
+        <div className="l2g-orders-head__actions">
+          <Dropdown
+            align="end"
+            trigger={
+              <span className="inline-flex">
+                <Button
+                  variant="ghost"
+                  icon={MoreHorizontal}
+                  iconOnly
+                  aria-label="更多操作"
+                />
+              </span>
+            }
+            items={[
+              {
+                key: 'export',
+                label: '导出 CSV',
+                icon: Download,
+                disabled: rows.length === 0,
+              },
+              {
+                key: 'new-order',
+                label: '新建订单',
+                icon: PlusCircle,
+              },
+            ]}
+            onSelect={(key) => {
+              if (key === 'export') {
                 exportCustomersCsv(
                   rows.map((r) => r.customer),
                   rows.length === totalActive ? '客户' : '筛选客户',
@@ -190,40 +215,64 @@ function CustomerList() {
                   type: 'success',
                   message: `已导出 ${rows.length} 位客户`,
                 })
-              }}
-            >
-              导出
-            </Button>
-            <Button variant="secondary" icon={PlusCircle} onClick={openNew}>
-              新建订单
-            </Button>
-            <Button variant="primary" icon={Plus} onClick={openCreate}>
-              新建客户
-            </Button>
-          </>
-        }
-      />
-
-      <div className="dd-customers-toolbar">
-        <div className="dd-customers-search" data-page-search>
-          <FormInput
-            prefix={<Search size={16} />}
-            placeholder="搜索昵称 / 手机号"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            clearable
-            onClear={() => setSearch('')}
+              } else if (key === 'new-order') {
+                openNew()
+              }
+            }}
           />
+          <Button variant="primary" icon={Plus} onClick={openCreate}>
+            新建客户
+          </Button>
         </div>
-        <FormSegmentedControl
-          value={sort}
-          onChange={(v) => setSort((v as SortKey) ?? 'recent')}
-          options={[
-            { value: 'recent', label: '最近' },
-            { value: 'spent', label: '消费' },
-            { value: 'count', label: '单量' },
-          ]}
-        />
+      </div>
+
+      <div className="l2g-filter-bar">
+        <div className="l2g-seg" role="tablist" aria-label="客户排序">
+          {(
+            [
+              { id: 'recent' as SortKey, label: '最近' },
+              { id: 'spent' as SortKey, label: '消费' },
+              { id: 'count' as SortKey, label: '单量' },
+            ] as const
+          ).map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={sort === t.id}
+              className={
+                sort === t.id ? 'l2g-seg__btn l2g-seg__btn--on' : 'l2g-seg__btn'
+              }
+              onClick={() => setSort(t.id)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <div className="ds-toolbar">
+          <div className="relative w-64" data-page-search>
+            <Search
+              size={16}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            />
+            <input
+              className="dd-control w-full !pl-9 !pr-8"
+              placeholder="搜索昵称 / 手机号"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            {search.trim() ? (
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label="清除搜索"
+                onClick={() => setSearch('')}
+              >
+                <X size={14} />
+              </button>
+            ) : null}
+          </div>
+        </div>
       </div>
 
       {pairs.length > 0 ? (
@@ -275,7 +324,7 @@ function CustomerList() {
         </details>
       ) : null}
 
-      <div className="ds-table-card">
+      <div className="table-container l2g-table">
         <DataTable
           columns={columns}
           data={rows}

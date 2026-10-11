@@ -2,10 +2,9 @@ import { useMemo, useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Check, ListTodo, Play, Plus, PlusCircle, Search, Trash2, X } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Tag } from '@/components/ui/data'
-import { FormInput, FormSegmentedControl } from '@/components/ui/form'
+import { FormInput } from '@/components/ui/form'
 import { modalConfirm } from '@/components/ui/ModalConfirm'
 import {
   captureOrderSlice,
@@ -112,8 +111,18 @@ export default function TodoPage() {
 
   if (orders.length === 0) {
     return (
-      <div className="ds-page">
-        <PageHeader title="待办" description="催单 + 进行中托管到期" />
+      <div className="ds-page--console">
+        <div className="l2g-orders-head ds-rise">
+          <div className="l2g-orders-head__title-group">
+            <h1 className="l2g-orders-head__title title">待办</h1>
+            <p className="l2g-orders-head__sub subtitle">催单 + 进行中托管到期</p>
+          </div>
+          <div className="l2g-orders-head__actions">
+            <Button variant="primary" icon={PlusCircle} onClick={openNew}>
+              新建订单
+            </Button>
+          </div>
+        </div>
         <div className="ds-card items-center py-16 text-center text-muted-foreground">
           <ListTodo size={36} className="mx-auto mb-3 opacity-30" />
           <p className="text-sm text-foreground/80">还没有订单</p>
@@ -140,16 +149,18 @@ export default function TodoPage() {
   }
 
   return (
-    <div className="ds-page">
-      <PageHeader
-        title="待办"
-        description={meta}
-        actions={
+    <div className="ds-page--console">
+      <div className="l2g-orders-head ds-rise">
+        <div className="l2g-orders-head__title-group">
+          <h1 className="l2g-orders-head__title title">待办</h1>
+          <p className="l2g-orders-head__sub subtitle">{meta}</p>
+        </div>
+        <div className="l2g-orders-head__actions">
           <Button variant="primary" icon={PlusCircle} onClick={openNew}>
             新建订单
           </Button>
-        }
-      />
+        </div>
+      </div>
 
       <div className="ds-stagger grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Stat label="今日完成" value={model.doneTodayCount} sub="单" />
@@ -162,31 +173,65 @@ export default function TodoPage() {
         />
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <FormSegmentedControl
-          value={tab}
-          onChange={(v) => {
-            setTab(v as Tab)
-            setNormalLimit(PAGE)
-            setExpireLimit(PAGE)
-          }}
-          options={[
-            { value: 'all', label: follow ? `全部 ${follow}` : '全部' },
-            { value: 'chase', label: model.chaseCount ? `催单 ${model.chaseCount}` : '催单' },
-            { value: 'due', label: model.dueCount ? `到期 ${model.dueCount}` : '到期' },
-          ]}
-        />
-        <div className="w-full sm:w-64">
-          <FormInput
-            prefix={<Search size={16} />}
-            placeholder="搜索客户、单号、项目…"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value)
-              setNormalLimit(PAGE)
-              setExpireLimit(PAGE)
-            }}
-          />
+      <div className="l2g-filter-bar">
+        <div className="l2g-seg" role="tablist" aria-label="待办筛选">
+          {(
+            [
+              { id: 'all' as Tab, label: '全部', count: follow },
+              { id: 'chase' as Tab, label: '催单', count: model.chaseCount },
+              { id: 'due' as Tab, label: '到期', count: model.dueCount },
+            ] as const
+          ).map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={tab === t.id}
+              className={
+                tab === t.id ? 'l2g-seg__btn l2g-seg__btn--on' : 'l2g-seg__btn'
+              }
+              onClick={() => {
+                setTab(t.id)
+                setNormalLimit(PAGE)
+                setExpireLimit(PAGE)
+              }}
+            >
+              {t.label}
+              {t.count ? <span className="l2g-seg__count">{t.count}</span> : null}
+            </button>
+          ))}
+        </div>
+        <div className="ds-toolbar">
+          <div className="relative w-64" data-page-search>
+            <Search
+              size={16}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            />
+            <input
+              className="dd-control w-full !pl-9 !pr-8"
+              placeholder="搜索客户、单号、项目…"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value)
+                setNormalLimit(PAGE)
+                setExpireLimit(PAGE)
+              }}
+            />
+            {query.trim() ? (
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label="清除搜索"
+                onClick={() => {
+                  setQuery('')
+                  setNormalLimit(PAGE)
+                  setExpireLimit(PAGE)
+                }}
+              >
+                <X size={14} />
+              </button>
+            ) : null}
+          </div>
         </div>
       </div>
 

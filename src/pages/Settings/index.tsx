@@ -1,4 +1,3 @@
-import { PageHeader } from '@/components/ui/PageHeader'
 import { useRef, useState } from 'react'
 import {
   Palette,
@@ -22,7 +21,7 @@ import {
   ImageIcon,
   Flower2,
 } from 'lucide-react'
-import { FormSwitch, FormSegmentedControl } from '@/components/ui/form'
+import { FormSwitch } from '@/components/ui/form'
 import { Modal } from '@/components/ui/Modal'
 import { useThemeStore, type ThemeMode } from '@/store/useThemeStore'
 import { useAtmosphereStore, DEFAULT_WALLPAPER } from '@/store/useAtmosphereStore'
@@ -36,7 +35,6 @@ import { feePercentLabel } from '@/domain/money'
 import type { Platform } from '@/domain/order'
 import { exportCsv, exportXlsx } from '@/domain/export'
 import { AuthModal } from '@/components/auth/AuthModal'
-import { Tabs } from '@/components/ui/feedback'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useSetupStore } from '@/store/useSetupStore'
 import { useHelpStore } from '@/store/useHelpStore'
@@ -74,6 +72,7 @@ export default function Settings() {
   const [importName, setImportName] = useState('')
   const [importReading, setImportReading] = useState(false)
   const [updateHint, setUpdateHint] = useState<string | null>(null)
+  const [settingsTab, setSettingsTab] = useState<'ledger' | 'system'>('ledger')
 
   const downloadBackup = () => {
     const snap = getSnapshot()
@@ -181,19 +180,44 @@ export default function Settings() {
     : null
 
   return (
-    <div className="ds-page dd-settings-page">
-      <PageHeader title="设置" description="账本与系统分两栏：目录费率导入在左边，外观云同步在右边" />
+    <div className="ds-page--console dd-settings-page">
+      <div className="l2g-orders-head ds-rise">
+        <div className="l2g-orders-head__title-group">
+          <h1 className="l2g-orders-head__title title">设置</h1>
+          <p className="l2g-orders-head__sub subtitle">
+            账本与系统分两栏：目录费率导入在左边，外观云同步在右边
+          </p>
+        </div>
+      </div>
 
-      <Tabs
-        variant="pill"
-        className="dd-settings-rise"
-        defaultActiveKey="ledger"
-        items={[
-          {
-            key: 'ledger',
-            label: '账本',
-            content: (
-              <div className="flex flex-col gap-6 pt-2 dd-settings-rise">
+      <div className="l2g-filter-bar">
+        <div className="l2g-seg" role="tablist" aria-label="设置分区">
+          {(
+            [
+              { id: 'ledger' as const, label: '账本' },
+              { id: 'system' as const, label: '系统' },
+            ] as const
+          ).map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={settingsTab === t.id}
+              className={
+                settingsTab === t.id
+                  ? 'l2g-seg__btn l2g-seg__btn--on'
+                  : 'l2g-seg__btn'
+              }
+              onClick={() => setSettingsTab(t.id)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {settingsTab === 'ledger' ? (
+              <div className="flex flex-col gap-6 dd-settings-rise">
                 <CatalogEditor />
                 <ChannelFeesSection />
                 <ExpiryOffsetsSection />
@@ -340,24 +364,34 @@ export default function Settings() {
                   </SettingRow>
                 </SettingGroup>
               </div>
-            ),
-          },
-          {
-            key: 'system',
-            label: '系统',
-            content: (
-              <div className="flex flex-col gap-6 pt-2 dd-settings-rise">
+      ) : (
+              <div className="flex flex-col gap-6 dd-settings-rise">
                 <SettingGroup title="通用">
                   <SettingRow icon={Palette} title="外观" description="选择应用的颜色主题">
-                    <FormSegmentedControl
-                      value={theme}
-                      onChange={(v) => setTheme(v as ThemeMode)}
-                      options={[
-                        { value: 'system', label: '系统' },
-                        { value: 'dark', label: '深色' },
-                        { value: 'light', label: '浅色' },
-                      ]}
-                    />
+                    <div className="l2g-seg" role="tablist" aria-label="外观主题">
+                      {(
+                        [
+                          { id: 'system' as ThemeMode, label: '系统' },
+                          { id: 'dark' as ThemeMode, label: '深色' },
+                          { id: 'light' as ThemeMode, label: '浅色' },
+                        ] as const
+                      ).map((t) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          role="tab"
+                          aria-selected={theme === t.id}
+                          className={
+                            theme === t.id
+                              ? 'l2g-seg__btn l2g-seg__btn--on'
+                              : 'l2g-seg__btn'
+                          }
+                          onClick={() => setTheme(t.id)}
+                        >
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
                   </SettingRow>
 
                   <SettingRow
@@ -477,10 +511,7 @@ export default function Settings() {
                   </SettingRow>
                 </SettingGroup>
               </div>
-            ),
-          },
-        ]}
-      />
+      )}
 
       <Modal
         isOpen={Boolean(importPlan)}
