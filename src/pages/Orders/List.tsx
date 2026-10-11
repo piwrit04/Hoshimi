@@ -270,41 +270,59 @@ export default function Orders() {
   const columns: DataTableColumn<Order>[] = useMemo(
     () => [
       {
-        key: 'customer',
-        title: '客户',
-        width: '36%',
-        emphasis: 'primary',
-        render: (r) => <OrderCustomerCell order={r} games={games} />,
-      },
-      {
         key: 'orderNo',
-        title: '单号',
-        width: '16%',
+        title: '订单号',
+        width: '12%',
         emphasis: 'secondary',
         render: (r) => (
           <OrderNoCell order={r} onOpen={() => openEdit(r.id)} />
         ),
       },
       {
+        key: 'customer',
+        title: '客户',
+        width: '14%',
+        emphasis: 'primary',
+        render: (r) => <OrderCustomerCell order={r} />,
+      },
+      {
+        key: 'content',
+        title: '订单内容',
+        width: '18%',
+        render: (r) => <OrderContentCell order={r} games={games} />,
+      },
+      {
+        key: 'platform',
+        title: '下单平台',
+        width: '10%',
+        render: (r) => <OrderPlatformCell order={r} />,
+      },
+      {
         key: 'amount',
         title: '金额 · 到手',
-        width: '14%',
+        width: '12%',
         align: 'right',
         sortable: true,
         emphasis: 'anchor',
         render: (r) => <OrderMoneyCell order={r} />,
       },
       {
+        key: 'dates',
+        title: '下单 · 完单',
+        width: '12%',
+        render: (r) => <OrderDatesCell order={r} />,
+      },
+      {
         key: 'status',
         title: '状态',
-        width: '12%',
+        width: '8%',
         emphasis: 'anchor',
         render: (r) => <OrderStatusCell order={r} />,
       },
       {
         key: 'actions',
         title: '操作',
-        width: '18%',
+        width: '14%',
         align: 'right',
         render: (r) => (
           <OrderRowActions order={r} onMove={move} onEdit={() => openEdit(r.id)} />
@@ -612,14 +630,8 @@ function projectLabel(order: Order) {
   return order.items.map((i) => i.product).join('、') || '—'
 }
 
-/** Cheezit 口径：昵称主行 · 游戏/项目（托管加粗）· 到期小字挂客户列 */
-function OrderCustomerCell({
-  order,
-  games,
-}: {
-  order: Order
-  games: { id: string; name: string }[]
-}) {
+/** 昵称主行 · 联系方式次行 */
+function OrderCustomerCell({ order }: { order: Order }) {
   const navigate = useNavigate()
   const customers = useOrdersStore((s) => s.customers)
   const id = useMemo(() => {
@@ -632,14 +644,6 @@ function OrderCustomerCell({
     )
     return hit?.id
   }, [order.customerId, order.contact, order.nickname, customers])
-
-  const game = gameLabel(order, games)
-  const project = projectLabel(order)
-  const today = todayISO()
-  const due =
-    order.type === '托管' && order.endDate ? daysUntilLabel(today, order.endDate) : null
-  const dueDays =
-    order.type === '托管' && order.endDate ? daysBetween(today, order.endDate) : null
 
   return (
     <div className="dd-cell-dual">
@@ -655,17 +659,42 @@ function OrderCustomerCell({
           {order.nickname || '未命名'}
         </button>
       </div>
-      <div className="dd-cell-dual__bot">
+      <div className="dd-cell-dual__bot truncate" title={order.contact || undefined}>
+        {order.contact || '—'}
+      </div>
+    </div>
+  )
+}
+
+/** 上：游戏 / 托管；下：项目内容；托管到期小字 */
+function OrderContentCell({
+  order,
+  games,
+}: {
+  order: Order
+  games: { id: string; name: string }[]
+}) {
+  const game = gameLabel(order, games)
+  const project = projectLabel(order)
+  const today = todayISO()
+  const due =
+    order.type === '托管' && order.endDate ? daysUntilLabel(today, order.endDate) : null
+  const dueDays =
+    order.type === '托管' && order.endDate ? daysBetween(today, order.endDate) : null
+
+  return (
+    <div className="dd-cell-dual">
+      <div className="dd-cell-dual__top">
         {order.type === '托管' ? (
-          <span className="truncate" title={project}>
-            <b className="mr-1 font-semibold text-foreground">托管</b>
-            {project}
-          </span>
+          <span className="font-semibold text-foreground">托管</span>
         ) : (
-          <span className="truncate" title={`${game} / ${project}`}>
-            {game} / {project}
+          <span className="truncate" title={game}>
+            {game}
           </span>
         )}
+      </div>
+      <div className="dd-cell-dual__bot truncate" title={project}>
+        {project}
       </div>
       {due ? (
         <div
@@ -687,21 +716,38 @@ function OrderCustomerCell({
 
 function OrderNoCell({ order, onOpen }: { order: Order; onOpen: () => void }) {
   return (
+    <button
+      type="button"
+      className="dd-order-no dd-order-no--always"
+      onClick={(e) => {
+        e.stopPropagation()
+        onOpen()
+      }}
+    >
+      {order.orderNo}
+    </button>
+  )
+}
+
+/** 平台主行 · 转单标记次行 */
+function OrderPlatformCell({ order }: { order: Order }) {
+  const transferHint = order.transferEnabled
+    ? order.transferMode === 'ratio'
+      ? `转单 ${Math.round(order.transferRatio * 100)}%`
+      : order.transferAmount > 0
+        ? `转单 ¥${order.transferAmount.toFixed(0)}`
+        : '转单'
+    : null
+
+  return (
     <div className="dd-cell-dual">
-      <div className="dd-cell-dual__top">
-        <button
-          type="button"
-          className="dd-order-no dd-order-no--always"
-          onClick={(e) => {
-            e.stopPropagation()
-            onOpen()
-          }}
-        >
-          {order.orderNo}
-        </button>
-      </div>
-      <div className="dd-cell-dual__bot tabular-nums whitespace-nowrap">
-        {shortDay(order.createdAt)} · {order.platform}
+      <div className="dd-cell-dual__top">{order.platform}</div>
+      <div className="dd-cell-dual__bot">
+        {transferHint ? (
+          <Tag tone="warning">{transferHint}</Tag>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        )}
       </div>
     </div>
   )
@@ -719,19 +765,22 @@ function OrderMoneyCell({ order }: { order: Order }) {
   )
 }
 
-function OrderStatusCell({ order }: { order: Order }) {
+/** 下单时间 · 完单时间 */
+function OrderDatesCell({ order }: { order: Order }) {
   return (
     <div className="dd-cell-dual">
-      <div className="dd-cell-dual__top">
-        <Tag tone={statusTone[order.status]}>{order.status}</Tag>
+      <div className="dd-cell-dual__top tabular-nums whitespace-nowrap">
+        {shortDay(order.createdAt)}
       </div>
-      {order.completedAt ? (
-        <div className="dd-cell-dual__bot tabular-nums whitespace-nowrap">
-          完成 {shortDay(order.completedAt)}
-        </div>
-      ) : null}
+      <div className="dd-cell-dual__bot tabular-nums whitespace-nowrap">
+        {order.completedAt ? shortDay(order.completedAt) : '—'}
+      </div>
     </div>
   )
+}
+
+function OrderStatusCell({ order }: { order: Order }) {
+  return <Tag tone={statusTone[order.status]}>{order.status}</Tag>
 }
 
 const OrderRowActions = memo(function OrderRowActions({
