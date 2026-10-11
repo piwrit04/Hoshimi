@@ -1501,29 +1501,16 @@
     flex-direction: column;
     gap: 8px;
   }
-  .dd-order-lines__head {
-    display: grid;
-    grid-template-columns: 28px 1fr 1fr 120px 36px;
-    align-items: center;
-    gap: 8px;
-    padding: 0 12px;
-    color: hsl(var(--muted-foreground));
-    font-size: 12px;
-    line-height: 16px;
-    font-weight: 500;
-  }
+  /* compact row cards: 分类·项目 one line, price right-anchored */
   .dd-order-line {
-    display: grid;
-    grid-template-columns: 28px 1fr 1fr 120px 36px;
+    display: flex;
     align-items: center;
-    gap: 8px;
-    min-height: 52px;
-    padding: 8px 12px;
+    gap: 12px;
+    min-height: 48px;
+    padding: 10px 12px;
     border-radius: var(--ds-r-row, 12px);
     border: 1px solid hsl(var(--border) / 0.55);
-    background:
-      radial-gradient(90% 80% at 100% 0%, rgba(var(--brand-rgb), 0.04) 0%, transparent 55%),
-      hsl(var(--card));
+    background: hsl(var(--card));
     transition:
       background-color 0.2s var(--ds-ease, cubic-bezier(0.22, 1, 0.36, 1)),
       border-color 0.2s var(--ds-ease, cubic-bezier(0.22, 1, 0.36, 1)),
@@ -1535,6 +1522,36 @@
     box-shadow:
       0 6px 16px -4px rgba(var(--brand-rgb), 0.12),
       0 2px 6px rgba(15, 15, 30, 0.04);
+  }
+  .dd-order-line__main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+  .dd-order-line__main > .dd-field {
+    flex: 1;
+    min-width: 0;
+  }
+  .dd-order-line__dot {
+    flex-shrink: 0;
+    color: hsl(var(--muted-foreground));
+    font-size: 14px;
+    line-height: 1;
+    user-select: none;
+  }
+  .dd-order-line__price {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+    width: 148px;
+  }
+  .dd-order-line__price > .dd-field {
+    flex: 1;
+    min-width: 0;
   }
   .dd-order-lines__total {
     display: flex;
@@ -1562,10 +1579,16 @@
   }
   @media (max-width: 640px) {
     .dd-order-transfer { grid-template-columns: 1fr; }
-    .dd-order-lines__head,
     .dd-order-line {
-      grid-template-columns: 24px 1fr 1fr;
-      grid-template-rows: auto auto;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .dd-order-line__main {
+      flex: 1 1 100%;
+    }
+    .dd-order-line__price {
+      width: 100%;
+      justify-content: flex-end;
     }
   }
   /* 金额条：吸在抽屉脚上方常显（先记单主路径：到手一眼可见） */
@@ -1589,9 +1612,7 @@
     background: hsl(var(--card));
   }
   .dd-order-money--sticky .dd-order-money__cell--highlight {
-    background:
-      radial-gradient(120% 100% at 50% 0%, rgba(var(--brand-rgb), 0.2) 0%, transparent 60%),
-      rgba(var(--brand-rgb), 0.1);
+    background: rgba(var(--brand-rgb), 0.1); /* solid soft pink #D8A0BC @ 10% */
   }
   .dd-order-money--sticky .dd-order-money__cell--highlight .dd-order-money__value {
     color: var(--brand-hex); /* #D8A0BC */

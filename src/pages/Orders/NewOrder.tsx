@@ -259,6 +259,14 @@ function Inner({
     const hit = channelFees.find((f) => f.platform === platform)
     return hit ? hit.rate : (PLATFORM_FEE[platform] ?? 0)
   })()
+  const channelOptions = useMemo(
+    () =>
+      (channelFees.length
+        ? channelFees.map((f) => f.platform)
+        : (Object.keys(PLATFORM_FEE) as Platform[])
+      ).map((p) => ({ value: p, label: p })),
+    [channelFees],
+  )
   const money = useMemo(
     () =>
       calcMoney({
@@ -653,18 +661,29 @@ function Inner({
                 { value: '托管', label: '托管单' },
               ]}
             />
-            <FormSegmentedControl
-              label="渠道"
-              required
-              disabled={moneyLocked}
-              value={platform}
-              onChange={(v) => setPlatform(v as Platform)}
-              help={`手续费 ${feePercentLabel(feeRate)}`}
-              options={(channelFees.length
-                ? channelFees.map((f) => f.platform)
-                : (Object.keys(PLATFORM_FEE) as Platform[])
-              ).map((p) => ({ value: p, label: p }))}
-            />
+            {channelOptions.length <= 4 ? (
+              <FormSegmentedControl
+                label="渠道"
+                required
+                disabled={moneyLocked}
+                value={platform}
+                onChange={(v) => setPlatform(v as Platform)}
+                help={`手续费 ${feePercentLabel(feeRate)}`}
+                options={channelOptions}
+              />
+            ) : (
+              <FormSelect
+                label="渠道"
+                required
+                disabled={moneyLocked}
+                value={platform}
+                onChange={(v) => {
+                  if (v) setPlatform(v as Platform)
+                }}
+                help={`手续费 ${feePercentLabel(feeRate)}`}
+                options={channelOptions}
+              />
+            )}
           </div>
 
           <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
@@ -722,60 +741,59 @@ function Inner({
               </p>
             ) : null}
             <div className="dd-order-lines">
-              <div className="dd-order-lines__head">
-                <span className="text-center">#</span>
-                <span>分类</span>
-                <span>项目</span>
-                <span className="pr-1 text-right">单价</span>
-                <span />
-              </div>
               {lines.map((line, i) => (
                 <div key={line.key} className="dd-order-line">
-                  <span className="ds-caption text-center tabular-nums">{i + 1}</span>
-                  <FormSelect
-                    placeholder="分类"
-                    disabled={moneyLocked}
-                    options={categories.map((c) => ({ label: c.name, value: c.name }))}
-                    value={line.category || null}
-                    onChange={(c) => updateLine(line.key, { category: c ?? '', product: '' })}
-                  />
-                  <FormSelect
-                    placeholder={line.category ? '项目' : '先选分类'}
-                    disabled={moneyLocked || !line.category}
-                    filterable
-                    options={(line.category ? productNamesOf(line.category) : []).map((p) => ({
-                      label: p.name,
-                      value: p.name,
-                    }))}
-                    value={line.product || null}
-                    onChange={(p) => {
-                      const hit = line.category
-                        ? productNamesOf(line.category).find((x) => x.name === p)
-                        : undefined
-                      updateLine(line.key, {
-                        product: p ?? '',
-                        price: hit?.price != null && !line.price ? String(hit.price) : line.price,
-                      })
-                    }}
-                  />
-                  <FormNumberInput
-                    unit="元"
-                    min={0}
-                    controls={false}
-                    placeholder="单价"
-                    disabled={moneyLocked}
-                    value={line.price === '' ? null : parseFloat(line.price)}
-                    onChange={(v) => updateLine(line.key, { price: v == null ? '' : String(v) })}
-                  />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    iconOnly
-                    icon={Trash2}
-                    disabled={moneyLocked || i === 0}
-                    onClick={() => removeLine(line.key)}
-                    aria-label="移除"
-                  />
+                  <div className="dd-order-line__main">
+                    <FormSelect
+                      placeholder="分类"
+                      disabled={moneyLocked}
+                      options={categories.map((c) => ({ label: c.name, value: c.name }))}
+                      value={line.category || null}
+                      onChange={(c) => updateLine(line.key, { category: c ?? '', product: '' })}
+                    />
+                    <span className="dd-order-line__dot" aria-hidden>
+                      ·
+                    </span>
+                    <FormSelect
+                      placeholder={line.category ? '项目' : '先选分类'}
+                      disabled={moneyLocked || !line.category}
+                      filterable
+                      options={(line.category ? productNamesOf(line.category) : []).map((p) => ({
+                        label: p.name,
+                        value: p.name,
+                      }))}
+                      value={line.product || null}
+                      onChange={(p) => {
+                        const hit = line.category
+                          ? productNamesOf(line.category).find((x) => x.name === p)
+                          : undefined
+                        updateLine(line.key, {
+                          product: p ?? '',
+                          price: hit?.price != null && !line.price ? String(hit.price) : line.price,
+                        })
+                      }}
+                    />
+                  </div>
+                  <div className="dd-order-line__price">
+                    <FormNumberInput
+                      unit="元"
+                      min={0}
+                      controls={false}
+                      placeholder="单价"
+                      disabled={moneyLocked}
+                      value={line.price === '' ? null : parseFloat(line.price)}
+                      onChange={(v) => updateLine(line.key, { price: v == null ? '' : String(v) })}
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      iconOnly
+                      icon={Trash2}
+                      disabled={moneyLocked || i === 0}
+                      onClick={() => removeLine(line.key)}
+                      aria-label="移除"
+                    />
+                  </div>
                 </div>
               ))}
             </div>
