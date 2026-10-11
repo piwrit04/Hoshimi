@@ -335,15 +335,29 @@ function Inner({
     if (!nickname.trim()) e.nickname = '必填'
     if (!contact.trim()) e.contact = '必填'
     if (!moneyLocked) {
+      if (!server) e.server = '必选'
       if (orderType === '普通') {
-        if (lines.some((l) => !l.product)) e.lines = '每行都要选项目'
+        if (lines.some((l) => !l.category || !l.product)) e.lines = '每行都要选分类和项目'
+        if (lines.length === 0) e.lines = '至少一行项目'
       } else {
-        if (!custodyKind) e.custodyKind = '必选'
+        if (!custodyKind.trim()) e.custodyKind = '必选'
         if (!settleKind) e.settleKind = '必选'
         if (!startDate) e.startDate = '必选'
         if (!endDate) e.endDate = '必选'
+        if (startDate && endDate && endDate < startDate) e.endDate = '结束日不能早于开始日'
       }
       if (amount <= 0) e.amount = '金额要大于 0'
+      if (transferEnabled) {
+        if (transferMode === 'ratio') {
+          if (transferPercent == null || transferPercent < 0 || transferPercent > 100) {
+            e.transfer = '比例填 0–100'
+          }
+        } else if (transferAmount == null || transferAmount < 0) {
+          e.transfer = '请填写转出金额'
+        } else if (transferAmount > amount && amount > 0) {
+          e.transfer = '转出不能超过订单金额'
+        }
+      }
     }
     setErrors(e)
     if (Object.keys(e).length > 0) return
@@ -622,8 +636,22 @@ function Inner({
               disabled={moneyLocked}
               value={orderType}
               onChange={(v) => {
-                setOrderType(v as '普通' | '托管')
+                const next = v as '普通' | '托管'
+                setOrderType(next)
                 setLines([{ key: 1, category: '', product: '', price: '' }])
+                if (next === '普通') {
+                  setCustodyKind('')
+                  setSettleKind('')
+                  setStartDate('')
+                  setEndDate('')
+                  setManualAmount(null)
+                } else {
+                  setCustodyKind('')
+                  setSettleKind('')
+                  setStartDate('')
+                  setEndDate('')
+                  setManualAmount(null)
+                }
               }}
               options={[
                 { value: '普通', label: '普通单' },
@@ -767,15 +795,28 @@ function Inner({
         ) : (
           <Card title="托管安排">
             <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
-              <FormRadioGroup
-                label="托管类型"
-                required
-                disabled={moneyLocked}
-                value={custodyKind}
-                onChange={(v) => setCustodyKind(v ?? '')}
-                options={custodyOptions.map((p) => ({ value: p, label: p }))}
-                error={errors.custodyKind}
-              />
+              {custodyOptions.length > 0 ? (
+                <FormRadioGroup
+                  label="托管类型"
+                  required
+                  disabled={moneyLocked}
+                  value={custodyKind}
+                  onChange={(v) => setCustodyKind(v ?? '')}
+                  options={custodyOptions.map((p) => ({ value: p, label: p }))}
+                  error={errors.custodyKind}
+                />
+              ) : (
+                <FormInput
+                  label="托管类型"
+                  required
+                  disabled={moneyLocked}
+                  value={custodyKind}
+                  onChange={(ev) => setCustodyKind(ev.target.value)}
+                  placeholder="目录里还没有托管项，可先手填"
+                  error={errors.custodyKind}
+                  help="可在设置 → 项目目录里添加「托管」分类项目"
+                />
+              )}
               <FormRadioGroup
                 label="结算方式"
                 required
@@ -831,6 +872,7 @@ function Inner({
           />
           {transferEnabled ? (
             <div className="dd-order-transfer">
+              {errors.transfer ? <p className="dd-error-text">{errors.transfer}</p> : null}
               <FormRadioGroup
                 label="转出方式"
                 required
