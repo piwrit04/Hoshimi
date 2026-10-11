@@ -16,6 +16,8 @@ export type LedgerView = {
   settings: { expiryOffsets: number[] }
 }
 
+export type ExpiringItem = { order: Order; days: number }
+
 function sumMoney(values: number[]): number {
   return fromCents(values.reduce((s, n) => s + toCents(n), 0))
 }
@@ -51,18 +53,17 @@ export function dashboard(ledger: LedgerView, now = new Date()) {
   const threshold = ledger.settings.expiryOffsets.length
     ? Math.max(...ledger.settings.expiryOffsets)
     : 7
-  const expiring = custodyActive
+  const expiring: ExpiringItem[] = custodyActive
     .filter((o) => o.endDate)
     .map((o) => ({ order: o, days: daysBetween(today, o.endDate!) }))
     .filter((x) => x.days <= threshold)
     .sort((a, b) => a.days - b.days)
 
-  // 本周（周一起）
-  const wk = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  wk.setDate(wk.getDate() - ((wk.getDay() + 6) % 7))
-  const newThisWeek = orders.filter((o) => new Date(o.createdAt).getTime() >= wk.getTime())
-  const newThisWeekLive = newThisWeek.filter((o) => o.status !== '已退款' && o.status !== '已取消')
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime()
+  const newThisMonth = orders.filter((o) => new Date(o.createdAt).getTime() >= monthStart)
+  const newThisMonthLive = newThisMonth.filter((o) => o.status !== '已退款' && o.status !== '已取消')
   const doneToday = done.filter((o) => todayISO(new Date(o.completedAt!)) === today)
+  const inProgress = orders.filter((o) => o.status === '进行中')
 
   const recent = [...orders].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 6)
   const statusCounts = ALL_STATUSES.map((status) => ({
@@ -78,7 +79,7 @@ export function dashboard(ledger: LedgerView, now = new Date()) {
     kpis: {
       total: orders.length,
       customers: ledger.customers.filter((c) => !c.mergedIntoId).length,
-      inProgress: orders.filter((o) => o.status === '进行中').length,
+      inProgress: inProgress.length,
       waiting: orders.filter((o) => o.status === '待处理').length,
       completedThisMonth: doneThisMonth.length,
       revenueThisMonth: sumMoney(doneThisMonth.map((o) => o.amount)),
@@ -89,8 +90,15 @@ export function dashboard(ledger: LedgerView, now = new Date()) {
       openCount: orders.filter(openStatus).length,
       payoutToday: sumMoney(doneToday.map((o) => o.payout)),
       completedToday: doneToday.length,
-      newThisWeek: newThisWeek.length,
-      newThisWeekAmount: sumMoney(newThisWeekLive.map((o) => o.amount)),
+      newThisMonth: newThisMonth.length,
+      newThisMonthAmount: sumMoney(newThisMonthLive.map((o) => o.amount)),
+    },
+    /** KPI 点开用的明细 */
+    lists: {
+      doneToday,
+      inProgress,
+      newThisMonth,
+      expiring,
     },
     expiring,
     recent,
