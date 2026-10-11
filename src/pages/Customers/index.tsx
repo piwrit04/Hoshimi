@@ -83,12 +83,13 @@ function CustomerList() {
       {
         key: 'customer',
         title: '客户',
+        emphasis: 'primary',
         render: (r) => (
           <div className="flex min-w-0 items-center gap-3">
             <Avatar size="sm">{letter(r.customer.nickname)}</Avatar>
             <div className="min-w-0">
-              <div className="truncate font-medium leading-5">{r.customer.nickname}</div>
-              <div className="ds-caption truncate">{r.customer.contact || '无联系方式'}</div>
+              <div className="truncate text-[14px] font-semibold leading-5">{r.customer.nickname}</div>
+              <div className="ds-caption truncate opacity-80">{r.customer.contact || '无联系方式'}</div>
             </div>
           </div>
         ),
@@ -96,13 +97,15 @@ function CustomerList() {
       {
         key: 'note',
         title: '备注',
-        render: (r) => <span className="block truncate text-muted-foreground">{r.customer.note || '—'}</span>,
+        emphasis: 'secondary',
+        render: (r) => <span className="block truncate">{r.customer.note || '—'}</span>,
       },
       {
         key: 'orderCount',
         title: '有效订单',
         width: '104px',
         align: 'right',
+        emphasis: 'secondary',
         render: (r) => r.orderCount,
       },
       {
@@ -110,15 +113,17 @@ function CustomerList() {
         title: '已完成消费',
         width: '128px',
         align: 'right',
-        render: (r) => <span className="font-medium">{yuan2(r.spent)}</span>,
+        emphasis: 'anchor',
+        render: (r) => <span>{yuan2(r.spent)}</span>,
       },
       {
         key: 'last',
         title: '最近下单',
         width: '112px',
         align: 'right',
+        emphasis: 'secondary',
         render: (r) => (
-          <span className="text-muted-foreground">
+          <span>
             {r.last ? new Date(r.last).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) : '—'}
           </span>
         ),
@@ -128,6 +133,7 @@ function CustomerList() {
         title: '',
         width: '56px',
         align: 'right',
+        emphasis: 'secondary',
         render: () => <ChevronRight size={16} className="ml-auto text-muted-foreground" />,
       },
     ],
@@ -277,20 +283,21 @@ function CustomerDetail({ id }: { id: string }) {
   const openOrder = useNewOrderStore((s) => s.openEdit)
   const orderColumns: DataTableColumn<Order>[] = useMemo(
     () => [
-      { key: 'orderNo', title: '单号', width: '148px', render: (o) => <span className="font-mono text-[13px] text-muted-foreground">{o.orderNo}</span> },
-      { key: 'createdAt', title: '日期', width: '72px', render: (o) => <span className="tabular-nums text-muted-foreground">{new Date(o.createdAt).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}</span> },
+      { key: 'orderNo', title: '单号', width: '148px', emphasis: 'secondary', render: (o) => <span className="font-mono text-[13px]">{o.orderNo}</span> },
+      { key: 'createdAt', title: '日期', width: '72px', emphasis: 'secondary', render: (o) => <span className="tabular-nums">{new Date(o.createdAt).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}</span> },
       {
         key: 'items',
         title: '项目',
+        emphasis: 'primary',
         render: (o) => (
-          <span className="block truncate">
+          <span className="block truncate font-medium">
             {o.type === '托管' ? `${o.custodyKind} · ${o.settleKind}` : o.items.map((i) => i.product).join('、') || '—'}
           </span>
         ),
       },
-      { key: 'platform', title: '渠道', width: '72px' },
-      { key: 'amount', title: '金额', width: '112px', align: 'right', render: (o) => yuan2(o.amount) },
-      { key: 'status', title: '状态', width: '104px', render: (o) => <Tag tone={statusTone[o.status]}>{o.status}</Tag> },
+      { key: 'platform', title: '渠道', width: '72px', emphasis: 'secondary' },
+      { key: 'amount', title: '金额', width: '112px', align: 'right', emphasis: 'anchor', render: (o) => yuan2(o.amount) },
+      { key: 'status', title: '状态', width: '104px', emphasis: 'anchor', render: (o) => <Tag tone={statusTone[o.status]}>{o.status}</Tag> },
     ],
     [],
   )

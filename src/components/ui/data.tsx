@@ -1,6 +1,7 @@
 import {
   useMemo,
   useState,
+  type CSSProperties,
   type ReactNode,
 } from 'react'
 import {
@@ -40,6 +41,8 @@ export interface DataTableColumn<T> {
   align?: 'left' | 'right' | 'center'
   /** 这一列表头可点排序 */
   sortable?: boolean
+  /** 信息层次：主列加粗 / 次要降权 / 金额状态锚点 */
+  emphasis?: 'primary' | 'secondary' | 'anchor'
   /** 单元格 class（只给 td） */
   className?: string
   /** 表头 class（只给 th） */
@@ -51,7 +54,7 @@ export interface DataTableProps<T> {
   data: T[]
   /** 行唯一 key */
   rowKey: (row: T, index: number) => string
-  /** 斑马纹 */
+  /** 斑马纹（默认关；行卡皮不推荐） */
   striped?: boolean
   /** 紧凑行高 */
   compact?: boolean
@@ -65,6 +68,8 @@ export interface DataTableProps<T> {
   /** 勾选列。传了就显示复选框 */
   onSelectedKeysChange?: (keys: string[]) => void
   loading?: boolean
+  /** 行错落入场（默认开；尊重 prefers-reduced-motion） */
+  animateRows?: boolean
 }
 
 export function DataTable<T>({
@@ -79,6 +84,7 @@ export function DataTable<T>({
   selectedKeys,
   onSelectedKeysChange,
   loading,
+  animateRows = true,
 }: DataTableProps<T>) {
   const [sortKey, setSortKey] = useState<string | null>(null)
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
@@ -119,6 +125,18 @@ export function DataTable<T>({
 
   const alignClass = (a?: DataTableColumn<T>['align']) =>
     a === 'right' ? 'dd-table__num' : a === 'center' ? 'dd-table__center' : ''
+
+  const emphasisClass = (e?: DataTableColumn<T>['emphasis']) =>
+    e === 'primary'
+      ? 'dd-table__cell--primary'
+      : e === 'secondary'
+        ? 'dd-table__cell--secondary'
+        : e === 'anchor'
+          ? 'dd-table__cell--anchor'
+          : ''
+
+  /* 错落 delay 封顶：前 8 行递增 40ms，之后同顶 */
+  const rowDelay = (i: number) => `${Math.min(i, 8) * 40}ms`
 
   const isEmpty = sorted.length === 0
 
@@ -210,7 +228,15 @@ export function DataTable<T>({
                 <tr
                   key={key}
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
-                  className={cn(onRowClick && 'cursor-pointer')}
+                  className={cn(
+                    onRowClick && 'cursor-pointer',
+                    animateRows && 'dd-table__row--enter',
+                  )}
+                  style={
+                    animateRows
+                      ? ({ ['--dd-row-delay' as string]: rowDelay(i) } as CSSProperties)
+                      : undefined
+                  }
                   data-selected={checked || undefined}
                 >
                   {selectable && (
@@ -225,7 +251,14 @@ export function DataTable<T>({
                     </td>
                   )}
                   {columns.map((col) => (
-                    <td key={col.key} className={cn(alignClass(col.align), col.className)}>
+                    <td
+                      key={col.key}
+                      className={cn(
+                        alignClass(col.align),
+                        emphasisClass(col.emphasis),
+                        col.className,
+                      )}
+                    >
                       {col.render
                         ? col.render(row, i)
                         : String((row as Record<string, unknown>)[col.key] ?? '')}

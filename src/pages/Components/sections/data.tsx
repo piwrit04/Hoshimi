@@ -100,14 +100,21 @@ export function DataTableDemo() {
       title: '订单号',
       width: '170px',
       sortable: true,
+      emphasis: 'secondary',
       render: (o) => <span className="font-mono text-xs">{o.no}</span>,
     },
-    { key: 'customer', title: '客户', width: '90px', sortable: true },
-    { key: 'service', title: '服务项目', render: (o) => <Ellipsis className="max-w-[140px]">{o.service}</Ellipsis> },
+    { key: 'customer', title: '客户', width: '90px', sortable: true, emphasis: 'primary' },
+    {
+      key: 'service',
+      title: '服务项目',
+      emphasis: 'primary',
+      render: (o) => <Ellipsis className="max-w-[140px] font-medium">{o.service}</Ellipsis>,
+    },
     {
       key: 'channel',
       title: '渠道',
       width: '100px',
+      emphasis: 'secondary',
       render: (o) => (
         <Tag tone={o.channel === 'xianyu' ? 'warning' : 'default'}>
           {CHANNEL_META[o.channel].label} · {CHANNEL_META[o.channel].rate}%
@@ -120,27 +127,30 @@ export function DataTableDemo() {
       width: '120px',
       align: 'right',
       sortable: true,
-      render: (o) => <span className="tabular-nums font-semibold">¥{yuan(o.amountCents)}</span>,
+      emphasis: 'anchor',
+      render: (o) => <span className="tabular-nums">¥{yuan(o.amountCents)}</span>,
     },
     {
       key: 'feeCents',
       title: '手续费',
       width: '100px',
       align: 'right',
+      emphasis: 'secondary',
       render: (o) => (
-        <span className="tabular-nums text-muted-foreground">
+        <span className="tabular-nums">
           {feeCents(o) === 0 ? '—' : `¥${yuan(feeCents(o))}`}
         </span>
       ),
     },
-    { key: 'fighter', title: '打手', width: '80px' },
+    { key: 'fighter', title: '打手', width: '80px', emphasis: 'secondary' },
     {
       key: 'status',
       title: '状态',
       width: '96px',
+      emphasis: 'anchor',
       render: (o) => <Tag tone={STATUS_META[o.status].tone}>{STATUS_META[o.status].label}</Tag>,
     },
-    { key: 'due', title: '托管到期', width: '96px', align: 'center' },
+    { key: 'due', title: '托管到期', width: '96px', align: 'center', emphasis: 'secondary' },
     {
       key: 'ops',
       title: '操作',
@@ -176,49 +186,54 @@ export function DataTableDemo() {
         </span>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={ORDERS}
-        rowKey={(o) => o.no}
-        selectedKeys={selected}
-        onSelectedKeysChange={setSelected}
-        onRowClick={(o) => setClicked(o.no)}
-        striped
-      />
+      <div className="ds-table-card">
+        <DataTable
+          columns={columns}
+          data={ORDERS}
+          rowKey={(o) => o.no}
+          selectedKeys={selected}
+          onSelectedKeysChange={setSelected}
+          onRowClick={(o) => setClicked(o.no)}
+        />
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <div className="text-xs font-medium text-muted-foreground mb-2">紧凑行高（compact）</div>
-          <DataTable
-            columns={[
-              { key: 'no', title: '订单号', render: (o: Order) => <span className="font-mono text-xs">{o.no}</span> },
-              { key: 'customer', title: '客户' },
-              { key: 'status', title: '状态', render: (o: Order) => <Tag tone={STATUS_META[o.status].tone}>{STATUS_META[o.status].label}</Tag> },
-            ]}
-            data={ORDERS.slice(0, 3)}
-            rowKey={(o) => o.no}
-            compact
-          />
+          <div className="ds-table-card">
+            <DataTable
+              columns={[
+                { key: 'no', title: '订单号', emphasis: 'secondary', render: (o: Order) => <span className="font-mono text-xs">{o.no}</span> },
+                { key: 'customer', title: '客户', emphasis: 'primary' },
+                { key: 'status', title: '状态', emphasis: 'anchor', render: (o: Order) => <Tag tone={STATUS_META[o.status].tone}>{STATUS_META[o.status].label}</Tag> },
+              ]}
+              data={ORDERS.slice(0, 3)}
+              rowKey={(o) => o.no}
+              compact
+            />
+          </div>
         </div>
 
         <div>
           <div className="text-xs font-medium text-muted-foreground mb-2">空数据 / 加载中</div>
-          <DataTable
-            columns={[
-              { key: 'no', title: '订单号' },
-              { key: 'customer', title: '客户' },
-            ]}
-            data={[]}
-            rowKey={(o: Order) => o.no}
-            empty={
-              <EmptyState
-                compact
-                title="这个筛选条件下没有订单"
-                description="试试把时间范围放宽，或者清掉渠道筛选。"
-                action={<Button variant="secondary" size="sm" icon={RefreshCw}>重置筛选</Button>}
-              />
-            }
-          />
+          <div className="ds-table-card">
+            <DataTable
+              columns={[
+                { key: 'no', title: '订单号' },
+                { key: 'customer', title: '客户' },
+              ]}
+              data={[]}
+              rowKey={(o: Order) => o.no}
+              empty={
+                <EmptyState
+                  compact
+                  title="这个筛选条件下没有订单"
+                  description="试试把时间范围放宽，或者清掉渠道筛选。"
+                  action={<Button variant="secondary" size="sm" icon={RefreshCw}>重置筛选</Button>}
+                />
+              }
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -232,40 +247,46 @@ export function DataTableDemo() {
 export function TableDemo() {
   return (
     <div className="space-y-3">
-      <div className="dd-table-wrap">
-        <table className="dd-table">
-          <thead>
-            <tr>
-              <th style={{ width: '40%' }}>项目</th>
-              <th className="dd-table__num">金额</th>
-              <th className="dd-table__num">占比</th>
-            </tr>
-          </thead>
-          <tbody>
-            {[
-              { k: '服务收入', v: 128600, p: '82.4%' },
-              { k: '转单支出', v: -18600, p: '11.9%' },
-              { k: '平台手续费', v: -8900, p: '5.7%' },
-            ].map((r) => (
-              <tr key={r.k}>
-                <td>{r.k}</td>
-                <td className="dd-table__num">{r.v < 0 ? '−' : ''}¥{yuan(Math.abs(r.v))}</td>
-                <td className="dd-table__num text-muted-foreground">{r.p}</td>
+      <div className="ds-table-card">
+        <div className="dd-table-wrap">
+          <table className="dd-table">
+            <thead>
+              <tr>
+                <th style={{ width: '40%' }}>项目</th>
+                <th className="dd-table__num">金额</th>
+                <th className="dd-table__num">占比</th>
               </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr>
-              <td className="font-semibold">到手合计</td>
-              <td className="dd-table__num font-bold">¥{yuan(128600 - 18600 - 8900)}</td>
-              <td className="dd-table__num text-muted-foreground">100%</td>
-            </tr>
-          </tfoot>
-        </table>
+            </thead>
+            <tbody>
+              {[
+                { k: '服务收入', v: 128600, p: '82.4%' },
+                { k: '转单支出', v: -18600, p: '11.9%' },
+                { k: '平台手续费', v: -8900, p: '5.7%' },
+              ].map((r, i) => (
+                <tr
+                  key={r.k}
+                  className="dd-table__row--enter"
+                  style={{ ['--dd-row-delay' as string]: `${Math.min(i, 8) * 40}ms` }}
+                >
+                  <td className="dd-table__cell--primary">{r.k}</td>
+                  <td className="dd-table__num dd-table__cell--anchor">{r.v < 0 ? '−' : ''}¥{yuan(Math.abs(r.v))}</td>
+                  <td className="dd-table__num dd-table__cell--secondary">{r.p}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td className="dd-table__cell--primary">到手合计</td>
+                <td className="dd-table__num dd-table__cell--anchor">¥{yuan(128600 - 18600 - 8900)}</td>
+                <td className="dd-table__num dd-table__cell--secondary">100%</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
       </div>
       <p className="dd-help">
         基础表格不做排序、不做勾选，表头和单元格完全由调用方写。
-        适合这种「一小张汇总表」，用 DataTable 反而要多写一堆列定义。
+        适合这种「一小张汇总表」，用 DataTable 反而要多写一堆列定义。视觉与 DataTable 同一套行卡皮。
       </p>
     </div>
   )

@@ -270,14 +270,16 @@ export default function Orders() {
         key: 'orderNo',
         title: '单号',
         width: '136px',
-        render: (r) => <span className="font-mono text-[13px] text-muted-foreground">{r.orderNo}</span>,
+        emphasis: 'secondary',
+        render: (r) => <span className="font-mono text-[13px]">{r.orderNo}</span>,
       },
       {
         key: 'createdAt',
         title: '日期',
         width: '64px',
+        emphasis: 'secondary',
         render: (r) => (
-          <span className="tabular-nums text-muted-foreground">
+          <span className="tabular-nums">
             {new Date(r.createdAt).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}
           </span>
         ),
@@ -286,23 +288,25 @@ export default function Orders() {
         key: 'nickname',
         title: '客户',
         width: '144px',
+        emphasis: 'primary',
         render: (r) => <CustomerCell order={r} />,
       },
       {
         key: 'items',
         title: '项目',
+        emphasis: 'primary',
         render: (r) =>
           r.type === '托管' ? (
             <span className="flex items-center gap-2 min-w-0">
               <Tag tone="info">托管</Tag>
-              <span className="truncate">
+              <span className="truncate font-medium">
                 {r.custodyKind}
                 {r.settleKind ? ` · ${r.settleKind}` : ''}
                 {r.endDate ? ` · 至 ${r.endDate.slice(5)}` : ''}
               </span>
             </span>
           ) : (
-            <span className="block truncate" title={r.items.map((i) => i.product).join('、')}>
+            <span className="block truncate font-medium" title={r.items.map((i) => i.product).join('、')}>
               {r.items.map((i) => i.product).join('、')}
             </span>
           ),
@@ -311,6 +315,7 @@ export default function Orders() {
         key: 'platform',
         title: '渠道',
         width: '64px',
+        emphasis: 'secondary',
         render: (r) => <span>{r.platform}</span>,
       },
       {
@@ -319,6 +324,7 @@ export default function Orders() {
         width: '104px',
         align: 'right',
         sortable: true,
+        emphasis: 'anchor',
         render: (r) => <span>{yuan2(r.amount)}</span>,
       },
       {
@@ -326,17 +332,19 @@ export default function Orders() {
         title: '到手',
         width: '104px',
         align: 'right',
+        emphasis: 'anchor',
         render: (r) =>
           payoutVoid(r) ? (
-            <span className="text-muted-foreground">{NO_PAYOUT}</span>
+            <span className="text-muted-foreground font-normal">{NO_PAYOUT}</span>
           ) : (
-            <span className="font-medium">{yuan2(r.payout)}</span>
+            <span>{yuan2(r.payout)}</span>
           ),
       },
       {
         key: 'status',
         title: '状态',
         width: '96px',
+        emphasis: 'anchor',
         render: (r) => <Tag tone={statusTone[r.status]}>{r.status}</Tag>,
       },
       {
@@ -628,8 +636,8 @@ function CustomerCell({ order }: { order: Order }) {
         if (id) navigate(`/customers/${id}`)
       }}
     >
-      <div className="font-medium truncate leading-5">{order.nickname}</div>
-      <div className="ds-caption truncate">{order.contact}</div>
+      <div className="truncate text-[14px] font-semibold leading-5">{order.nickname}</div>
+      <div className="ds-caption truncate opacity-80">{order.contact}</div>
     </button>
   )
 }

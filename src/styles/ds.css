@@ -208,41 +208,11 @@
 .dd-menu { padding: 4px; }
 .dd-menu__item { height: 32px; padding: 0 8px; border-radius: 6px; font-size: 14px; }
 
-/* ---------------- 表格（表头与单元格同一规格） ---------------- */
-.dd-table-wrap {
-  border: none;
-  border-radius: 0;
-}
-.dd-table { table-layout: fixed; width: 100%; font-size: 14px; }
-.dd-table th, .dd-table td {
-  padding: 0 var(--ds-cell-x);
-  vertical-align: middle;
-  text-align: left;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.dd-table th {
-  height: 40px;
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 500;
-  color: hsl(var(--muted-foreground));
-  background-color: hsl(var(--secondary) / 0.6);
-  border-bottom: 1px solid hsl(var(--border));
-  white-space: nowrap;
-}
-.dd-table td { height: 48px; padding-top: 6px; padding-bottom: 6px; line-height: 20px; }
-.dd-table th:first-child, .dd-table td:first-child { padding-left: 24px; }
-.dd-table th:last-child, .dd-table td:last-child { padding-right: 24px; }
-.dd-table .dd-table__num { text-align: right; font-variant-numeric: tabular-nums; }
-.dd-table .dd-table__center { text-align: center; }
-.dd-table th.dd-table__num .dd-table__sort { flex-direction: row-reverse; }
-.dd-table tbody tr { transition: background-color .12s var(--ds-ease); }
-.dd-table tbody tr:hover td { background-color: hsl(var(--secondary) / 0.55); }
-.dd-table--compact th { height: 36px; }
-.dd-table--compact td { height: 40px; padding-top: 4px; padding-bottom: 4px; }
-/* 表格放在独立容器（非卡片）时自带边框 */
-.ds-table-card { border: 1px solid hsl(var(--border)); border-radius: var(--ds-r-card); overflow: hidden; background: hsl(var(--card)); box-shadow: var(--ds-shadow-xs); }
+/* ---------------- 表格 ----------------
+   行卡皮 / 悬停抬升 / 错落入场 / .ds-table-card 已迁入
+   global-components.scss 的 @layer components，避免未分层规则压掉动效。
+   ------------------------------------------------------------ */
+
 
 .form-radio-group--sm { height: var(--ds-h-sm); }
 .form-radio-group--sm .form-radio-option { height: 26px; padding: 0 10px; font-size: 12px; }
