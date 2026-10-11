@@ -2096,4 +2096,96 @@
   }
 
 
+
+  /* ------------------------------------------------------------
+     个人中心抽屉 + 登录弹窗皮
+     ------------------------------------------------------------ */
+  .dd-titlebar-avatar {
+    padding: 0;
+    overflow: hidden;
+  }
+  .dd-titlebar-avatar .dd-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .dd-profile {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-bottom: 8px;
+  }
+  .dd-profile__hero {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid hsl(var(--border) / 0.7);
+    background:
+      linear-gradient(135deg, rgba(var(--brand-rgb), 0.1), transparent 55%),
+      hsl(var(--card));
+  }
+  .dd-profile__avatar {
+    box-shadow: 0 6px 16px -8px rgba(var(--brand-rgb), 0.45);
+  }
+  .dd-profile__name {
+    font-size: 1.05rem;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+  }
+  .dd-profile__hero-meta {
+    flex: 1;
+    min-width: 0;
+  }
+  .dd-profile__card {
+    /* Card 自带边框；抽屉里略收紧 */
+  }
+  .dd-profile__hues {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .dd-profile__hue {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    border: 2px solid transparent;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+  .dd-profile__hue:hover {
+    transform: scale(1.08);
+  }
+  .dd-profile__hue--active {
+    border-color: hsl(var(--brand));
+    box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.22);
+  }
+  .dd-profile__local-hint {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(var(--brand-rgb), 0.05);
+    border: 1px solid hsl(var(--border) / 0.6);
+    font-size: 12px;
+    color: hsl(var(--muted-foreground));
+    line-height: 1.45;
+  }
+  .dd-auth-modal {
+    border-color: hsl(var(--border) / 0.8);
+    box-shadow:
+      0 1px 0 hsl(var(--border) / 0.35),
+      0 28px 56px -32px rgba(var(--brand-rgb), 0.4);
+  }
+  .dd-auth-modal__body {
+    /* 登录弹窗内容区：与抽屉同皮留白节奏 */
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dd-titlebar-avatar:hover { transform: none; }
+    .dd-profile__hue:hover { transform: none; }
+  }
+
+
 }

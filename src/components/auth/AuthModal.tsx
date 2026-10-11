@@ -85,7 +85,7 @@ export function AuthModal({
           {mode === 'signin' ? '登录云同步' : '注册账号'}
         </span>
       }
-      className="max-w-md"
+      className="dd-auth-modal max-w-md"
       footer={
         <>
           <button
@@ -112,7 +112,7 @@ export function AuthModal({
         </>
       }
     >
-      <div className="flex flex-col gap-4">
+      <div className="dd-auth-modal__body flex flex-col gap-4">
         <p className="ds-caption">
           登录后账本会同步到云端；断网时仍可读写本机，联网后再合并（较新覆盖较旧）。
         </p>

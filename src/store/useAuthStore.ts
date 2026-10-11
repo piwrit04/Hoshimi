@@ -4,6 +4,7 @@ import { getSupabase, isSupabaseConfigured } from '@/lib/supabase'
 import { syncSnapshot, pushSnapshot } from '@/lib/sync'
 import { useOrdersStore } from '@/store/useOrdersStore'
 import { saveSnapshot } from '@/storage/persist'
+import { hydrateProfileFromCloud } from '@/lib/profile-sync'
 
 type AuthStatus = 'idle' | 'loading' | 'ready'
 
@@ -65,13 +66,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     sb.auth.onAuthStateChange((event, session) => {
       set({ session, user: session?.user ?? null })
-      if (event === 'SIGNED_IN' && session?.user && useOrdersStore.getState().hydrated) {
-        void get().syncNow()
+      if (event === 'SIGNED_IN' && session?.user) {
+        void hydrateProfileFromCloud(session.user.id, session.user.email)
+        if (useOrdersStore.getState().hydrated) void get().syncNow()
       }
     })
 
-    if (data.session?.user && useOrdersStore.getState().hydrated) {
-      void get().syncNow()
+    if (data.session?.user) {
+      void hydrateProfileFromCloud(data.session.user.id, data.session.user.email)
+      if (useOrdersStore.getState().hydrated) void get().syncNow()
     }
   },
 

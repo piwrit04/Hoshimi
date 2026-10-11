@@ -1,7 +1,9 @@
 import { Minus, X, Search, Bell, Github, Moon, Sun } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSearchStore } from '@/store/useSearchStore';
-import { useThemeStore, type ThemeMode } from '@/store/useThemeStore';
+import { useThemeStore } from '@/store/useThemeStore';
+import { useProfileStore, profileInitial } from '@/store/useProfileStore';
+import { Avatar } from '@/components/ui/data';
 import { useState } from 'react';
 import { Tooltip } from '@/components/ui/Tooltip';
 
@@ -13,6 +15,9 @@ export function TitleBar({ className }: TitleBarProps) {
   const { openSearch } = useSearchStore();
   const mode = useThemeStore((s) => s.mode);
   const setMode = useThemeStore((s) => s.setMode);
+  const nickname = useProfileStore((s) => s.nickname);
+  const avatarHue = useProfileStore((s) => s.avatarHue);
+  const openDrawer = useProfileStore((s) => s.openDrawer);
   const [showAnnouncement, setShowAnnouncement] = useState(false);
 
   const handleMinimize = () => {
@@ -43,6 +48,11 @@ export function TitleBar({ className }: TitleBarProps) {
     return mode === 'light' ? '浅色模式' : '深色模式';
   };
 
+  const avatarStyle = {
+    backgroundColor: `hsla(${avatarHue}, 70%, 88%, 0.95)`,
+    color: `hsl(${avatarHue}, 55%, 38%)`,
+  };
+
   return (
     <div
       className={cn(
@@ -66,9 +76,8 @@ export function TitleBar({ className }: TitleBarProps) {
         </button>
       </div>
 
-      {/* Right: Toolbar & Window Controls - Pushed to right via justify-between on parent and empty left div if needed, or just ml-auto here */}
+      {/* Right: Toolbar & Window Controls */}
       <div className="flex items-center gap-2 ml-auto no-drag">
-        {/* Announcement */}
         <Tooltip content="公告" position="bottom">
           <button
             onClick={() => setShowAnnouncement(!showAnnouncement)}
@@ -82,7 +91,6 @@ export function TitleBar({ className }: TitleBarProps) {
           </button>
         </Tooltip>
 
-        {/* Project Homepage */}
         <Tooltip content="项目主页" position="bottom">
           <a
             href="#"
@@ -90,13 +98,11 @@ export function TitleBar({ className }: TitleBarProps) {
             target="_blank"
             rel="noopener noreferrer"
             className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors rounded-lg"
-            type="button"
           >
             <Github size={16} />
           </a>
         </Tooltip>
 
-        {/* Theme Toggle */}
         <Tooltip content={getThemeTitle()} position="bottom">
           <button
             onClick={toggleTheme}
@@ -104,6 +110,19 @@ export function TitleBar({ className }: TitleBarProps) {
             type="button"
           >
             {getThemeIcon()}
+          </button>
+        </Tooltip>
+
+        <Tooltip content={nickname || '个人中心'} position="bottom">
+          <button
+            type="button"
+            onClick={openDrawer}
+            className="dd-titlebar-avatar h-8 w-8 flex items-center justify-center rounded-full ring-1 ring-border/60 hover:ring-brand/50 transition-[box-shadow,transform] hover:scale-[1.04]"
+            aria-label="打开个人中心"
+          >
+            <Avatar size="sm" style={avatarStyle}>
+              {profileInitial(nickname)}
+            </Avatar>
           </button>
         </Tooltip>
       </div>

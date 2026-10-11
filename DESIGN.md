@@ -64,6 +64,10 @@
 5. 目录编辑器：减边框堆叠。
 6. 禁止做成传统后台设置列表。
 
+### 个人中心抽屉（已落地）
+
+标题栏头像入口 → 右侧 `Drawer`（与新建订单同皮：缩放+淡入退场）。本机昵称/色调；登录登出与云同步状态；编辑资料可推 Supabase `profiles`。AuthModal 加 `dd-auth-modal` 同皮。样式 `.dd-profile*` / `.dd-titlebar-avatar` 在 `@layer components`。
+
 ### 首次引导 SetupWizard（已落地）
 
 全屏居中卡；步骤圆点 + 连线轻呼吸；步进水平滑入淡出；尊重减动。
