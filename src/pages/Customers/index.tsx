@@ -774,7 +774,7 @@ function CustomerDetail({ id }: { id: string }) {
   const subParts = [
     customer.contact || '无联系方式',
     `${orders.length} 单`,
-    `消费 ${yuan(spent)}`,
+    `已完成消费 ${yuan(spent)}`,
     last ? `最近 ${shortDateTime(last)}` : '最近 —',
   ]
 

@@ -83,7 +83,7 @@ export default function TodoPage() {
           <>
             今日到手 <span className="dd-money-gold">{yuan(model.todayPayout)}</span>
           </>,
-          follow ? `待跟进 ${follow}` : '已全部处理',
+          follow ? `待收口 ${follow}` : '已全部处理',
           searching
             ? model.matchCount
               ? `${model.matchCount} 条匹配`

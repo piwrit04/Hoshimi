@@ -199,7 +199,7 @@ export default function Dashboard() {
           订单
         </Link>
         <Link to="/orders?mode=待处理" className="l2g-capsule l2g-capsule--ghost">
-          待跟进{k.waiting ? ` ${k.waiting}` : ''}
+          待处理{k.waiting ? ` ${k.waiting}` : ''}
         </Link>
         <Link to="/todo?tab=due" className="l2g-capsule l2g-capsule--ghost">
           到期{k.expiringCount ? ` ${k.expiringCount}` : ''}

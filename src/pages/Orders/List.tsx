@@ -52,7 +52,8 @@ import { cn } from '@/lib/utils'
 import { seedDemoLedger } from '@/lib/seed-demo'
 
 /*
- * 订单列表：筛选 / 排序记住在模块级；点行编辑；开始 / 完成主按钮。
+ * 订单列表：筛选 / 排序记住在模块级；深链 query 整组替换筛选；无参进页重置未完成。
+ * 点行编辑；开始 / 完成主按钮。
  */
 
 const statusTone: Record<OrderStatus, 'brand' | 'warning' | 'success' | 'danger'> = {
@@ -144,39 +145,62 @@ export default function Orders() {
   const [sortBy, setSortByState] = useState<OrderSortKey>(ordersListState.sortBy)
   const [sortDir, setSortDirState] = useState<OrderSortDir>(ordersListState.sortDir)
   const [searchParams] = useSearchParams()
+  // 只用筛选相关 query 作依赖，避免 URLSearchParams 引用变化把手动筛选打掉
+  const filterQueryKey = ['mode', 'period', 'type', 'anchor']
+    .map((k) => `${k}=${searchParams.get(k) ?? ''}`)
+    .join('&')
 
+  // 深链 vs 侧栏：有筛选 query 时整组替换（不与记忆合并）；无 query 时回到默认未完成/全部时间。
+  // 依赖 filterQueryKey，已在订单页时点概览深链也会重算。query 保留在地址栏，侧栏进 /orders 才能清掉并重置。
   useEffect(() => {
     const modeQ = searchParams.get('mode') as OrderMode | null
     const periodQ = searchParams.get('period') as Period | null
     const typeQ = searchParams.get('type')
     const anchorQ = searchParams.get('anchor')
-    const next: Partial<typeof ordersListState> = {}
-    if (modeQ && MODES.some((m) => m.id === modeQ)) {
-      setModeState(modeQ)
-      next.mode = modeQ
+    const hasDeeplink = Boolean(modeQ || periodQ || typeQ || anchorQ)
+
+    if (hasDeeplink) {
+      let nextMode: OrderMode = 'open'
+      let nextPeriod: Period = 'all'
+      let nextType: OrderType | 'all' = 'all'
+      let nextAnchor: PeriodAnchor = 'createdAt'
+      let nextSortBy: OrderSortKey = 'createdAt'
+      let nextSortDir: OrderSortDir = 'desc'
+
+      if (modeQ && MODES.some((m) => m.id === modeQ)) nextMode = modeQ
+      if (periodQ && PERIODS.some((p) => p.id === periodQ)) nextPeriod = periodQ
+      if (typeQ === 'all' || typeQ === '普通' || typeQ === '托管') nextType = typeQ
+      if (anchorQ === 'completed' || anchorQ === 'completedAt') {
+        nextAnchor = 'completedAt'
+        nextSortBy = 'completedAt'
+        nextSortDir = 'desc'
+      } else if (anchorQ === 'created' || anchorQ === 'createdAt') {
+        nextAnchor = 'createdAt'
+      }
+
+      setModeState(nextMode)
+      setPeriodState(nextPeriod)
+      setTypeState(nextType)
+      setPeriodAnchor(nextAnchor)
+      setSortByState(nextSortBy)
+      setSortDirState(nextSortDir)
+      writeListState({
+        mode: nextMode,
+        period: nextPeriod,
+        type: nextType,
+        sortBy: nextSortBy,
+        sortDir: nextSortDir,
+      })
+      return
     }
-    if (periodQ && PERIODS.some((p) => p.id === periodQ)) {
-      setPeriodState(periodQ)
-      next.period = periodQ
-    }
-    if (typeQ === 'all' || typeQ === '普通' || typeQ === '托管') {
-      setTypeState(typeQ)
-      next.type = typeQ
-    }
-    if (anchorQ === 'completed' || anchorQ === 'completedAt') {
-      setPeriodAnchor('completedAt')
-      // 今日到手深链：按完成日看，默认按完成时间新→旧
-      setSortByState('completedAt')
-      setSortDirState('desc')
-      next.sortBy = 'completedAt'
-      next.sortDir = 'desc'
-    } else if (anchorQ === 'created' || anchorQ === 'createdAt') {
-      setPeriodAnchor('createdAt')
-    }
-    if (Object.keys(next).length) writeListState(next)
-    // only apply once from URL when landing
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+
+    // 侧栏/无参进入：默认未完成 + 清时间锚，不沿用上次深链
+    setModeState('open')
+    setPeriodState('all')
+    setPeriodAnchor('createdAt')
+    writeListState({ mode: 'open', period: 'all' })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅跟随 filterQueryKey
+  }, [filterQueryKey])
 
   const setType = (v: OrderType | 'all') => {
     writeListState({ type: v })
