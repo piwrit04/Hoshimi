@@ -1,11 +1,22 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, memo, type ReactNode } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Check, ListTodo, Play, Plus, PlusCircle, Search, Trash2, X } from 'lucide-react'
-import { motion } from 'framer-motion'
+import {
+  Check,
+  ListTodo,
+  MoreHorizontal,
+  PenLine,
+  Play,
+  Plus,
+  PlusCircle,
+  Search,
+  Trash2,
+  X,
+} from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { Tag } from '@/components/ui/data'
+import { DataTable, Tag, type DataTableColumn } from '@/components/ui/data'
 import { FormInput } from '@/components/ui/form'
 import { modalConfirm } from '@/components/ui/ModalConfirm'
+import { Dropdown } from '@/components/ui/overlay'
 import {
   captureOrderSlice,
   useOrdersStore,
@@ -18,8 +29,7 @@ import { seedDemoLedger } from '@/lib/seed-demo'
 import { daysUntilLabel, workbench } from '@/domain/workbench'
 import { actionLabel, nextStatuses, payoutVoid, NO_PAYOUT } from '@/domain/status'
 import { cn } from '@/lib/utils'
-import { yuan2 } from '@/lib/format'
-import { CountUp } from '@/lib/count-up'
+import { yuan, yuan2 } from '@/lib/format'
 import { useFreeTodosStore } from '@/store/useFreeTodosStore'
 
 const PAGE = 24
@@ -33,6 +43,8 @@ const statusTone: Record<OrderStatus, 'brand' | 'warning' | 'success' | 'danger'
   已退款: 'danger',
   已取消: 'danger',
 }
+
+type TodoRow = Order & { dueLabel?: string; section: 'chase' | 'due' }
 
 export default function TodoPage() {
   const orders = useOrdersStore((s) => s.orders)
@@ -63,17 +75,27 @@ export default function TodoPage() {
   const visibleDue = showDue ? model.expiring : []
   const quiet = visibleNormal.length === 0 && visibleDue.length === 0
 
-  const meta = searching
-    ? model.matchCount
-      ? `${model.matchCount} 条匹配 · 待跟进 ${follow}`
-      : follow
-        ? `无匹配结果 · 待跟进 ${follow}`
-        : '无匹配结果'
-    : follow
-      ? `${follow} 单待跟进`
-      : orders.length === 0
-        ? '还没有订单'
-        : '已全部处理'
+  const meta =
+    orders.length === 0
+      ? '催单 + 进行中托管到期'
+      : [
+          `今日完成 ${model.doneTodayCount}`,
+          <>
+            今日到手 <span className="dd-money-gold">{yuan(model.todayPayout)}</span>
+          </>,
+          follow ? `待跟进 ${follow}` : '已全部处理',
+          searching
+            ? model.matchCount
+              ? `${model.matchCount} 条匹配`
+              : '无匹配结果'
+            : null,
+        ]
+          .filter(Boolean)
+          .reduce<ReactNode[]>((acc, part, i) => {
+            if (i > 0) acc.push(' · ')
+            acc.push(part)
+            return acc
+          }, [])
 
   const move = (order: Order, to: OrderStatus) => {
     const slice = captureOrderSlice(useOrdersStore.getState().orders, order.id)
@@ -109,44 +131,178 @@ export default function TodoPage() {
     })
   }
 
-  if (orders.length === 0) {
-    return (
-      <div className="ds-page--console">
-        <div className="l2g-orders-head ds-rise">
-          <div className="l2g-orders-head__title-group">
-            <h1 className="l2g-orders-head__title title">待办</h1>
-            <p className="l2g-orders-head__sub subtitle">催单 + 进行中托管到期</p>
+  const chaseRows: TodoRow[] = useMemo(
+    () =>
+      visibleNormal.slice(0, normalLimit).map((o) => ({
+        ...o,
+        section: 'chase' as const,
+      })),
+    [visibleNormal, normalLimit],
+  )
+
+  const dueRows: TodoRow[] = useMemo(
+    () =>
+      visibleDue.slice(0, expireLimit).map((o) => ({
+        ...o,
+        dueLabel: daysUntilLabel(model.today, o.endDate),
+        section: 'due' as const,
+      })),
+    [visibleDue, expireLimit, model.today],
+  )
+
+  const columns: DataTableColumn<TodoRow>[] = useMemo(
+    () => [
+      {
+        key: 'customer',
+        title: '客户',
+        width: '18%',
+        align: 'center',
+        emphasis: 'primary',
+        render: (r) => (
+          <div className="dd-cell-dual">
+            <div className="dd-cell-dual__top">
+              <span className="dd-cell-dual__title">{r.nickname || '未命名'}</span>
+            </div>
+            <div className="dd-cell-dual__bot truncate tabular-nums" title={r.orderNo}>
+              {r.orderNo}
+            </div>
           </div>
-          <div className="l2g-orders-head__actions">
-            <Button variant="primary" icon={PlusCircle} onClick={openNew}>
-              新建订单
-            </Button>
+        ),
+      },
+      {
+        key: 'content',
+        title: '订单内容',
+        width: '24%',
+        align: 'center',
+        render: (r) => {
+          const summary =
+            r.type === '托管'
+              ? [r.custodyKind, r.settleKind].filter(Boolean).join(' · ') || '托管'
+              : r.items.map((i) => i.product).join('、') || '—'
+          const bot =
+            r.section === 'due' && r.dueLabel
+              ? r.dueLabel
+              : [r.platform, r.server].filter(Boolean).join(' · ') || '—'
+          const dueHot =
+            r.dueLabel &&
+            (r.dueLabel.startsWith('已过期') || r.dueLabel === '未设到期日')
+          return (
+            <div className="dd-cell-dual">
+              <div className="dd-cell-dual__top truncate" title={summary}>
+                {summary}
+              </div>
+              <div
+                className={cn(
+                  'dd-cell-dual__bot truncate',
+                  r.section === 'due' && (dueHot ? 'text-destructive' : 'dd-cell-dual__due text-warning'),
+                )}
+                title={bot}
+              >
+                {bot}
+              </div>
+            </div>
+          )
+        },
+      },
+      {
+        key: 'amount',
+        title: '金额 · 到手',
+        width: '14%',
+        align: 'center',
+        emphasis: 'anchor',
+        render: (r) => (
+          <div className="dd-cell-dual">
+            <div className="dd-cell-dual__top tabular-nums dd-money-flow">{yuan2(r.amount)}</div>
+            {payoutVoid(r) ? (
+              <div className="dd-cell-dual__bot tabular-nums text-muted-foreground">{NO_PAYOUT}</div>
+            ) : (
+              <div className="dd-cell-dual__bot tabular-nums dd-money-gold">{yuan2(r.payout)}</div>
+            )}
           </div>
-        </div>
-        <div className="ds-card items-center py-16 text-center text-muted-foreground">
-          <ListTodo size={36} className="mx-auto mb-3 opacity-30" />
-          <p className="text-sm text-foreground/80">还没有订单</p>
-          <p className="ds-caption mt-1 mb-4">记第一单后，催单与进行中托管到期会出现在这里</p>
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <Button variant="primary" icon={PlusCircle} onClick={openNew}>
-              新建订单
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                void seedDemoLedger()
-              }}
-            >
-              灌入演示账本
-            </Button>
-          </div>
-        </div>
-        <div className="mt-6">
-          <FreeTodosPanel />
-        </div>
+        ),
+      },
+      {
+        key: 'status',
+        title: '状态',
+        width: '12%',
+        align: 'center',
+        emphasis: 'anchor',
+        render: (r) => <Tag tone={statusTone[r.status]}>{r.status}</Tag>,
+      },
+      {
+        key: 'actions',
+        title: '操作',
+        width: '18%',
+        align: 'center',
+        render: (r) => (
+          <TodoRowActions
+            order={r}
+            onMove={move}
+            onCancel={() => cancel(r)}
+            onEdit={() => openEdit(r.id)}
+          />
+        ),
+      },
+    ],
+    // move/cancel/openEdit are stable enough for this page; columns rebuild on tab data change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  )
+
+  const emptyReason = searching
+    ? `没有符合「${query.trim()}」的待办`
+    : tab === 'chase'
+      ? '没有待催的普通单'
+      : tab === 'due'
+        ? '没有即将到期的进行中托管'
+        : '今天没有待处理的订单'
+
+  const emptyHint = searching
+    ? '试试清空搜索，或切换催单 / 到期'
+    : tab === 'chase'
+      ? '普通单进入待处理 / 进行中后会出现在这里'
+      : tab === 'due'
+        ? '进行中托管进入到期窗口后会出现在这里'
+        : '记新单或开始处理现有订单后，催单与到期会出现在这里'
+
+  const emptyBlock = (
+    <div className="py-16 text-center text-muted-foreground">
+      <ListTodo size={36} className="mx-auto mb-3 opacity-30" />
+      <p className="text-sm text-foreground/80">{emptyReason}</p>
+      <p className="ds-caption mt-1">{emptyHint}</p>
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+        {searching ? (
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => {
+              setQuery('')
+              setNormalLimit(PAGE)
+              setExpireLimit(PAGE)
+            }}
+          >
+            清空搜索
+          </Button>
+        ) : null}
+        {tab !== 'all' ? (
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => {
+              setTab('all')
+              setNormalLimit(PAGE)
+              setExpireLimit(PAGE)
+            }}
+          >
+            看全部待办
+          </Button>
+        ) : null}
+        <Button size="sm" variant="primary" icon={PlusCircle} onClick={openNew}>
+          新建订单
+        </Button>
       </div>
-    )
-  }
+    </div>
+  )
 
   return (
     <div className="ds-page--console">
@@ -162,143 +318,148 @@ export default function TodoPage() {
         </div>
       </div>
 
-      <div className="ds-stagger grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Stat label="今日完成" value={model.doneTodayCount} sub="单" />
-        <Stat label="今日到手" value={model.todayPayout} money sub="今日完成订单" variant="hero" />
-        <Stat
-          label="待跟进"
-          value={follow}
-          sub="催单 + 进行中托管到期"
-          variant={follow ? 'warn' : undefined}
-        />
-      </div>
-
-      <div className="l2g-filter-bar">
-        <div className="l2g-seg" role="tablist" aria-label="待办筛选">
-          {(
-            [
-              { id: 'all' as Tab, label: '全部', count: follow },
-              { id: 'chase' as Tab, label: '催单', count: model.chaseCount },
-              { id: 'due' as Tab, label: '到期', count: model.dueCount },
-            ] as const
-          ).map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              aria-selected={tab === t.id}
-              className={
-                tab === t.id ? 'l2g-seg__btn l2g-seg__btn--on' : 'l2g-seg__btn'
-              }
-              onClick={() => {
-                setTab(t.id)
-                setNormalLimit(PAGE)
-                setExpireLimit(PAGE)
-              }}
-            >
-              {t.label}
-              {t.count ? <span className="l2g-seg__count">{t.count}</span> : null}
-            </button>
-          ))}
-        </div>
-        <div className="ds-toolbar">
-          <div className="relative w-64" data-page-search>
-            <Search
-              size={16}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
-            <input
-              className="dd-control w-full !pl-9 !pr-8"
-              placeholder="搜索客户、单号、项目…"
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value)
-                setNormalLimit(PAGE)
-                setExpireLimit(PAGE)
-              }}
-            />
-            {query.trim() ? (
-              <button
-                type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                aria-label="清除搜索"
-                onClick={() => {
-                  setQuery('')
-                  setNormalLimit(PAGE)
-                  setExpireLimit(PAGE)
-                }}
-              >
-                <X size={14} />
-              </button>
-            ) : null}
-          </div>
-        </div>
-      </div>
-
-      {quiet ? (
-        <div className="rounded-xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">
-          {searching
-            ? '没有符合条件的订单'
-            : tab === 'chase'
-              ? '没有待催的普通单'
-              : tab === 'due'
-                ? '没有即将到期的进行中托管'
-                : '今天没有待处理的订单'}
-        </div>
-      ) : null}
-
-      {visibleNormal.length > 0 ? (
-        <section className="flex flex-col gap-3">
-          <SectionHead title="催单 · 普通单" count={visibleNormal.length} />
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
-            {visibleNormal.slice(0, normalLimit).map((order, i) => (
-              <OrderCard
-                key={order.id}
-                order={order}
-                delay={Math.min(i * 0.03, 0.2)}
-                onMove={move}
-                onCancel={() => cancel(order)}
-                onEdit={() => openEdit(order.id)}
-              />
-            ))}
-          </div>
-          {visibleNormal.length > normalLimit ? (
-            <div className="flex justify-center pt-1">
-              <Button variant="secondary" onClick={() => setNormalLimit((n) => n + PAGE)}>
-                加载更多（还有 {visibleNormal.length - normalLimit} 单）
-              </Button>
+      {orders.length === 0 ? (
+        <>
+          <div className="table-container l2g-table">
+            <div className="py-16 text-center text-muted-foreground">
+              <ListTodo size={36} className="mx-auto mb-3 opacity-30" />
+              <p className="text-sm text-foreground/80">还没有订单</p>
+              <p className="ds-caption mt-1">
+                记第一单后，催单与进行中托管到期会出现在这里
+              </p>
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                <Button size="sm" variant="primary" icon={PlusCircle} onClick={openNew}>
+                  新建订单
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    void seedDemoLedger()
+                  }}
+                >
+                  灌入演示账本
+                </Button>
+              </div>
             </div>
-          ) : null}
-        </section>
-      ) : null}
-
-      {visibleDue.length > 0 ? (
-        <section className="flex flex-col gap-3">
-          <SectionHead title="到期 · 进行中托管" count={visibleDue.length} />
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
-            {visibleDue.slice(0, expireLimit).map((order, i) => (
-              <OrderCard
-                key={order.id}
-                order={order}
-                delay={Math.min(i * 0.03, 0.2)}
-                dueLabel={daysUntilLabel(model.today, order.endDate)}
-                onMove={move}
-                onCancel={() => cancel(order)}
-                onEdit={() => openEdit(order.id)}
-              />
-            ))}
           </div>
-          {visibleDue.length > expireLimit ? (
-            <div className="flex justify-center pt-1">
-              <Button variant="secondary" onClick={() => setExpireLimit((n) => n + PAGE)}>
-                加载更多（还有 {visibleDue.length - expireLimit} 单）
-              </Button>
+          <FreeTodosPanel />
+        </>
+      ) : (
+        <>
+          <div className="l2g-filter-bar">
+            <div className="l2g-seg" role="tablist" aria-label="待办筛选">
+              {(
+                [
+                  { id: 'all' as Tab, label: '全部', count: follow },
+                  { id: 'chase' as Tab, label: '催单', count: model.chaseCount },
+                  { id: 'due' as Tab, label: '到期', count: model.dueCount },
+                ] as const
+              ).map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === t.id}
+                  className={
+                    tab === t.id ? 'l2g-seg__btn l2g-seg__btn--on' : 'l2g-seg__btn'
+                  }
+                  onClick={() => {
+                    setTab(t.id)
+                    setNormalLimit(PAGE)
+                    setExpireLimit(PAGE)
+                  }}
+                >
+                  {t.label}
+                  {t.count ? <span className="l2g-seg__count">{t.count}</span> : null}
+                </button>
+              ))}
             </div>
-          ) : null}
-        </section>
-      ) : null}
+            <div className="ds-toolbar">
+              <div className="relative w-64" data-page-search>
+                <Search
+                  size={16}
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                />
+                <input
+                  className="dd-control w-full !pl-9 !pr-8"
+                  placeholder="搜索客户、单号、项目…"
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value)
+                    setNormalLimit(PAGE)
+                    setExpireLimit(PAGE)
+                  }}
+                />
+                {query.trim() ? (
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    aria-label="清除搜索"
+                    onClick={() => {
+                      setQuery('')
+                      setNormalLimit(PAGE)
+                      setExpireLimit(PAGE)
+                    }}
+                  >
+                    <X size={14} />
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          </div>
 
-      <FreeTodosPanel />
+          {quiet ? (
+            <div className="table-container l2g-table">{emptyBlock}</div>
+          ) : null}
+
+          {visibleNormal.length > 0 ? (
+            <section className="flex flex-col gap-2">
+              <SectionHead title="催单 · 普通单" count={visibleNormal.length} />
+              <div className="table-container l2g-table">
+                <DataTable
+                  columns={columns}
+                  data={chaseRows}
+                  rowKey={(r) => r.id}
+                  compact
+                  onRowClick={(r) => openEdit(r.id)}
+                />
+              </div>
+              {visibleNormal.length > normalLimit ? (
+                <div className="flex justify-center pt-1">
+                  <Button variant="secondary" onClick={() => setNormalLimit((n) => n + PAGE)}>
+                    加载更多（还有 {visibleNormal.length - normalLimit} 单）
+                  </Button>
+                </div>
+              ) : null}
+            </section>
+          ) : null}
+
+          {visibleDue.length > 0 ? (
+            <section className="flex flex-col gap-2">
+              <SectionHead title="到期 · 进行中托管" count={visibleDue.length} />
+              <div className="table-container l2g-table">
+                <DataTable
+                  columns={columns}
+                  data={dueRows}
+                  rowKey={(r) => r.id}
+                  compact
+                  onRowClick={(r) => openEdit(r.id)}
+                />
+              </div>
+              {visibleDue.length > expireLimit ? (
+                <div className="flex justify-center pt-1">
+                  <Button variant="secondary" onClick={() => setExpireLimit((n) => n + PAGE)}>
+                    加载更多（还有 {visibleDue.length - expireLimit} 单）
+                  </Button>
+                </div>
+              ) : null}
+            </section>
+          ) : null}
+
+          <FreeTodosPanel />
+        </>
+      )}
     </div>
   )
 }
@@ -319,140 +480,118 @@ function FreeTodosPanel() {
   }
 
   return (
-    <section className="flex flex-col gap-3">
-      <div className="flex h-8 items-center gap-2">
-        <h2 className="ds-section-title">自由待办</h2>
-        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary px-1.5 text-xs font-medium tabular-nums text-muted-foreground">
-          {open}
-        </span>
-        <span className="ds-caption">
-          未完成{done > 0 ? ' · 含已完成' : ' · 本机备忘'}
-        </span>
-        <div className="flex-1" />
-        {done > 0 ? (
-          <Button size="sm" variant="ghost" onClick={() => clearDone()}>
-            清除已完成（{done}）
-          </Button>
-        ) : null}
-      </div>
-      <div className="ds-card flex flex-col gap-3 p-4">
-        <div className="flex gap-2">
-          <div className="min-w-0 flex-1">
-            <FormInput
-              placeholder="随手记一件事…"
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  submit()
-                }
-              }}
-            />
+    <section className="flex flex-col gap-2">
+      <SectionHead
+        title="自由待办"
+        count={open}
+        hint={done > 0 ? '未完成 · 含已完成' : '本机备忘'}
+        trailing={
+          done > 0 ? (
+            <Button size="sm" variant="ghost" onClick={() => clearDone()}>
+              清除已完成（{done}）
+            </Button>
+          ) : null
+        }
+      />
+      <div className="table-container l2g-table">
+        <div className="flex flex-col gap-2 p-3">
+          <div className="flex gap-2">
+            <div className="min-w-0 flex-1">
+              <FormInput
+                placeholder="随手记一件事…"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    submit()
+                  }
+                }}
+              />
+            </div>
+            <Button variant="secondary" icon={Plus} onClick={submit} disabled={!draft.trim()}>
+              添加
+            </Button>
           </div>
-          <Button variant="secondary" icon={Plus} onClick={submit} disabled={!draft.trim()}>
-            添加
-          </Button>
+          {items.length === 0 ? (
+            <div className="py-8 text-center text-muted-foreground">
+              <p className="text-sm text-foreground/80">还没有自由待办</p>
+              <p className="ds-caption mt-1">和催单 / 到期同一工作台，随手备忘留在本机</p>
+            </div>
+          ) : (
+            <ul className="flex flex-col divide-y divide-border/60">
+              {items.map((it) => (
+                <li key={it.id} className="flex items-center gap-2 px-1 py-2">
+                  <button
+                    type="button"
+                    className={cn(
+                      'flex h-5 w-5 shrink-0 items-center justify-center rounded border',
+                      it.done
+                        ? 'border-brand bg-brand/15 text-brand'
+                        : 'border-border text-transparent',
+                    )}
+                    aria-label={it.done ? '标为未完成' : '标为完成'}
+                    onClick={() => toggle(it.id)}
+                  >
+                    <Check size={12} />
+                  </button>
+                  <span
+                    className={cn(
+                      'min-w-0 flex-1 truncate text-sm',
+                      it.done && 'text-muted-foreground line-through',
+                    )}
+                  >
+                    {it.text}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    icon={Trash2}
+                    iconOnly
+                    aria-label="删除"
+                    onClick={() => remove(it.id)}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
-        {items.length === 0 ? (
-          <p className="ds-caption py-2 text-center">还没有自由待办</p>
-        ) : (
-          <ul className="flex flex-col gap-1">
-            {items.map((it) => (
-              <li
-                key={it.id}
-                className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-secondary/50"
-              >
-                <button
-                  type="button"
-                  className={cn(
-                    'flex h-5 w-5 shrink-0 items-center justify-center rounded border',
-                    it.done
-                      ? 'border-brand bg-brand/15 text-brand'
-                      : 'border-border text-transparent',
-                  )}
-                  aria-label={it.done ? '标为未完成' : '标为完成'}
-                  onClick={() => toggle(it.id)}
-                >
-                  <Check size={12} />
-                </button>
-                <span
-                  className={cn(
-                    'min-w-0 flex-1 truncate text-sm',
-                    it.done && 'text-muted-foreground line-through',
-                  )}
-                >
-                  {it.text}
-                </span>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  icon={Trash2}
-                  iconOnly
-                  aria-label="删除"
-                  onClick={() => remove(it.id)}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
     </section>
   )
 }
 
-function SectionHead({ title, count }: { title: string; count: number }) {
+function SectionHead({
+  title,
+  count,
+  hint,
+  trailing,
+}: {
+  title: string
+  count: number
+  hint?: string
+  trailing?: ReactNode
+}) {
   return (
     <div className="flex h-8 items-center gap-2">
       <h2 className="ds-section-title">{title}</h2>
       <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary px-1.5 text-xs font-medium tabular-nums text-muted-foreground">
         {count}
       </span>
+      {hint ? <span className="ds-caption">{hint}</span> : null}
+      <div className="flex-1" />
+      {trailing}
     </div>
   )
 }
 
-function Stat({
-  label,
-  value,
-  sub,
-  money: asMoney,
-  variant,
-}: {
-  label: string
-  value: number
-  sub: string
-  money?: boolean
-  variant?: 'hero' | 'warn'
-}) {
-  return (
-    <div
-      className={cn(
-        'ds-card ds-stat ds-rise',
-        variant === 'hero' && 'ds-stat--hero',
-        variant === 'warn' && 'ds-stat--warn',
-      )}
-    >
-      <div className="ds-stat__label">{label}</div>
-      <div className="ds-stat__value">
-        <CountUp value={value} money={asMoney} />
-      </div>
-      <div className="ds-stat__foot">{sub}</div>
-    </div>
-  )
-}
-
-function OrderCard({
+const TodoRowActions = memo(function TodoRowActions({
   order,
-  dueLabel,
-  delay,
   onMove,
   onCancel,
   onEdit,
 }: {
   order: Order
-  dueLabel?: string
-  delay: number
   onMove: (o: Order, to: OrderStatus) => void
   onCancel: () => void
   onEdit: () => void
@@ -461,71 +600,50 @@ function OrderCard({
   const main: OrderStatus | null =
     order.status === '待处理' ? '进行中' : order.status === '进行中' ? '已完成' : null
   const canCancel = next.includes('已取消')
-  const summary =
-    order.type === '托管'
-      ? [order.custodyKind, order.settleKind, order.endDate].filter(Boolean).join(' · ') || '托管'
-      : order.items.map((i) => i.product).join('、') || '—'
 
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2, delay }}
-      className="ds-card gap-4 p-4 transition-colors duration-150 hover:border-brand/40"
+    <div
+      className="flex items-center justify-center gap-1"
+      onClick={(e) => e.stopPropagation()}
     >
-      <button type="button" className="w-full text-left" onClick={onEdit}>
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="truncate text-sm font-medium leading-5 text-foreground">
-              {order.nickname || '未命名'}
-            </div>
-            <div className="mt-1 truncate ds-caption">{summary}</div>
-            <div className="mt-0.5 truncate ds-caption tabular-nums opacity-70">{order.orderNo}</div>
-          </div>
-          <div className="shrink-0 text-right">
-            <div className="text-sm font-medium leading-5 tabular-nums">{yuan2(order.amount)}</div>
-            <div className="mt-1 ds-caption tabular-nums">
-              到手 {payoutVoid(order) ? NO_PAYOUT : yuan2(order.payout)}
-            </div>
-          </div>
-        </div>
-      </button>
-      <div className="box-content flex h-8 items-center justify-between gap-2 border-t border-border pt-4">
-        <div className="flex min-w-0 items-center gap-2">
-          <Tag tone={statusTone[order.status]}>{order.status}</Tag>
-          {dueLabel ? (
-            <span
-              className={cn(
-                'text-xs font-medium tabular-nums',
-                dueLabel.startsWith('已过期') || dueLabel === '未设到期日'
-                  ? 'text-destructive'
-                  : 'text-warning',
-              )}
-            >
-              {dueLabel}
+      {main && next.includes(main) ? (
+        <Button
+          size="sm"
+          variant="secondary"
+          icon={main === '进行中' ? Play : Check}
+          onClick={() => onMove(order, main)}
+        >
+          {main === '进行中' ? '开始' : '完成'}
+        </Button>
+      ) : null}
+
+      {canCancel ? (
+        <Dropdown
+          align="end"
+          trigger={
+            <span className="inline-flex">
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={MoreHorizontal}
+                iconOnly
+                aria-label="取消订单"
+              />
             </span>
-          ) : (
-            <span className="truncate ds-caption">
-              {order.platform} · {order.server}
-            </span>
-          )}
-        </div>
-        <div className="flex shrink-0 items-center gap-1.5">
-          {canCancel ? (
-            <Button size="sm" variant="ghost" icon={X} aria-label="取消订单" onClick={onCancel} />
-          ) : null}
-          {main && next.includes(main) ? (
-            <Button
-              size="sm"
-              variant="secondary"
-              icon={main === '进行中' ? Play : Check}
-              onClick={() => onMove(order, main)}
-            >
-              {main === '进行中' ? '开始' : '完成'}
-            </Button>
-          ) : null}
-        </div>
-      </div>
-    </motion.article>
+          }
+          items={[{ key: 'cancel', label: '取消订单', danger: true }]}
+          onSelect={() => onCancel()}
+        />
+      ) : null}
+
+      <Button
+        variant="ghost"
+        size="sm"
+        icon={PenLine}
+        iconOnly
+        aria-label="编辑"
+        onClick={onEdit}
+      />
+    </div>
   )
-}
+})
