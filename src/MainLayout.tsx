@@ -8,6 +8,10 @@ import { Scrollbar } from "@/components/ui/Scrollbar";
 import NewOrderModal from "@/pages/Orders/NewOrder";
 import { ProfileDrawer } from "@/components/profile/ProfileDrawer";
 import { ModalConfirmHost } from "@/components/ui/ModalConfirm";
+import { ShortcutsSheet } from "@/components/help/ShortcutsSheet";
+import { UpdateHighlights } from "@/components/help/UpdateHighlights";
+import { GlobalShortcuts } from "@/components/help/GlobalShortcuts";
+import { HighlightsBootstrap } from "@/components/help/HighlightsBootstrap";
 
 /*
  * 外壳：左侧栏 + 右上标题栏 + 右下内容区。
@@ -66,6 +70,10 @@ export default function MainLayout() {
       <ModalConfirmHost />
       <NewOrderModal />
       <ProfileDrawer />
+      <GlobalShortcuts />
+      <HighlightsBootstrap />
+      <ShortcutsSheet />
+      <UpdateHighlights />
     </div>
   );
 }

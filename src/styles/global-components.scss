@@ -2187,6 +2187,94 @@
   .dd-auth-modal__body {
     /* 登录弹窗内容区：与抽屉同皮留白节奏 */
   }
+
+  /* —— 快捷键一览 / 更新亮点 —— */
+  .dd-kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    padding: 0 6px;
+    border-radius: 6px;
+    border: 1px solid hsl(var(--border) / 0.85);
+    background: hsl(var(--secondary));
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: hsl(var(--foreground) / 0.85);
+    box-shadow: 0 1px 0 hsl(var(--border) / 0.5);
+  }
+  .dd-shortcuts__group + .dd-shortcuts__group {
+    margin-top: 16px;
+  }
+  .dd-shortcuts__heading {
+    font-size: 12px;
+    font-weight: 650;
+    color: hsl(var(--muted-foreground));
+    margin-bottom: 8px;
+    letter-spacing: 0.02em;
+  }
+  .dd-shortcuts__list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .dd-shortcuts__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 36px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    border: 1px solid hsl(var(--border) / 0.55);
+    background: hsl(var(--card));
+  }
+  .dd-shortcuts__label {
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .dd-shortcuts__keys {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .dd-highlights__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .dd-highlights__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13.5px;
+    line-height: 1.45;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid hsl(var(--border) / 0.55);
+    background:
+      linear-gradient(135deg, rgba(var(--brand-rgb), 0.06), transparent 60%),
+      hsl(var(--card));
+  }
+  .dd-highlights__dot {
+    width: 8px;
+    height: 8px;
+    margin-top: 6px;
+    border-radius: 999px;
+    background: hsl(var(--brand));
+    box-shadow: 0 0 0 4px rgba(var(--brand-rgb), 0.16);
+    flex-shrink: 0;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .dd-titlebar-avatar:hover { transform: none; }
     .dd-profile__hue:hover { transform: none; }

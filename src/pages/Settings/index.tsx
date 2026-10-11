@@ -17,6 +17,8 @@ import {
   LogOut,
   CloudOff,
   Compass,
+  Keyboard,
+  Sparkles,
 } from 'lucide-react'
 import { FormSwitch, FormSegmentedControl } from '@/components/ui/form'
 import { Modal } from '@/components/ui/Modal'
@@ -34,6 +36,7 @@ import { AuthModal } from '@/components/auth/AuthModal'
 import { Tabs } from '@/components/ui/feedback'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useSetupStore } from '@/store/useSetupStore'
+import { useHelpStore } from '@/store/useHelpStore'
 import { useNavigate } from 'react-router-dom'
 
 const BACKUP_KEY = 'hoshimi.lastBackupAt'
@@ -43,6 +46,8 @@ export default function Settings() {
   const theme = useThemeStore((s) => s.mode)
   const setTheme = useThemeStore((s) => s.setMode)
   const reopenSetup = useSetupStore((s) => s.reopenSetup)
+  const openShortcuts = useHelpStore((s) => s.openShortcuts)
+  const openHighlights = useHelpStore((s) => s.openHighlights)
   const navigate = useNavigate()
   const [devMode, setDevMode] = useState(false)
   const getSnapshot = useOrdersStore((s) => s.getSnapshot)
@@ -343,6 +348,36 @@ export default function Settings() {
                     >
                       <Compass size={14} />
                       重新运行引导
+                    </button>
+                  </SettingRow>
+
+                  <SettingRow
+                    icon={Keyboard}
+                    title="快捷键"
+                    description="查看新建订单、搜索、换页等快捷键；也可按 ?"
+                  >
+                    <button
+                      type="button"
+                      className="btn-base btn-secondary btn--sm"
+                      onClick={() => openShortcuts()}
+                    >
+                      <Keyboard size={14} />
+                      查看快捷键
+                    </button>
+                  </SettingRow>
+
+                  <SettingRow
+                    icon={Sparkles}
+                    title="更新亮点"
+                    description={`当前 v${APP_VERSION} 的新功能说明`}
+                  >
+                    <button
+                      type="button"
+                      className="btn-base btn-secondary btn--sm"
+                      onClick={() => openHighlights()}
+                    >
+                      <Sparkles size={14} />
+                      查看亮点
                     </button>
                   </SettingRow>
 

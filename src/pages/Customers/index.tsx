@@ -13,6 +13,7 @@ import { modalConfirm } from '@/components/ui/ModalConfirm'
 import { useOrdersStore, type Order } from '@/store/useOrdersStore'
 import { useToastStore } from '@/store/useToastStore'
 import { useNewOrderStore } from '@/store/useNewOrderStore'
+import { seedDemoLedger } from '@/lib/seed-demo'
 import {
   customerMatches,
   duplicatePairs,
@@ -158,7 +159,7 @@ function CustomerList() {
       />
 
       <div className="dd-customers-toolbar">
-        <div className="dd-customers-search">
+        <div className="dd-customers-search" data-page-search>
           <FormInput
             prefix={<Search size={16} />}
             placeholder="搜索昵称 / 手机号"
@@ -238,7 +239,25 @@ function CustomerList() {
             <div className="dd-customers-empty">
               <Users size={36} className="dd-customers-empty__icon" />
               <p className="text-sm text-foreground/80">{search ? '没有匹配的客户' : '还没有客户'}</p>
-              <p className="ds-caption">{search ? '换个关键词试试' : '记单时会自动创建客户档案'}</p>
+              <p className="ds-caption">
+                {search ? '换个关键词试试' : '记单时会自动创建客户档案，也可先灌入演示数据'}
+              </p>
+              {!search && totalActive === 0 ? (
+                <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                  <Button size="sm" variant="primary" icon={PlusCircle} onClick={openNew}>
+                    新建订单
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => {
+                      void seedDemoLedger()
+                    }}
+                  >
+                    灌入演示数据
+                  </Button>
+                </div>
+              ) : null}
             </div>
           }
         />

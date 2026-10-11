@@ -73,6 +73,10 @@
 全屏居中卡；步骤圆点 + 连线轻呼吸；步进水平滑入淡出；尊重减动。
 步：欢迎 → 外观分段实时预览 → 云同步是/跳过（不阻断登录）→ 空账本可选灌演示。样式 `.dd-setup*` 在 `global-components.scss` `@layer components`。设置可重开，不清账本。
 
+### 快捷键一览 / 更新亮点（已落地）
+
+`ShortcutsSheet` / `UpdateHighlights` 用现有 `Modal`（缩放淡入）。快捷键行卡 `.dd-shortcuts__row`、亮点条 `.dd-highlights__item`、`<kbd class="dd-kbd">` 均在 `@layer components`。新版本首次进主壳弹亮点；设置 · 系统可重开。空账本订单/客户空态提供「灌入演示数据」（`seedDemoLedger`）。
+
 ### 动效三原则（产品定调，落地以本节为准）
 
 1. **进场**：列表/卡片统一 `ds-rise`（上浮 10px + 淡入 ~360ms）；抽屉/弹窗用缩放+淡入，退场也要播完。问候语可用 `live` 标题 + 粉线。

@@ -47,6 +47,7 @@ import { exportCsv, exportXlsx } from '@/domain/export'
 import { useState, memo, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { yuan, yuan2 } from '@/lib/format'
+import { seedDemoLedger } from '@/lib/seed-demo'
 
 /*
  * 订单列表：筛选 / 排序记住在模块级；点行编辑；开始 / 完成主按钮。
@@ -433,7 +434,7 @@ export default function Orders() {
         className="flex flex-col gap-2"
       >
         <div className="ds-toolbar">
-          <div className="relative w-64">
+          <div className="relative w-64" data-page-search>
             <Search
               size={16}
               className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
@@ -562,12 +563,27 @@ export default function Orders() {
               </p>
               <p className="text-xs mt-1">
                 {orders.length === 0
-                  ? '点右上角「新建订单」记第一单'
+                  ? '点右上角「新建订单」记第一单，或灌入演示数据熟悉界面'
                   : hasFilter
                     ? '试试清空筛选'
                     : ''}
               </p>
-              {hasFilter && orders.length > 0 ? (
+              {orders.length === 0 ? (
+                <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                  <Button size="sm" variant="primary" icon={PlusCircle} onClick={openNewOrder}>
+                    新建订单
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => {
+                      void seedDemoLedger()
+                    }}
+                  >
+                    灌入演示数据
+                  </Button>
+                </div>
+              ) : hasFilter ? (
                 <Button size="sm" variant="secondary" className="mt-3" onClick={resetFilters}>
                   清空筛选
                 </Button>
