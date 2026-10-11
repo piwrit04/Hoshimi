@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ChevronRight, GitMerge, PenLine, Plus, PlusCircle, Search, Trash2, Users } from 'lucide-react'
+import { ChevronRight, Download, GitMerge, PenLine, Plus, PlusCircle, Search, Trash2, Users } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { yuan, yuan2 } from '@/lib/format'
 import { PageHeader } from '@/components/ui/PageHeader'
@@ -23,6 +23,7 @@ import {
   resolveCustomerId,
 } from '@/domain/customers'
 import { payoutVoid } from '@/domain/status'
+import { exportCustomersCsv } from '@/domain/export'
 import type { Customer } from '@/storage/types'
 
 type SortKey = 'recent' | 'spent' | 'count'
@@ -176,6 +177,23 @@ function CustomerList() {
         description={`共 ${totalActive} 位 · 当前显示 ${rows.length} 位 · 记单时自动建档`}
         actions={
           <>
+            <Button
+              variant="secondary"
+              icon={Download}
+              disabled={rows.length === 0}
+              onClick={() => {
+                exportCustomersCsv(
+                  rows.map((r) => r.customer),
+                  rows.length === totalActive ? '客户' : '筛选客户',
+                )
+                addToast({
+                  type: 'success',
+                  message: `已导出 ${rows.length} 位客户`,
+                })
+              }}
+            >
+              导出
+            </Button>
             <Button variant="secondary" icon={PlusCircle} onClick={openNew}>
               新建订单
             </Button>

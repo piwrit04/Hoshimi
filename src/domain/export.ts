@@ -124,6 +124,35 @@ export function download(filename: string, content: BlobPart, type: string) {
   window.setTimeout(() => URL.revokeObjectURL(url), 30000)
 }
 
+
+export function customerTable(
+  customers: Customer[],
+): { headers: string[]; rows: (string | number)[][] } {
+  const headers = ['昵称', '联系方式', '备注', '建档时间']
+  const rows = customers
+    .filter((c) => !c.mergedIntoId)
+    .map((c) => [
+      c.nickname,
+      c.contact ?? '',
+      c.note ?? '',
+      c.createdAt ? c.createdAt.slice(0, 10) : '',
+    ])
+  return { headers, rows }
+}
+
+export function toCustomersCsv(customers: Customer[]): string {
+  const { headers, rows } = customerTable(customers)
+  const lines = [
+    headers.join(','),
+    ...rows.map((cells) => cells.map((c) => csvCell(c)).join(',')),
+  ]
+  return `\uFEFF${lines.join('\r\n')}`
+}
+
+export function exportCustomersCsv(customers: Customer[], label = '客户') {
+  download(`星笺${label}-${todayISO()}.csv`, toCustomersCsv(customers), 'text/csv;charset=utf-8')
+}
+
 export function exportCsv(orders: Order[], label = '订单') {
   download(`星笺${label}-${todayISO()}.csv`, toCsv(orders), 'text/csv;charset=utf-8')
 }
@@ -148,12 +177,8 @@ export async function exportXlsx(
     XLSX.utils.book_append_sheet(wb, ws, name)
   }
   if (!orders) {
-    const ws = XLSX.utils.aoa_to_sheet([
-      ['昵称', '手机号', '备注', '建档时间'],
-      ...ledger.customers
-        .filter((c) => !c.mergedIntoId)
-        .map((c) => [c.nickname, c.contact ?? '', c.note, c.createdAt.slice(0, 10)]),
-    ])
+    const { headers: custHeaders, rows: custRows } = customerTable(ledger.customers)
+    const ws = XLSX.utils.aoa_to_sheet([custHeaders, ...custRows])
     ws['!cols'] = [{ wch: 16 }, { wch: 14 }, { wch: 24 }, { wch: 12 }]
     XLSX.utils.book_append_sheet(wb, ws, '客户')
   }
