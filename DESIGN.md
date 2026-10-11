@@ -86,6 +86,39 @@
 - 品牌强调用粉色纯色（到手、金额、悬停粉边）；浅色 / 深色主题都要适配，不只做深色。
 - 氛围靠壁纸 + 暗玻璃毛玻璃叠层，不靠渐变撑「高级感」。
 
+### Linear/Raycast 控制台 + 排版间距（客户原文入库）
+
+完整排版 Prompt（问题诊断 + 只改间距/层次、不动配色）见：[`docs/UI-SPACING-PROMPT.md`](docs/UI-SPACING-PROMPT.md)。**对照原文落地，禁止口头缩写成一句。**
+
+摘要清单：
+
+1. `.table-container` 卡片包裹表（圆角 12、细边框、微阴影；与筛选栏 `margin-top: 1.5rem`）
+2. 行 `padding` 1.25rem、`vertical-align: top`、客户名/meta 分行留空
+3. 表头 12px / 700 / `muted-foreground`（列名感，不要跟内容同色）
+4. `.l2g-filter-bar` `margin-bottom: 1.5rem`
+5. 侧栏 `border-right: 1px solid border`
+6. `.ds-page--console` `padding: 2rem 2.5rem`
+
+配色另线：克制柔粉、层次底/卡（见近期 token）；**本 Prompt 明确不动配色。**
+
+### 表格全宽 + 筛选栏单行（客户原文）
+
+全文见 [`docs/UI-TABLE-WIDTH-FILTER-PROMPT.md`](docs/UI-TABLE-WIDTH-FILTER-PROMPT.md)。
+
+1. 表容器 / 主区 / 表：`width: 100%; max-width: none`
+2. 筛选栏：`nowrap` + `space-between`（分段左、搜索筛选右）
+3. `.l2g-seg` 不压缩；`.ds-toolbar` 单行；`<1024px` 才允许换行（可选）
+
+
+
+
+### 分段文字色 + 订单页头按钮布局（客户原文）
+
+全文见 [`docs/UI-SEG-HEADER-ACTIONS-PROMPT.md`](docs/UI-SEG-HEADER-ACTIONS-PROMPT.md)。
+
+1. 分段未激活：`foreground/0.6`（悬停 `/0.85`），勿用 muted 灰死
+2. 页头左右：`__title-group` | `__actions`（导出+新建），`gap: 0.75rem`
+
 ### 概览首页结构（对照 Liver2Go）
 
 1. 第一屏：全幅壁纸 + 一句大问候；第二屏：数据中心骨架占位（KPI 玻璃卡 + 走势空态），**不塞订单表**。

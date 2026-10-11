@@ -365,12 +365,14 @@ export default function Orders() {
   return (
     <div className="ds-page--console">
       <div className="l2g-orders-head ds-rise">
-        <h1 className="l2g-orders-head__title">订单管理</h1>
-        <p className="l2g-orders-head__sub">
-          共 {rows.length} 单 · 流水 {yuan(total)} ·{' '}
-          <span className="dd-money-gold">到手 {yuan(payout)}</span>
-          （不含退款 / 取消）
-        </p>
+        <div className="l2g-orders-head__title-group">
+          <h1 className="l2g-orders-head__title title">订单管理</h1>
+          <p className="l2g-orders-head__sub subtitle">
+            共 {rows.length} 单 · 流水 {yuan(total)} ·{' '}
+            <span className="dd-money-gold">到手 {yuan(payout)}</span>
+            （不含退款 / 取消）
+          </p>
+        </div>
         <div className="l2g-orders-head__actions">
           <Dropdown
             align="end"
