@@ -509,3 +509,155 @@
 @media (prefers-reduced-motion: reduce) {
   .dd-greeting__hello::after { animation: none !important; opacity: 1; }
 }
+
+
+/* === l2g-atmosphere === */
+.l2g-shell {
+  background: transparent !important;
+}
+.l2g-glass-aside,
+.l2g-glass-header {
+  background: rgba(15, 23, 42, 0.72) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 8px 32px rgba(255, 107, 157, 0.12);
+}
+.l2g-glass-aside {
+  border-right: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+.l2g-glass-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+.l2g-content {
+  background: transparent !important;
+}
+
+/* 玻璃表：粉悬停边 */
+.ds-table-card {
+  background: rgba(15, 23, 42, 0.55) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 8px 32px rgba(255, 107, 157, 0.12), 0 0 40px rgba(199, 121, 208, 0.06) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.ds-table-card:hover {
+  border-color: rgba(255, 107, 157, 0.45) !important;
+  box-shadow: 0 8px 32px rgba(255, 107, 157, 0.22), 0 0 48px rgba(199, 121, 208, 0.1) !important;
+}
+
+.l2g-sakura {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+.l2g-sakura__petal {
+  position: absolute;
+  top: -24px;
+  border-radius: 50% 0 50% 0;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 192, 203, 0.9) 0%,
+    rgba(255, 160, 180, 0.55) 100%
+  );
+  transform: rotate(45deg);
+  animation-name: l2g-sakura-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  filter: blur(0.4px);
+  box-shadow: 0 0 10px rgba(255, 192, 203, 0.45);
+  will-change: transform, opacity;
+}
+@keyframes l2g-sakura-fall {
+  0% { transform: translateY(-20px) rotate(45deg) translateX(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 0.85; }
+  100% { transform: translateY(110vh) rotate(405deg) translateX(40px); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .l2g-sakura { display: none !important; }
+}
+
+
+/* === l2g-hero (dashboard) === */
+.ds-page--l2g {
+  padding-top: 0 !important;
+  gap: 0 !important;
+}
+.l2g-hero {
+  position: relative;
+  min-height: calc(100vh - 56px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px 80px;
+}
+.l2g-hero__title {
+  font-size: clamp(2.5rem, 6vw, 3.75rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  color: #fff;
+  text-shadow: 0 3px 24px rgba(0, 0, 0, 0.75), 0 0 40px rgba(255, 107, 157, 0.25);
+}
+.l2g-hero__caret {
+  display: inline-block;
+  width: 4px;
+  height: 0.85em;
+  margin-left: 6px;
+  vertical-align: -0.05em;
+  border-radius: 2px;
+  background: #FF6B9D;
+  animation: l2g-blink 1.2s ease-in-out infinite;
+}
+.l2g-hero__meta {
+  margin-top: 1.25rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.82);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+}
+.l2g-hero__actions {
+  margin-top: 2rem;
+}
+.l2g-hero__scroll {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 13px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  animation: l2g-bounce 1.8s ease-in-out infinite;
+}
+.l2g-hero__scroll:hover { color: #FF6B9D; }
+@keyframes l2g-bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(6px); }
+}
+.l2g-dashboard-data {
+  padding: 8px 0 32px;
+}
+/* 玻璃 KPI / 卡片叠在壁纸上 */
+.ds-page--l2g .ds-card,
+.ds-page--l2g .ds-stat {
+  background: rgba(15, 23, 42, 0.55) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .l2g-hero__caret { animation: none !important; opacity: 1; }
+  .l2g-hero__scroll { animation: none !important; }
+}

@@ -148,7 +148,7 @@ export function Sidebar({ showLogo = true }: { showLogo?: boolean }) {
         'h-full flex flex-col relative transition-all duration-300 ease-in-out z-50',
         /* ⚠️ 工具箱原文是写死的浅粉底 bg-[#FCFAFD]/92 + 边框 #E8E1F0 —— 深色模式不跟着变。
            这里换成主题变量。阴影保留原样（它本来就只是外侧一道柔影，不分模式）。 */
-        'bg-card border-r border-border',
+        'l2g-glass-aside',
         sidebarWidth
       )}
       data-testid="sidebar"
@@ -157,7 +157,7 @@ export function Sidebar({ showLogo = true }: { showLogo?: boolean }) {
         <button
           type="button"
           aria-label={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-          className="flex items-center justify-center shrink-0 cursor-pointer transition-colors duration-300 hover:bg-secondary/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary no-drag h-14 px-3 border-b border-border"
+          className="flex items-center justify-center shrink-0 cursor-pointer transition-colors duration-300 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary no-drag h-14 px-3 border-b border-white/10"
           onMouseEnter={() => setIsLogoHovered(true)}
           onMouseLeave={() => setIsLogoHovered(false)}
           onClick={onLogoClick}

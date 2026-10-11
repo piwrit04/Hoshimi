@@ -614,8 +614,14 @@
   }
   .dd-order-no:hover { color: var(--brand-text-hex); }
   .dd-order-no--always { opacity: 1; }
+  /* Liver2Go：到手粉强调（非成功绿） */
   .dd-money-gold {
-    color: rgb(var(--success-rgb));
+    color: #FF6B9D;
+    font-weight: 700;
+    text-shadow: 0 0 18px rgba(255, 107, 157, 0.35);
+  }
+  .dd-money-flow {
+    color: rgba(255, 182, 210, 0.95);
     font-weight: 600;
   }
   .dd-cell-dual__due {
@@ -686,22 +692,29 @@
   .dd-greeting__chip--warn strong { color: rgb(var(--warning-rgb)); }
   .dd-greeting__chip--muted strong { color: hsl(var(--foreground)); }
 
-  /* Cheezit 轻表：发丝行线 + 浅底悬停，不做行卡抬升阴影 */
+  /* Liver2Go：行悬停 = 粉描边，不做粉底铺满 */
   .dd-table tbody tr {
-    transition: background-color 0.16s ease;
+    transition: box-shadow 0.16s ease, background-color 0.16s ease;
   }
   .dd-table tbody tr:hover td {
-    background-color: rgba(var(--brand-rgb), 0.08);
+    background-color: transparent;
   }
-  /* 选中：左侧品牌条 + 浅品牌底，无抬升 */
+  .dd-table tbody tr:hover td:first-child {
+    box-shadow: inset 2px 0 0 0 #FF6B9D;
+  }
+  .dd-table tbody tr:hover {
+    outline: 1px solid rgba(255, 107, 157, 0.45);
+    outline-offset: -1px;
+  }
+  /* 选中：左侧粉条，底仍透明 */
   .dd-table tbody tr[data-selected="true"] td {
-    background-color: rgba(var(--brand-rgb), 0.08);
+    background-color: transparent;
   }
   .dd-table tbody tr[data-selected="true"] td:first-child {
-    box-shadow: inset 3px 0 0 0 var(--brand-hex);
+    box-shadow: inset 3px 0 0 0 #FF6B9D;
   }
   .dd-table tbody tr[data-selected="true"]:hover td {
-    background-color: rgba(var(--brand-rgb), 0.11);
+    background-color: transparent;
   }
   /* 错落入场（y:10 + 淡入，delay 由 --dd-row-delay 注入，组件侧封顶） */
   @keyframes dd-table-rise {
@@ -750,7 +763,7 @@
     background-color: rgba(var(--accent-soft-rgb), 0.04);
   }
   .dd-table--striped tbody tr:hover td {
-    background-color: rgba(var(--brand-rgb), 0.08);
+    background-color: transparent;
   }
   @media (prefers-reduced-motion: reduce) {
     .dd-table tbody tr.dd-table__row--enter {
@@ -1699,7 +1712,7 @@
   .dd-money {
     @apply tabular-nums font-semibold whitespace-nowrap;
   }
-  .dd-money--income { color: rgb(var(--success-rgb)); }
+  .dd-money--income { color: #FF6B9D; }
   .dd-money--expense { color: rgb(var(--danger-rgb)); }
   .dd-money--fee { color: rgb(var(--warning-rgb)); }
   .dd-money--muted { color: hsl(var(--muted-foreground)); }
