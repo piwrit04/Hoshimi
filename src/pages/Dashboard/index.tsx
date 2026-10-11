@@ -28,8 +28,8 @@ import { NO_PAYOUT, payoutVoid } from '@/domain/status'
 import type { Order, OrderStatus } from '@/domain/order'
 
 /*
- * 概览：3 KPI（今日到手 / 未完成 / 托管到期）+ 走势图 + 智能提示。
- * 点 KPI 弹明细；托管到期只在第三张卡。
+ * 概览：问候一行 + 3 KPI（今日到手 / 未完成 / 托管到期）+ 走势图 + 智能提示。
+ * 问候旁不再放经营芯片（与 KPI 重复）；点 KPI 弹明细。
  */
 
 type KpiKey = 'today' | 'open' | 'due'
@@ -94,36 +94,6 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="dd-greeting__right">
-          <button
-            type="button"
-            className="dd-greeting__chip"
-            onClick={() => setKpiOpen('today')}
-            title="查看今日到手明细"
-          >
-            <span>今日到手</span>
-            <strong>{money(k.payoutToday)}</strong>
-          </button>
-          <button
-            type="button"
-            className="dd-greeting__chip dd-greeting__chip--muted"
-            onClick={() => setKpiOpen('open')}
-            title="查看未完成订单"
-          >
-            <span>待跟进</span>
-            <strong>{k.openCount}</strong>
-          </button>
-          <button
-            type="button"
-            className={cn(
-              'dd-greeting__chip',
-              m.expiring.length ? 'dd-greeting__chip--warn' : 'dd-greeting__chip--muted',
-            )}
-            onClick={() => setKpiOpen('due')}
-            title={`${m.remindDays} 天内托管到期`}
-          >
-            <span>{m.remindDays}天内到期</span>
-            <strong>{m.expiring.length}</strong>
-          </button>
           <Button variant="primary" icon={PlusCircle} onClick={openNewOrder}>
             新建订单
           </Button>
