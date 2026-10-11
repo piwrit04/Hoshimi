@@ -5,12 +5,14 @@ import { ThemeSync } from "@/components/ThemeSync";
 import { LoadingBarHost } from "@/components/ui/LoadingBar";
 import { bootPersist, dismissHtmlSplash } from "@/storage/boot";
 import { useOrdersStore } from "@/store/useOrdersStore";
+import { useSetupStore } from "@/store/useSetupStore";
 import Dashboard from "@/pages/Dashboard";
 import Settings from "@/pages/Settings";
 import Orders from "@/pages/Orders/List";
 import Customers from "@/pages/Customers";
 import Todo from "@/pages/Todo";
 import NotFound from "@/pages/NotFound";
+import SetupWizard from "@/pages/Setup/SetupWizard";
 
 /* 组件预览体积大且只在开发时看：按需加载，主包更小、启动更快 */
 const ComponentsPage = lazy(() => import("@/pages/Components"));
@@ -38,6 +40,7 @@ function clearSeedFlag() {
 
 export function App() {
   const [ready, setReady] = useState(false);
+  const setupComplete = useSetupStore((s) => s.setupComplete);
 
   useEffect(() => {
     let cancelled = false;
@@ -54,6 +57,15 @@ export function App() {
         ;(window as unknown as { __HOSHIMI_SEEDED__?: boolean }).__HOSHIMI_SEEDED__ = true;
       }
 
+      /* 已有账本的老用户：跳过强制引导（仍可在设置里重开） */
+      const setup = useSetupStore.getState();
+      if (!setup.setupComplete) {
+        const { orders, customers } = useOrdersStore.getState();
+        if (orders.length > 0 || customers.length > 0) {
+          setup.completeSetup();
+        }
+      }
+
       dismissHtmlSplash();
       setReady(true);
       ;(window as unknown as { __HOSHIMI_READY__?: boolean }).__HOSHIMI_READY__ = true;
@@ -68,26 +80,34 @@ export function App() {
       <LoadingBarHost />
       <ThemeSync />
       {ready ? (
-        <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route element={<MainLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/todo" element={<Todo />} />
-            <Route path="/customers" element={<Customers />} />
-            <Route path="/customers/:customerId" element={<Customers />} />
-            <Route
-              path="/components"
-              element={
-                <Suspense fallback={null}>
-                  <ComponentsPage />
-                </Suspense>
-              }
-            />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
+        setupComplete ? (
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/setup" element={<Navigate to="/dashboard" replace />} />
+            <Route element={<MainLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/orders" element={<Orders />} />
+              <Route path="/todo" element={<Todo />} />
+              <Route path="/customers" element={<Customers />} />
+              <Route path="/customers/:customerId" element={<Customers />} />
+              <Route
+                path="/components"
+                element={
+                  <Suspense fallback={null}>
+                    <ComponentsPage />
+                  </Suspense>
+                }
+              />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
+        ) : (
+          <Routes>
+            <Route path="/setup" element={<SetupWizard />} />
+            <Route path="*" element={<Navigate to="/setup" replace />} />
+          </Routes>
+        )
       ) : null}
     </>
   );

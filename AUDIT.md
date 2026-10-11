@@ -23,6 +23,8 @@
 
 ### 簇 A · 未分层的 SCSS 永远压过 Tailwind 工具类
 
+> **状态（2026-10-11）**：`global-*.scss` 已包进 `@layer components`（commit `a8f27c5`）。下文保留根因说明供回归对照。残留风险：`ds.css` 等仍未分层，个别覆盖可能仍失效。
+
 `global-*.scss` 的规则**不在任何 `@layer` 里**，而 `index.css` 的 `@import "tailwindcss"` 展开成
 `@layer theme, base, components, utilities`。按 CSS 规范，**未分层声明优先于所有分层声明**。
 → 任何调用方想用 Tailwind 覆盖组件的同属性，**静默失效**。

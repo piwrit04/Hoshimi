@@ -16,6 +16,7 @@ import {
   LogIn,
   LogOut,
   CloudOff,
+  Compass,
 } from 'lucide-react'
 import { FormSwitch, FormSegmentedControl } from '@/components/ui/form'
 import { Modal } from '@/components/ui/Modal'
@@ -32,6 +33,8 @@ import { exportCsv, exportXlsx } from '@/domain/export'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { Tabs } from '@/components/ui/feedback'
 import { useAuthStore } from '@/store/useAuthStore'
+import { useSetupStore } from '@/store/useSetupStore'
+import { useNavigate } from 'react-router-dom'
 
 const BACKUP_KEY = 'hoshimi.lastBackupAt'
 const APP_VERSION = __APP_VERSION__
@@ -39,6 +42,8 @@ const APP_VERSION = __APP_VERSION__
 export default function Settings() {
   const theme = useThemeStore((s) => s.mode)
   const setTheme = useThemeStore((s) => s.setMode)
+  const reopenSetup = useSetupStore((s) => s.reopenSetup)
+  const navigate = useNavigate()
   const [devMode, setDevMode] = useState(false)
   const getSnapshot = useOrdersStore((s) => s.getSnapshot)
   const replaceSnapshot = useOrdersStore((s) => s.replaceSnapshot)
@@ -323,6 +328,24 @@ export default function Settings() {
                 <CloudSyncSection />
 
                 <SettingGroup title="关于">
+                  <SettingRow
+                    icon={Compass}
+                    title="重新运行引导"
+                    description="再次打开首次设置向导；不会清空订单或客户"
+                  >
+                    <button
+                      type="button"
+                      className="btn-base btn-secondary btn--sm"
+                      onClick={() => {
+                        reopenSetup()
+                        navigate('/setup')
+                      }}
+                    >
+                      <Compass size={14} />
+                      重新运行引导
+                    </button>
+                  </SettingRow>
+
                   <SettingRow
                     icon={RefreshCw}
                     title="检查更新"
