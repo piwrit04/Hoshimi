@@ -29,8 +29,7 @@ import { NO_PAYOUT, payoutVoid } from '@/domain/status'
 import type { Order, OrderStatus } from '@/domain/order'
 
 /*
- * 概览：控制台首屏 — 可点 KPI / 到期 / 待跟进先见，问候收进页头；
- * 不再两页 snap 欢迎页。
+ * 概览：控制台首屏 — KPI + 胶囊深链 + 走势图；累计类收进图头，不另挂四格条。
  */
 
 type KpiKey = 'today' | 'active' | 'month' | 'due'
@@ -103,13 +102,6 @@ export default function Dashboard() {
       moreLabel: '去待办 · 到期',
     },
   }
-
-  const metrics = [
-    { label: '服务天数', value: k.serviceDays, unit: '天', money: false },
-    { label: '已成交', value: k.completedTotal, unit: '', money: false },
-    { label: '累计到手', value: k.payoutTotal, unit: '', money: true },
-    { label: '服务用户', value: k.customers, unit: '位', money: false },
-  ]
 
   const kpiCards: {
     key: KpiKey
@@ -220,28 +212,17 @@ export default function Dashboard() {
         </Link>
       </nav>
 
-      <div className="l2g-dash__metrics ds-rise">
-        {metrics.map((s) => (
-          <div key={s.label} className="l2g-dash__metric">
-            <div className={cn('l2g-dash__metric-value', s.money && 'dd-money-gold')}>
-              {s.money ? (
-                <CountUp value={s.value} money />
-              ) : (
-                <>
-                  <CountUp value={s.value} />
-                  {s.unit ? <span className="l2g-dash__metric-unit">{s.unit}</span> : null}
-                </>
-              )}
-            </div>
-            <div className="l2g-dash__metric-label">{s.label}</div>
-          </div>
-        ))}
-      </div>
-
       <div className="l2g-glass-panel ds-rise">
         <div className="l2g-glass-panel__head">
           <div>
             <h2 className="l2g-datacenter__heading l2g-datacenter__heading--inline">收入走势</h2>
+            <p className="l2g-glass-panel__meta" aria-label="累计概览">
+              累计到手{' '}
+              <span className="dd-money-gold tabular-nums">{money(k.payoutTotal)}</span>
+              {' · '}已成交 {k.completedTotal}
+              {' · '}服务 {k.serviceDays} 天
+              {' · '}{k.customers} 位用户
+            </p>
             <p className="l2g-glass-panel__desc">{tip.text}</p>
           </div>
         </div>

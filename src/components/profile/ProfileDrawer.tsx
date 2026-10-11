@@ -89,9 +89,7 @@ export function ProfileDrawer() {
       ? `同步出错：${lastSyncError}`
       : lastSyncAt
         ? `上次同步：${new Date(lastSyncAt).toLocaleString('zh-CN', { hour12: false })}`
-        : user
-          ? '登录后可手动同步，或改动账本后自动推送'
-          : '登录后可跨设备同步'
+        : '可手动同步，或改动账本后自动推送'
 
   const statusLine = user?.email
     ? user.email
@@ -222,48 +220,51 @@ export function ProfileDrawer() {
             </section>
           ) : null}
 
-          <section className="dd-profile__section ds-rise">
-            <h3 className="dd-profile__section-title">
-              <span className="inline-flex items-center gap-1.5">
-                {configured && user ? (
-                  <Cloud size={14} className="text-brand" />
-                ) : (
-                  <CloudOff size={14} className="text-muted-foreground" />
-                )}
-                云同步
-              </span>
-            </h3>
-            <p className="text-xs text-muted-foreground leading-relaxed mb-2.5">{syncLabel}</p>
-            {configured && user ? (
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={syncing}
-                onClick={() => {
-                  void syncNow().then((res) => {
-                    if (res.ok) {
-                      const map: Record<string, string> = {
-                        pulled: '已从云端拉取较新账本',
-                        pushed: '已推送到云端',
-                        noop: '已与云端一致',
+          {/* 未登录：只留上方登录条，不在此重复「登录后可…」；登录后或本地模式再显示云同步 */}
+          {user || !configured ? (
+            <section className="dd-profile__section ds-rise">
+              <h3 className="dd-profile__section-title">
+                <span className="inline-flex items-center gap-1.5">
+                  {configured && user ? (
+                    <Cloud size={14} className="text-brand" />
+                  ) : (
+                    <CloudOff size={14} className="text-muted-foreground" />
+                  )}
+                  云同步
+                </span>
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-2.5">{syncLabel}</p>
+              {configured && user ? (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={syncing}
+                  onClick={() => {
+                    void syncNow().then((res) => {
+                      if (res.ok) {
+                        const map: Record<string, string> = {
+                          pulled: '已从云端拉取较新账本',
+                          pushed: '已推送到云端',
+                          noop: '已与云端一致',
+                        }
+                        addToast({ type: 'success', message: map[res.action] ?? '同步完成' })
+                      } else {
+                        addToast({ type: 'error', message: res.error })
                       }
-                      addToast({ type: 'success', message: map[res.action] ?? '同步完成' })
-                    } else {
-                      addToast({ type: 'error', message: res.error })
-                    }
-                  })
-                }}
-              >
-                <RefreshCw size={14} className={syncing ? 'animate-spin' : undefined} />
-                {syncing ? '同步中…' : '立即同步'}
-              </Button>
-            ) : !configured ? (
-              <div className="dd-profile__local-hint">
-                <UserRound size={14} className="text-brand shrink-0" />
-                <span>账本始终写在本机 IndexedDB，云端只是可选备份。</span>
-              </div>
-            ) : null}
-          </section>
+                    })
+                  }}
+                >
+                  <RefreshCw size={14} className={syncing ? 'animate-spin' : undefined} />
+                  {syncing ? '同步中…' : '立即同步'}
+                </Button>
+              ) : (
+                <div className="dd-profile__local-hint">
+                  <UserRound size={14} className="text-brand shrink-0" />
+                  <span>账本始终写在本机 IndexedDB，云端只是可选备份。</span>
+                </div>
+              )}
+            </section>
+          ) : null}
         </div>
       </Drawer>
 

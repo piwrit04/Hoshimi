@@ -1016,6 +1016,15 @@
   gap: 12px;
   margin-bottom: 8px;
 }
+.l2g-glass-panel__meta {
+  margin: 2px 0 4px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.62);
+}
+:root[data-theme="light"] .l2g-glass-panel__meta {
+  color: hsl(var(--muted-foreground));
+}
 .l2g-glass-panel__desc {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.55);
