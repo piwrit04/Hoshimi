@@ -42,8 +42,8 @@ import {
   type Period,
 } from '@/domain/selectors'
 import { exportCsv, exportXlsx } from '@/domain/export'
-import { useState, memo, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, memo, useMemo, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { yuan, yuan2 } from '@/lib/format'
 import { daysUntilLabel } from '@/domain/workbench'
 import { daysBetween, todayISO } from '@/domain/dates'
@@ -141,6 +141,29 @@ export default function Orders() {
   const [search, setSearchState] = useState(ordersListState.search)
   const [sortBy, setSortByState] = useState<OrderSortKey>(ordersListState.sortBy)
   const [sortDir, setSortDirState] = useState<OrderSortDir>(ordersListState.sortDir)
+  const [searchParams] = useSearchParams()
+
+  useEffect(() => {
+    const modeQ = searchParams.get('mode') as OrderMode | null
+    const periodQ = searchParams.get('period') as Period | null
+    const typeQ = searchParams.get('type')
+    const next: Partial<typeof ordersListState> = {}
+    if (modeQ && MODES.some((m) => m.id === modeQ)) {
+      setModeState(modeQ)
+      next.mode = modeQ
+    }
+    if (periodQ && PERIODS.some((p) => p.id === periodQ)) {
+      setPeriodState(periodQ)
+      next.period = periodQ
+    }
+    if (typeQ === 'all' || typeQ === '普通' || typeQ === '托管') {
+      setTypeState(typeQ)
+      next.type = typeQ
+    }
+    if (Object.keys(next).length) writeListState(next)
+    // only apply once from URL when landing
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const setType = (v: OrderType | 'all') => {
     writeListState({ type: v })

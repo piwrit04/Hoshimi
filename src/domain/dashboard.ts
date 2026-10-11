@@ -4,7 +4,7 @@
  * - 有正式单时不算示例单（isTest）；只有示例时才用示例方便试用
  */
 
-import { dateLabel, greeting, monthKey, todayISO, daysBetween } from '@/domain/dates'
+import { dateLabel, greeting, monthKey, todayISO, daysBetween, sameLocalDay } from '@/domain/dates'
 import { fromCents, toCents } from '@/domain/money'
 import type { Order } from '@/domain/order'
 import { expiryThreshold } from '@/domain/ledger'
@@ -17,7 +17,7 @@ export type LedgerView = {
   settings: { expiryOffsets: number[] }
 }
 
-export type ExpiringItem = { order: Order; days: number }
+export type ExpiringItem = { order: Order; days: number | null }
 
 function sumMoney(values: number[]): number {
   return fromCents(values.reduce((s, n) => s + toCents(n), 0))
@@ -52,16 +52,24 @@ export function dashboard(ledger: LedgerView, now = new Date()) {
   ).size
 
   const threshold = expiryThreshold(ledger.settings.expiryOffsets)
+  /** 未设结束日也算进「快到期」，与待办 workbench 一致，避免托管在概览「消失」 */
   const expiring: ExpiringItem[] = custodyActive
-    .filter((o) => o.endDate)
-    .map((o) => ({ order: o, days: daysBetween(today, o.endDate!) }))
-    .filter((x) => x.days <= threshold)
-    .sort((a, b) => a.days - b.days)
+    .filter((o) => !o.endDate || daysBetween(today, o.endDate) <= threshold)
+    .map((o) => ({
+      order: o,
+      days: o.endDate ? daysBetween(today, o.endDate) : null,
+    }))
+    .sort((a, b) => {
+      if (a.days == null && b.days == null) return b.order.createdAt.localeCompare(a.order.createdAt)
+      if (a.days == null) return 1
+      if (b.days == null) return -1
+      return a.days - b.days
+    })
 
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime()
   const newThisMonth = orders.filter((o) => new Date(o.createdAt).getTime() >= monthStart)
   const newThisMonthLive = newThisMonth.filter((o) => o.status !== '已退款' && o.status !== '已取消')
-  const doneToday = done.filter((o) => todayISO(new Date(o.completedAt!)) === today)
+  const doneToday = done.filter((o) => sameLocalDay(o.completedAt, today))
   const inProgress = orders.filter((o) => o.status === '进行中')
   const waiting = orders.filter((o) => o.status === '待处理')
   const openOrders = [...waiting, ...inProgress].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
@@ -93,6 +101,19 @@ export function dashboard(ledger: LedgerView, now = new Date()) {
       completedToday: doneToday.length,
       newThisMonth: newThisMonth.length,
       newThisMonthAmount: sumMoney(newThisMonthLive.map((o) => o.amount)),
+      completedTotal: done.length,
+      payoutTotal: sumMoney(done.map((o) => o.payout)),
+      serviceDays: (() => {
+        if (orders.length === 0) return 0
+        let first = Infinity
+        for (const o of orders) {
+          const t = new Date(o.createdAt).getTime()
+          if (!Number.isNaN(t) && t < first) first = t
+        }
+        if (!Number.isFinite(first)) return 0
+        return Math.max(1, daysBetween(todayISO(new Date(first)), today) + 1)
+      })(),
+      expiringCount: expiring.length,
     },
     /** KPI 点开用的明细 */
     lists: {

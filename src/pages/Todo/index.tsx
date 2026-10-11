@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Check, ListTodo, Play, PlusCircle, Search, X } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { PageHeader } from '@/components/ui/PageHeader'
@@ -42,10 +43,16 @@ export default function TodoPage() {
   const openEdit = useNewOrderStore((s) => s.openEdit)
   const addToast = useToastStore((s) => s.addToast)
 
+  const [searchParams] = useSearchParams()
   const [query, setQuery] = useState('')
   const [tab, setTab] = useState<Tab>('all')
   const [normalLimit, setNormalLimit] = useState(PAGE)
   const [expireLimit, setExpireLimit] = useState(PAGE)
+
+  useEffect(() => {
+    const raw = searchParams.get('tab')
+    if (raw === 'chase' || raw === 'due' || raw === 'all') setTab(raw)
+  }, [searchParams])
 
   const model = useMemo(() => workbench(orders, settings, query), [orders, settings, query])
   const searching = Boolean(query.trim())

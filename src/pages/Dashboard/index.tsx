@@ -1,55 +1,79 @@
-import { Link } from 'react-router-dom'
-import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   BarChart3,
+  CalendarClock,
   ChevronDown,
   CircleDollarSign,
-  Heart,
+  Hourglass,
   PlusCircle,
-  Sparkles,
-  Users,
+  ShoppingBag,
   type LucideIcon,
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { yuan as money, yuan2 } from '@/lib/format'
+import { CountUp } from '@/lib/count-up'
 import { useOrdersStore } from '@/store/useOrdersStore'
 import { useNewOrderStore } from '@/store/useNewOrderStore'
-import { dashboard } from '@/domain/dashboard'
+import {
+  dashboard,
+  incomeTrend,
+  incomeSmartTip,
+  type TrendUnit,
+  type ExpiringItem,
+} from '@/domain/dashboard'
+import { IncomeTrendChart } from '@/components/charts/IncomeTrendChart'
 import { Button } from '@/components/ui/Button'
+import { Modal } from '@/components/ui/Modal'
+import { Tag } from '@/components/ui/data'
+import { NO_PAYOUT, payoutVoid } from '@/domain/status'
+import type { Order, OrderStatus } from '@/domain/order'
 
 /*
- * 首页两整页 snap（对齐 Liver2Go）：
+ * 首页两整页 snap：
  *   page1 = 全幅问候
- *   page2 = 数据中心骨架占位（KPI 玻璃卡 + 空图表），不塞订单表/订单 KPI
+ *   page2 = 数据中心（真数 KPI + 走势 + 下钻），不塞订单表
  */
 
-const KPI_SLOTS: {
-  key: string
-  label: string
-  icon: LucideIcon
-  hint: string
-}[] = [
-  { key: 'yesterday', label: '昨日收入', icon: CircleDollarSign, hint: '占位 · 待接入' },
-  { key: 'today', label: '今日收入', icon: Sparkles, hint: '占位 · 待接入' },
-  { key: 'fans', label: '粉丝数', icon: Heart, hint: '占位 · 待接入' },
-  { key: 'served', label: '已服务', icon: Users, hint: '占位 · 待接入' },
-]
+type KpiKey = 'today' | 'active' | 'month' | 'due'
 
-const METRIC_SLOTS = [
-  { label: '服务天数', unit: '天' },
-  { label: '已成交', unit: '' },
-  { label: '累计到手', unit: '' },
-  { label: '服务用户', unit: '位' },
-]
+const statusTone: Record<OrderStatus, 'brand' | 'warning' | 'success' | 'danger'> = {
+  待处理: 'warning',
+  进行中: 'brand',
+  已完成: 'success',
+  已退款: 'danger',
+  已取消: 'danger',
+}
+
+function orderTitle(o: Order) {
+  if (o.type === '托管') return `${o.custodyKind ?? '托管'} · ${o.settleKind ?? ''}`
+  return o.items.map((i) => i.product).join('、') || '—'
+}
 
 export default function Dashboard() {
   const orders = useOrdersStore((s) => s.orders)
   const customers = useOrdersStore((s) => s.customers)
   const settings = useOrdersStore((s) => s.settings)
   const openNewOrder = useNewOrderStore((s) => s.open)
-
-  const m = useMemo(() => dashboard({ orders, customers, settings }), [orders, customers, settings])
+  const openEdit = useNewOrderStore((s) => s.openEdit)
+  const navigate = useNavigate()
 
   const [typed, setTyped] = useState('')
   const [clock, setClock] = useState(() => formatClock())
+  const [unit, setUnit] = useState<TrendUnit>('day')
+  const [kpiOpen, setKpiOpen] = useState<KpiKey | null>(null)
+
+  const m = useMemo(() => dashboard({ orders, customers, settings }), [orders, customers, settings])
+  const trend = useMemo(
+    () => incomeTrend({ orders, customers, settings }, unit),
+    [orders, customers, settings, unit],
+  )
+  const dayTrend = useMemo(
+    () => incomeTrend({ orders, customers, settings }, 'day'),
+    [orders, customers, settings],
+  )
+  const tip = useMemo(() => incomeSmartTip(m.kpis, dayTrend), [m.kpis, dayTrend])
+  const k = m.kpis
 
   useEffect(() => {
     const full = m.hello
@@ -75,7 +99,6 @@ export default function Dashboard() {
     return () => window.clearInterval(id)
   }, [])
 
-  /* 首页启用 scroll-snap；离开时卸掉，避免其它页被强制整页吸附 */
   useEffect(() => {
     const root = document.querySelector('[data-scroll-root]') as HTMLElement | null
     if (!root) return
@@ -98,9 +121,83 @@ export default function Dashboard() {
     }
   }
 
+  const modalMeta: Record<KpiKey, { title: string; hint: string; moreTo: string; moreLabel: string }> = {
+    today: {
+      title: '今日到手',
+      hint: '今天「已完成」订单的到手明细',
+      moreTo: '/orders?mode=已完成',
+      moreLabel: '去订单 · 已完成',
+    },
+    active: {
+      title: '进行中',
+      hint: '当前进行中的订单',
+      moreTo: '/orders?mode=进行中',
+      moreLabel: '去订单 · 进行中',
+    },
+    month: {
+      title: '本月新单',
+      hint: '本月创建的订单',
+      moreTo: '/orders?period=month',
+      moreLabel: '去订单 · 本月',
+    },
+    due: {
+      title: '托管快到期',
+      hint: `含未设到期日 · ${m.remindDays} 天内到期的进行中/待处理托管`,
+      moreTo: '/todo?tab=due',
+      moreLabel: '去待办 · 到期',
+    },
+  }
+
+  const metrics = [
+    { label: '服务天数', value: k.serviceDays, unit: '天', money: false },
+    { label: '已成交', value: k.completedTotal, unit: '', money: false },
+    { label: '累计到手', value: k.payoutTotal, unit: '', money: true },
+    { label: '服务用户', value: k.customers, unit: '位', money: false },
+  ]
+
+  const kpiCards: {
+    key: KpiKey
+    label: string
+    icon: LucideIcon
+    value: number
+    money?: boolean
+    foot: string
+    warn?: boolean
+  }[] = [
+    {
+      key: 'today',
+      label: '今日到手',
+      icon: CircleDollarSign,
+      value: k.payoutToday,
+      money: true,
+      foot: `本月 ${money(k.payoutThisMonth)}`,
+    },
+    {
+      key: 'active',
+      label: '进行中',
+      icon: Hourglass,
+      value: k.inProgress,
+      foot: `待处理 ${k.waiting} 单`,
+    },
+    {
+      key: 'month',
+      label: '本月新单',
+      icon: ShoppingBag,
+      value: k.newThisMonth,
+      foot: `流水 ${money(k.newThisMonthAmount)}`,
+    },
+    {
+      key: 'due',
+      label: '托管快到期',
+      icon: CalendarClock,
+      value: k.expiringCount,
+      foot: `托管中 ${k.custodyActive} · ${m.remindDays} 天内`,
+      warn: k.expiringCount > 0,
+    },
+  ]
+
   return (
     <div className="ds-page ds-page--l2g">
-      {/* —— Page 1: 全幅问候 —— */}
       <section className="l2g-snap-page l2g-hero ds-rise" aria-label="问候">
         <h1 className="l2g-hero__title">
           {typed}
@@ -121,7 +218,6 @@ export default function Dashboard() {
         </button>
       </section>
 
-      {/* —— Page 2: 数据中心骨架（占位，不塞订单） —— */}
       <section
         id="dashboard-page2"
         className="l2g-snap-page l2g-datacenter ds-rise"
@@ -144,13 +240,23 @@ export default function Dashboard() {
             <Link to="/todo" className="l2g-capsule">
               待办
             </Link>
+            <Link to="/todo?tab=due" className="l2g-capsule">
+              到期{k.expiringCount ? ` ${k.expiringCount}` : ''}
+            </Link>
           </nav>
 
           <div className="l2g-datacenter__metrics">
-            {METRIC_SLOTS.map((s) => (
+            {metrics.map((s) => (
               <div key={s.label} className="l2g-metric">
                 <div className="l2g-metric__value">
-                  —{s.unit ? <span className="l2g-metric__unit">{s.unit}</span> : null}
+                  {s.money ? (
+                    <CountUp value={s.value} money />
+                  ) : (
+                    <>
+                      <CountUp value={s.value} />
+                      {s.unit ? <span className="l2g-metric__unit">{s.unit}</span> : null}
+                    </>
+                  )}
                 </div>
                 <div className="l2g-metric__label">{s.label}</div>
               </div>
@@ -160,14 +266,27 @@ export default function Dashboard() {
           <div className="l2g-datacenter__section">
             <h2 className="l2g-datacenter__heading">数据一览</h2>
             <div className="l2g-kpi-grid">
-              {KPI_SLOTS.map((slot) => (
-                <PlaceholderKpi
-                  key={slot.key}
-                  icon={slot.icon}
-                  label={slot.label}
-                  hint={slot.hint}
-                />
-              ))}
+              {kpiCards.map((slot) => {
+                const Icon = slot.icon
+                return (
+                  <button
+                    key={slot.key}
+                    type="button"
+                    className={cn('l2g-kpi-card l2g-kpi-card--link', slot.warn && 'l2g-kpi-card--warn')}
+                    onClick={() => setKpiOpen(slot.key)}
+                    title="点击查看明细"
+                  >
+                    <span className="l2g-kpi-card__icon" aria-hidden>
+                      <Icon size={22} strokeWidth={1.75} />
+                    </span>
+                    <div className="l2g-kpi-card__value">
+                      <CountUp value={slot.value} money={slot.money} />
+                    </div>
+                    <div className="l2g-kpi-card__label">{slot.label}</div>
+                    <div className="l2g-kpi-card__foot">{slot.foot}</div>
+                  </button>
+                )
+              })}
             </div>
           </div>
 
@@ -178,45 +297,178 @@ export default function Dashboard() {
                   <h2 className="l2g-datacenter__heading l2g-datacenter__heading--inline">
                     收入走势
                   </h2>
-                  <p className="l2g-glass-panel__desc">占位 · 接入后显示到手趋势</p>
-                </div>
-                <div className="l2g-capsule-group" aria-hidden>
-                  <span className="l2g-capsule l2g-capsule--muted">日</span>
-                  <span className="l2g-capsule l2g-capsule--muted">周</span>
-                  <span className="l2g-capsule l2g-capsule--muted">月</span>
+                  <p className="l2g-glass-panel__desc">{tip.text}</p>
                 </div>
               </div>
-              <div className="l2g-chart-empty">
-                <BarChart3 size={36} strokeWidth={1.5} className="l2g-chart-empty__icon" />
-                <p className="l2g-chart-empty__title">暂无走势数据</p>
-                <p className="l2g-chart-empty__desc">位置已留好，不在此塞订单明细</p>
-              </div>
+              {k.completedTotal === 0 && trend.every((p) => p.payout === 0) ? (
+                <div className="l2g-chart-empty">
+                  <BarChart3 size={36} strokeWidth={1.5} className="l2g-chart-empty__icon" />
+                  <p className="l2g-chart-empty__title">暂无走势数据</p>
+                  <p className="l2g-chart-empty__desc">完成第一单后，这里会显示到手趋势</p>
+                </div>
+              ) : (
+                <IncomeTrendChart points={trend} unit={unit} onUnitChange={setUnit} />
+              )}
             </div>
           </div>
         </div>
       </section>
+
+      <Modal
+        isOpen={kpiOpen != null}
+        onClose={() => setKpiOpen(null)}
+        title={kpiOpen ? modalMeta[kpiOpen].title : ''}
+        className="max-w-md"
+      >
+        {kpiOpen ? (
+          <KpiDetail
+            kind={kpiOpen}
+            hint={modalMeta[kpiOpen].hint}
+            doneToday={m.lists.doneToday}
+            inProgress={m.lists.inProgress}
+            newThisMonth={m.lists.newThisMonth}
+            expiring={m.lists.expiring}
+            payoutToday={k.payoutToday}
+            moreLabel={modalMeta[kpiOpen].moreLabel}
+            onOpen={(id) => {
+              setKpiOpen(null)
+              openEdit(id)
+            }}
+            onMore={() => {
+              const to = modalMeta[kpiOpen].moreTo
+              setKpiOpen(null)
+              navigate(to)
+            }}
+          />
+        ) : null}
+      </Modal>
     </div>
   )
 }
 
-function PlaceholderKpi({
-  icon: Icon,
-  label,
+function KpiDetail({
+  kind,
   hint,
+  doneToday,
+  inProgress,
+  newThisMonth,
+  expiring,
+  payoutToday,
+  moreLabel,
+  onOpen,
+  onMore,
 }: {
-  icon: LucideIcon
-  label: string
+  kind: KpiKey
   hint: string
+  doneToday: Order[]
+  inProgress: Order[]
+  newThisMonth: Order[]
+  expiring: ExpiringItem[]
+  payoutToday: number
+  moreLabel: string
+  onOpen: (id: string) => void
+  onMore: () => void
 }) {
+  if (kind === 'due') {
+    return (
+      <div className="space-y-3">
+        <p className="text-xs text-muted-foreground">{hint}</p>
+        {expiring.length === 0 ? (
+          <Empty>暂无即将到期的托管</Empty>
+        ) : (
+          <ul className="divide-y divide-border rounded-lg border border-border overflow-hidden max-h-[50vh] overflow-y-auto">
+            {expiring.map(({ order, days }) => (
+              <li key={order.id}>
+                <button
+                  type="button"
+                  onClick={() => onOpen(order.id)}
+                  className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-secondary/60 transition-colors"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-medium">{order.nickname || '未命名'}</div>
+                    <div className="truncate text-xs text-muted-foreground">{orderTitle(order)}</div>
+                  </div>
+                  <span
+                    className={cn(
+                      'shrink-0 text-xs font-medium tabular-nums',
+                      days == null || days < 0
+                        ? 'text-destructive'
+                        : days <= 2
+                          ? 'text-warning'
+                          : 'text-muted-foreground',
+                    )}
+                  >
+                    {days == null
+                      ? '未设到期日'
+                      : days < 0
+                        ? `已过期 ${-days} 天`
+                        : days === 0
+                          ? '今天到期'
+                          : `剩 ${days} 天`}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="pt-1">
+          <Button variant="secondary" className="w-full" onClick={onMore}>
+            {moreLabel}
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  const list = kind === 'today' ? doneToday : kind === 'active' ? inProgress : newThisMonth
+
   return (
-    <div className="l2g-kpi-card" title={hint}>
-      <span className="l2g-kpi-card__icon" aria-hidden>
-        <Icon size={22} strokeWidth={1.75} />
-      </span>
-      <div className="l2g-kpi-card__value">—</div>
-      <div className="l2g-kpi-card__label">{label}</div>
+    <div className="space-y-3">
+      <p className="text-xs text-muted-foreground">
+        {hint}
+        {kind === 'today' ? ` · 合计 ${money(payoutToday)}` : ''}
+      </p>
+      {list.length === 0 ? (
+        <Empty>暂无相关订单</Empty>
+      ) : (
+        <ul className="divide-y divide-border rounded-lg border border-border overflow-hidden max-h-[50vh] overflow-y-auto">
+          {list.map((o) => (
+            <li key={o.id}>
+              <button
+                type="button"
+                onClick={() => onOpen(o.id)}
+                className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-secondary/60 transition-colors"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate text-sm font-medium">{o.nickname || '未命名'}</span>
+                    <Tag tone={statusTone[o.status]}>{o.status}</Tag>
+                  </div>
+                  <div className="truncate text-xs text-muted-foreground">{orderTitle(o)}</div>
+                </div>
+                <span className="shrink-0 text-sm tabular-nums font-medium">
+                  {kind === 'today'
+                    ? payoutVoid(o)
+                      ? NO_PAYOUT
+                      : yuan2(o.payout)
+                    : yuan2(o.amount)}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="pt-1">
+        <Button variant="secondary" className="w-full" onClick={onMore}>
+          {moreLabel}
+        </Button>
+      </div>
     </div>
   )
+}
+
+function Empty({ children }: { children: ReactNode }) {
+  return <div className="py-8 text-center text-sm text-muted-foreground">{children}</div>
 }
 
 function formatClock() {

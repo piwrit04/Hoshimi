@@ -900,6 +900,29 @@
   color: hsl(var(--muted-foreground));
 }
 
+.l2g-kpi-card--link {
+  cursor: pointer;
+  width: 100%;
+  font: inherit;
+  color: inherit;
+}
+.l2g-kpi-card--link:focus-visible {
+  outline: 2px solid var(--brand-hex);
+  outline-offset: 2px;
+}
+.l2g-kpi-card--warn {
+  border-color: hsl(var(--warning) / 0.55);
+}
+.l2g-kpi-card__foot {
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.5);
+}
+:root[data-theme="light"] .l2g-kpi-card__foot {
+  color: hsl(var(--muted-foreground));
+}
+
 .l2g-datacenter__chart { flex: 1; min-height: 0; display: flex; }
 .l2g-glass-panel {
   flex: 1;
