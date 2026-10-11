@@ -86,7 +86,7 @@
   /* 背景渐变遮罩 */
   .card-quick-access__overlay {
     @apply absolute inset-0;
-    background: linear-gradient(to right, rgba(var(--brand-rgb), 0.12), rgba(var(--brand-rgb), 0.06), transparent);
+    background: rgba(var(--brand-rgb), 0.08);
   }
 
   /* 内容�?*/

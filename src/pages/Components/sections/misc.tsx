@@ -192,7 +192,7 @@ export function NotFoundDemo() {
   return (
     <div className="space-y-5">
       <div className="relative w-full h-56 rounded-lg border border-border overflow-hidden bg-background flex flex-col items-center justify-center">
-        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-brand-20 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-24" style={{ background: 'rgba(var(--brand-rgb), 0.12)' }} />
         <div className="relative text-center space-y-2">
           <div className="text-5xl font-black text-brand" style={{ textShadow: '0 0 24px rgba(var(--brand-rgb), .45)' }}>
             404
@@ -206,7 +206,7 @@ export function NotFoundDemo() {
       </div>
 
       <dl className="dd-spec">
-        <dt>结构</dt><dd>渐变顶栏 + 发光大数字 + 两个反向旋转的装饰圆环 + 底部呼吸圆点</dd>
+        <dt>结构</dt><dd>纯色顶带 + 发光大数字 + 两个反向旋转的装饰圆环 + 底部呼吸圆点</dd>
         <dt>怎么看真的</dt><dd>点侧栏的「概览」或「设置」</dd>
       </dl>
     </div>

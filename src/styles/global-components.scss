@@ -521,11 +521,7 @@
     font-weight: 600;
     letter-spacing: 0.02em;
     color: var(--brand-text-hex);
-    background: linear-gradient(
-      135deg,
-      rgba(var(--brand-rgb), 0.12) 0%,
-      rgba(var(--l2g-purple-rgb), 0.1) 100%
-    );
+    background: rgba(var(--brand-rgb), 0.12);
     border-bottom: 2px solid rgba(var(--brand-rgb), 0.28);
     white-space: nowrap;
   }
@@ -2023,22 +2019,16 @@
     background: rgba(var(--brand-rgb), 0.55);
   }
   .dd-setup__line--breathe {
-    background: linear-gradient(
-      90deg,
-      hsl(var(--brand)),
-      rgba(var(--brand-rgb), 0.25),
-      hsl(var(--brand))
-    );
-    background-size: 200% 100%;
-    animation: dd-setup-line 2.4s linear infinite;
+    background: #FF6B9D;
+    animation: dd-setup-line 2.4s ease-in-out infinite;
   }
   @keyframes dd-setup-breathe {
     0%, 100% { box-shadow: 0 0 0 4px rgba(var(--brand-rgb), 0.14); }
     50% { box-shadow: 0 0 0 7px rgba(var(--brand-rgb), 0.22); }
   }
   @keyframes dd-setup-line {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 200% 50%; }
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
   }
   .dd-setup__card {
     display: flex;
@@ -2150,8 +2140,22 @@
     border-color: #3a3044;
   }
   .dd-setup__theme-swatch--system {
-    background: linear-gradient(135deg, #faf7fb 50%, #1a1520 50%);
+    background: #faf7fb;
     color: hsl(var(--brand));
+    position: relative;
+    overflow: hidden;
+  }
+  .dd-setup__theme-swatch--system::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #1a1520;
+    clip-path: polygon(100% 0, 100% 100%, 0 100%);
+    z-index: 0;
+  }
+  .dd-setup__theme-swatch--system > * {
+    position: relative;
+    z-index: 1;
   }
   .dd-setup__theme-meta {
     display: flex;
@@ -2250,9 +2254,7 @@
     padding: 14px 16px;
     border-radius: var(--ds-r-card, 12px);
     border: 1px solid hsl(var(--border) / 0.7);
-    background:
-      linear-gradient(135deg, rgba(var(--brand-rgb), 0.1), transparent 55%),
-      hsl(var(--card));
+    background: color-mix(in srgb, rgb(var(--brand-rgb)) 10%, hsl(var(--card)));
   }
   .dd-profile__avatar {
     box-shadow: 0 6px 16px -8px rgba(var(--brand-rgb), 0.45);
@@ -2384,9 +2386,7 @@
     padding: 10px 12px;
     border-radius: 12px;
     border: 1px solid hsl(var(--border) / 0.55);
-    background:
-      linear-gradient(135deg, rgba(var(--brand-rgb), 0.06), transparent 60%),
-      hsl(var(--card));
+    background: color-mix(in srgb, rgb(var(--brand-rgb)) 6%, hsl(var(--card)));
   }
   .dd-highlights__dot {
     width: 8px;
