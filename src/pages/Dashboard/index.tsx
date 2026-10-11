@@ -4,12 +4,9 @@ import {
   ArrowUpRight,
   CalendarClock,
   CircleDollarSign,
-  ClipboardList,
   Hourglass,
   PlusCircle,
   ShoppingBag,
-  Users,
-  Zap,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -27,8 +24,9 @@ import { NO_PAYOUT, payoutVoid } from '@/domain/status'
 import type { Order, OrderStatus } from '@/domain/order'
 
 /*
- * 概览 —— 对照工具箱首页：快捷入口大卡 + 粉色标签 + 浅底纹大数字，
- * 再接走势 / 托管 / 最近订单。规格保留：4 KPI + 走势 + 托管 + 最近。
+ * 概览 —— 稀疏后台：4 KPI + 收入走势 + 最近订单。
+ * 快捷入口 / 托管侧栏与侧栏导航、KPI 重复，已去掉。
+ * Maple UI + 主 KPI 轻呼吸保留。
  */
 
 const statusTone: Record<OrderStatus, 'brand' | 'warning' | 'success' | 'danger'> = {
@@ -133,43 +131,6 @@ export default function Dashboard() {
         </div>
       ) : null}
 
-      {/* 快捷入口：对照工具箱 QuickAccessCard */}
-      <section className="ds-stagger grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <QuickCard
-          en="Orders"
-          title="订单列表"
-          to="/orders"
-          icon={ClipboardList}
-          count={orders.length}
-          tip="全部订单"
-        />
-        <QuickCard
-          en="Todo"
-          title="待办"
-          to="/todo"
-          icon={Hourglass}
-          count={k.inProgress + k.waiting}
-          tip="进行中 + 待处理"
-        />
-        <QuickCard
-          en="Customers"
-          title="客户"
-          to="/customers"
-          icon={Users}
-          count={customers.length}
-          tip="客户名录"
-        />
-        <QuickCard
-          en="New"
-          title="新建订单"
-          icon={PlusCircle}
-          count={k.newThisWeek}
-          tip="本周新单数"
-          onClick={openNewOrder}
-        />
-      </section>
-
-      {/* KPI 统计卡 */}
       <section className="ds-stagger grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           icon={CircleDollarSign}
@@ -208,68 +169,9 @@ export default function Dashboard() {
         />
       </section>
 
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-        <Card title="收入走势" description="已完成订单的到手金额" className="lg:col-span-8 ds-rise">
-          <IncomeTrendChart points={trend} unit={unit} onUnitChange={setUnit} />
-        </Card>
-
-        <Card
-          title="托管到期"
-          description={`${m.remindDays} 天内到期或已过期`}
-          className="lg:col-span-4 ds-rise"
-          extra={
-            <Link to="/todo" className="btn-base btn-ghost btn--sm">
-              查看全部 <ArrowUpRight size={14} />
-            </Link>
-          }
-          bodyClassName="flex flex-col"
-        >
-          <div className="mb-3 flex items-baseline gap-2">
-            <span
-              className={cn(
-                'text-[32px] leading-10 font-bold tracking-tight tabular-nums',
-                m.expiring.length ? 'text-brand' : 'text-muted-foreground',
-              )}
-            >
-              <CountUp value={m.expiring.length} />
-            </span>
-            <span className="ds-caption">单</span>
-          </div>
-          {m.expiring.length === 0 ? (
-            <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-10 text-muted-foreground">
-              <Zap size={28} className="opacity-40 text-brand" />
-              <p className="text-sm">近期没有要到期的托管单</p>
-            </div>
-          ) : (
-            <ul className="-mx-2 flex flex-col">
-              {m.expiring.slice(0, 6).map(({ order, days }) => (
-                <li key={order.id}>
-                  <button
-                    type="button"
-                    onClick={() => openEdit(order.id)}
-                    className="flex h-12 w-full items-center gap-3 rounded-lg px-2 text-left transition-colors hover:bg-secondary"
-                  >
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium">{order.nickname || '未命名'}</span>
-                      <span className="ds-caption block truncate">
-                        {order.custodyKind ?? '托管'} · 到期 {order.endDate}
-                      </span>
-                    </span>
-                    <span
-                      className={cn(
-                        'shrink-0 text-xs font-medium tabular-nums',
-                        days < 0 ? 'text-destructive' : 'text-warning',
-                      )}
-                    >
-                      {days < 0 ? `过期 ${-days} 天` : days === 0 ? '今天' : `${days} 天`}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      </section>
+      <Card title="收入走势" description="已完成订单的到手金额" className="ds-rise">
+        <IncomeTrendChart points={trend} unit={unit} onUnitChange={setUnit} />
+      </Card>
 
       <Card
         title="最近订单"
@@ -290,60 +192,6 @@ export default function Dashboard() {
         />
       </Card>
     </div>
-  )
-}
-
-/** 工具箱风格快捷入口：粉标签 + 大水印数字 + 浅底 */
-function QuickCard({
-  en,
-  title,
-  icon: Icon,
-  count,
-  tip,
-  to,
-  onClick,
-}: {
-  en: string
-  title: string
-  icon: LucideIcon
-  count: number
-  tip?: string
-  to?: string
-  onClick?: () => void
-}) {
-  const inner = (
-    <div className="ds-quick ds-rise group" title={tip}>
-      <div className="relative z-10 flex h-full flex-col justify-center gap-2 p-5">
-        <div className="flex items-center gap-2 transition-transform duration-300 group-hover:translate-x-0.5">
-          <span className="inline-flex size-7 items-center justify-center rounded-md bg-brand/15 text-brand">
-            <Icon size={16} />
-          </span>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-brand">{en}</span>
-        </div>
-        <h3 className="text-lg font-bold tracking-tight text-foreground transition-colors duration-300 group-hover:text-brand">
-          {title}
-        </h3>
-      </div>
-      <span className="ds-quick__watermark tabular-nums" aria-hidden>
-        <CountUp value={count} />
-      </span>
-    </div>
-  )
-  if (to) {
-    return (
-      <Link to={to} className="block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40">
-        {inner}
-      </Link>
-    )
-  }
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="block h-full w-full rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-    >
-      {inner}
-    </button>
   )
 }
 
