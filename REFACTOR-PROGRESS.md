@@ -1,5 +1,7 @@
 # 视觉重构进度
 
+> 功能现状同步：`docs/FEATURES.md`（随扫尾更新）。
+
 ## 参考选型
 **结构起点**：shadcn/ui Dashboard（blocks/dashboard-01）——同栈、规格干净。
 **视觉与动效样板**：`/workspace/rhythm-toolbox`（`docs/DESIGN_SYSTEM.md`）——产品满意的动效、过渡、呼吸感。
