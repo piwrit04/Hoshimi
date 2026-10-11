@@ -488,9 +488,7 @@
     border: 1px solid hsl(var(--border));
     border-radius: var(--ds-r-card, 12px);
     overflow: hidden;
-    background:
-      radial-gradient(80% 70% at 100% 0%, rgba(var(--brand-rgb), 0.05) 0%, transparent 55%),
-      hsl(var(--card));
+    background: hsl(var(--card));
     box-shadow: var(--ds-shadow-xs, 0 1px 2px rgba(15, 15, 30, 0.04));
   }
   .ds-table-card .dd-table-wrap {
@@ -516,33 +514,32 @@
   /* 去后台感：轻字重、透明底、仅发丝底边，无厚底/斑马默认 */
   .dd-table th {
     height: 40px;
+    padding-top: 12px;
+    padding-bottom: 12px;
     font-size: 12px;
     line-height: 16px;
-    font-weight: 500;
-    letter-spacing: 0.01em;
+    font-weight: 600;
+    letter-spacing: 0.02em;
     color: hsl(var(--muted-foreground));
-    background-color: transparent;
-    border-bottom: 1px solid hsl(var(--border) / 0.55);
+    background-color: hsl(var(--muted) / 0.35);
+    border-bottom: 1px solid hsl(var(--border) / 0.7);
     white-space: nowrap;
   }
   .dd-table td {
-    height: 60px;
-    padding-top: 8px;
-    padding-bottom: 8px;
+    min-height: 52px;
+    height: auto;
+    padding-top: 12px;
+    padding-bottom: 12px;
     line-height: 20px;
     color: hsl(var(--foreground));
-    border-bottom: 1px solid hsl(var(--border) / 0.4);
+    border-bottom: 1px solid hsl(var(--border) / 0.45);
     background-color: transparent;
-    transition:
-      background-color 0.2s var(--ds-ease, cubic-bezier(0.22, 1, 0.36, 1)),
-      box-shadow 0.2s var(--ds-ease, cubic-bezier(0.22, 1, 0.36, 1)),
-      transform 0.2s var(--ds-ease, cubic-bezier(0.22, 1, 0.36, 1)),
-      border-color 0.2s var(--ds-ease, cubic-bezier(0.22, 1, 0.36, 1));
+    transition: background-color 0.16s ease;
   }
   .dd-table th:first-child,
-  .dd-table td:first-child { padding-left: 24px; }
+  .dd-table td:first-child { padding-left: 16px; }
   .dd-table th:last-child,
-  .dd-table td:last-child { padding-right: 24px; }
+  .dd-table td:last-child { padding-right: 16px; }
   .dd-table tbody tr:last-child td {
     border-bottom: none;
   }
@@ -599,15 +596,29 @@
   }
   .dd-order-no {
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 11px;
-    font-weight: 500;
-    color: hsl(var(--muted-foreground) / 0.85);
-    opacity: 0;
-    transition: opacity 0.15s ease;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: hsl(var(--muted-foreground));
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
     flex-shrink: 0;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
   }
-  .dd-table tbody tr:hover .dd-order-no,
-  .dd-table tbody tr:focus-within .dd-order-no { opacity: 1; }
+  .dd-order-no:hover { color: var(--brand-text-hex); }
+  .dd-order-no--always { opacity: 1; }
+  .dd-money-gold {
+    color: rgb(var(--success-rgb));
+    font-weight: 600;
+  }
+  .dd-cell-dual__due {
+    font-size: 11.5px;
+    line-height: 15px;
+    margin-top: 1px;
+  }
   .dd-due--hot { color: rgb(var(--danger-rgb)); font-weight: 600; }
   .dd-due--warn { color: rgb(var(--warning-rgb)); font-weight: 600; }
   .dd-due--ok { color: hsl(var(--muted-foreground)); }
@@ -671,52 +682,22 @@
   .dd-greeting__chip--warn strong { color: rgb(var(--warning-rgb)); }
   .dd-greeting__chip--muted strong { color: hsl(var(--foreground)); }
 
-  /* 行当卡片：悬停微抬升 + 品牌浅晕（对齐 Toolbox card-panel） */
+  /* Cheezit 轻表：发丝行线 + 浅底悬停，不做行卡抬升阴影 */
   .dd-table tbody tr {
-    transition: opacity 0.2s var(--ds-ease, cubic-bezier(0.22, 1, 0.36, 1));
+    transition: background-color 0.16s ease;
   }
-  /* 抬升感用阴影而非 per-td translateY，避免单元格缝隙 */
   .dd-table tbody tr:hover td {
-    background-color: rgba(var(--brand-rgb), 0.06);
-    border-bottom-color: transparent;
-    box-shadow:
-      0 6px 16px -4px rgba(var(--brand-rgb), 0.14),
-      0 2px 6px rgba(15, 15, 30, 0.04);
-    position: relative;
-    z-index: 1;
+    background-color: hsl(var(--muted) / 0.45);
   }
-  .dd-table tbody tr:hover td:first-child {
-    border-radius: var(--ds-r-row, 12px) 0 0 var(--ds-r-row, 12px);
-  }
-  .dd-table tbody tr:hover td:last-child {
-    border-radius: 0 var(--ds-r-row, 12px) var(--ds-r-row, 12px) 0;
-  }
-  /* 选中：柔光，不用死灰底 */
+  /* 选中：左侧品牌条 + 浅品牌底，无抬升 */
   .dd-table tbody tr[data-selected="true"] td {
-    background-color: rgba(var(--brand-rgb), 0.1);
-    box-shadow: inset 0 0 0 1px rgba(var(--brand-rgb), 0.22);
-    border-bottom-color: transparent;
+    background-color: rgba(var(--brand-rgb), 0.08);
   }
   .dd-table tbody tr[data-selected="true"] td:first-child {
-    box-shadow:
-      inset 3px 0 0 0 var(--brand-hex),
-      inset 0 0 0 1px rgba(var(--brand-rgb), 0.22);
-    border-radius: var(--ds-r-row, 12px) 0 0 var(--ds-r-row, 12px);
-  }
-  .dd-table tbody tr[data-selected="true"] td:last-child {
-    border-radius: 0 var(--ds-r-row, 12px) var(--ds-r-row, 12px) 0;
+    box-shadow: inset 3px 0 0 0 var(--brand-hex);
   }
   .dd-table tbody tr[data-selected="true"]:hover td {
-    background-color: rgba(var(--brand-rgb), 0.12);
-    box-shadow:
-      0 6px 16px -4px rgba(var(--brand-rgb), 0.16),
-      inset 0 0 0 1px rgba(var(--brand-rgb), 0.28);
-  }
-  .dd-table tbody tr[data-selected="true"]:hover td:first-child {
-    box-shadow:
-      inset 3px 0 0 0 var(--brand-hex),
-      0 6px 16px -4px rgba(var(--brand-rgb), 0.16),
-      inset 0 0 0 1px rgba(var(--brand-rgb), 0.28);
+    background-color: rgba(var(--brand-rgb), 0.11);
   }
   /* 错落入场（y:10 + 淡入，delay 由 --dd-row-delay 注入，组件侧封顶） */
   @keyframes dd-table-rise {
@@ -765,7 +746,7 @@
     background-color: rgba(var(--accent-soft-rgb), 0.04);
   }
   .dd-table--striped tbody tr:hover td {
-    background-color: rgba(var(--brand-rgb), 0.06);
+    background-color: hsl(var(--muted) / 0.45);
   }
   @media (prefers-reduced-motion: reduce) {
     .dd-table tbody tr.dd-table__row--enter {

@@ -31,7 +31,6 @@ import {
   actionLabel,
   canBulkComplete,
   nextStatuses,
-  NO_PAYOUT,
   payoutVoid,
   wantsReason,
 } from '@/domain/status'
@@ -47,7 +46,6 @@ import { exportCsv, exportXlsx } from '@/domain/export'
 import { useState, memo, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { yuan, yuan2 } from '@/lib/format'
-import { calcMoney, feePercentLabel } from '@/domain/money'
 import { daysUntilLabel } from '@/domain/workbench'
 import { daysBetween, todayISO } from '@/domain/dates'
 import { cn } from '@/lib/utils'
@@ -274,14 +272,23 @@ export default function Orders() {
   const columns: DataTableColumn<Order>[] = useMemo(
     () => [
       {
-        key: 'primary',
-        title: '客户 · 项目',
+        key: 'customer',
+        title: '客户',
         emphasis: 'primary',
-        render: (r) => <OrderPrimaryCell order={r} games={games} />,
+        render: (r) => <OrderCustomerCell order={r} games={games} />,
       },
       {
-        key: 'payout',
-        title: '到手',
+        key: 'orderNo',
+        title: '单号',
+        width: '148px',
+        emphasis: 'secondary',
+        render: (r) => (
+          <OrderNoCell order={r} onOpen={() => openEdit(r.id)} />
+        ),
+      },
+      {
+        key: 'amount',
+        title: '金额 · 到手',
         width: '128px',
         align: 'right',
         sortable: true,
@@ -289,11 +296,11 @@ export default function Orders() {
         render: (r) => <OrderMoneyCell order={r} />,
       },
       {
-        key: 'tempo',
-        title: '节奏',
-        width: '148px',
+        key: 'status',
+        title: '状态',
+        width: '112px',
         emphasis: 'anchor',
-        render: (r) => <OrderTempoCell order={r} />,
+        render: (r) => <OrderStatusCell order={r} />,
       },
       {
         key: 'actions',
@@ -598,19 +605,8 @@ function projectLabel(order: Order) {
   return order.items.map((i) => i.product).join('、') || '—'
 }
 
-function transferOutOf(order: Order) {
-  if (!order.transferEnabled) return 0
-  return calcMoney({
-    amount: order.amount,
-    feeRate: order.feeRate,
-    transferEnabled: order.transferEnabled,
-    transferMode: order.transferMode,
-    transferRatio: order.transferRatio,
-    transferAmount: order.transferAmount,
-  }).transferOut
-}
-
-function OrderPrimaryCell({
+/** Cheezit 口径：昵称主行 · 游戏/项目（托管加粗）· 到期小字挂客户列 */
+function OrderCustomerCell({
   order,
   games,
 }: {
@@ -639,7 +635,7 @@ function OrderPrimaryCell({
     order.type === '托管' && order.endDate ? daysBetween(today, order.endDate) : null
 
   return (
-    <div className="dd-cell-dual" title={order.orderNo}>
+    <div className="dd-cell-dual">
       <div className="dd-cell-dual__top">
         <button
           type="button"
@@ -651,73 +647,82 @@ function OrderPrimaryCell({
         >
           {order.nickname || '未命名'}
         </button>
-        <span className="dd-chip-mini">{order.platform}</span>
-        <span className="dd-order-no">{order.orderNo}</span>
       </div>
       <div className="dd-cell-dual__bot">
-        {due ? (
-          <span
-            className={cn(
-              'truncate',
-              dueDays != null && dueDays < 0
-                ? 'dd-due--hot'
-                : dueDays != null && dueDays <= 2
-                  ? 'dd-due--warn'
-                  : 'dd-due--ok',
-            )}
-            title={project}
-          >
-            {due}
+        {order.type === '托管' ? (
+          <span className="truncate" title={project}>
+            <b className="mr-1 font-semibold text-foreground">托管</b>
+            {project}
           </span>
         ) : (
-          <span className="truncate">
+          <span className="truncate" title={`${game} / ${project}`}>
             {game} / {project}
           </span>
         )}
       </div>
+      {due ? (
+        <div
+          className={cn(
+            'dd-cell-dual__due',
+            dueDays != null && dueDays < 0
+              ? 'dd-due--hot'
+              : dueDays != null && dueDays <= 2
+                ? 'dd-due--warn'
+                : 'dd-due--ok',
+          )}
+        >
+          {due}
+        </div>
+      ) : null}
     </div>
   )
 }
 
-function OrderMoneyCell({ order }: { order: Order }) {
-  const transfer = transferOutOf(order)
-  if (payoutVoid(order)) {
-    return (
-      <div className="dd-cell-dual dd-cell-dual--right">
-        <div className="dd-cell-dual__top text-muted-foreground font-normal">{NO_PAYOUT}</div>
-        <div className="dd-cell-dual__bot tabular-nums">{yuan2(order.amount)}</div>
+function OrderNoCell({ order, onOpen }: { order: Order; onOpen: () => void }) {
+  return (
+    <div className="dd-cell-dual">
+      <div className="dd-cell-dual__top">
+        <button
+          type="button"
+          className="dd-order-no dd-order-no--always"
+          onClick={(e) => {
+            e.stopPropagation()
+            onOpen()
+          }}
+        >
+          {order.orderNo}
+        </button>
       </div>
-    )
-  }
+      <div className="dd-cell-dual__bot tabular-nums whitespace-nowrap">
+        {shortDay(order.createdAt)} · {order.platform}
+      </div>
+    </div>
+  )
+}
+
+/** 金额主行 · 到手金（作废单不显示到手行） */
+function OrderMoneyCell({ order }: { order: Order }) {
   return (
     <div className="dd-cell-dual dd-cell-dual--right">
-      <div className="dd-cell-dual__top tabular-nums">{yuan2(order.payout)}</div>
-      <div className="dd-cell-dual__bot tabular-nums">
-        <span>{yuan2(order.amount)}</span>
-        {transfer > 0 ? <span>转¥{Math.round(transfer)}</span> : null}
-      </div>
+      <div className="dd-cell-dual__top tabular-nums">{yuan2(order.amount)}</div>
+      {payoutVoid(order) ? null : (
+        <div className="dd-cell-dual__bot tabular-nums dd-money-gold">{yuan2(order.payout)}</div>
+      )}
     </div>
   )
 }
 
-function OrderTempoCell({ order }: { order: Order }) {
-  const ordered = shortDay(order.createdAt)
-  const done = order.completedAt ? shortDay(order.completedAt) : '…'
-  const fee =
-    order.status === '进行中' && order.feeRate > 0
-      ? feePercentLabel(order.feeRate)
-      : null
+function OrderStatusCell({ order }: { order: Order }) {
   return (
     <div className="dd-cell-dual">
       <div className="dd-cell-dual__top">
         <Tag tone={statusTone[order.status]}>{order.status}</Tag>
       </div>
-      <div className="dd-cell-dual__bot tabular-nums">
-        <span>
-          {ordered}→{done}
-        </span>
-        {fee ? <span className="dd-chip-mini">{fee}</span> : null}
-      </div>
+      {order.completedAt ? (
+        <div className="dd-cell-dual__bot tabular-nums whitespace-nowrap">
+          完成 {shortDay(order.completedAt)}
+        </div>
+      ) : null}
     </div>
   )
 }
