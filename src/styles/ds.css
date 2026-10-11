@@ -384,3 +384,55 @@
   }
   .ds-stat:hover { transform: none; }
 }
+
+
+/* ---------------- 快捷入口卡（对照工具箱 QuickAccessCard） ---------------- */
+.ds-quick {
+  position: relative;
+  height: 9rem;
+  overflow: hidden;
+  border-radius: var(--ds-r-card);
+  border: 1px solid hsl(var(--border));
+  background:
+    radial-gradient(90% 80% at 100% 0%, rgba(var(--brand-rgb), 0.16) 0%, transparent 55%),
+    radial-gradient(70% 60% at 0% 110%, rgba(var(--brand-rgb), 0.08) 0%, transparent 50%),
+    hsl(var(--card));
+  box-shadow: var(--ds-shadow-xs);
+  transition: border-color 0.25s var(--ds-ease), box-shadow 0.25s var(--ds-ease), transform 0.25s var(--ds-ease);
+}
+.ds-quick:hover {
+  border-color: rgba(var(--brand-rgb), 0.4);
+  box-shadow: 0 8px 24px rgba(var(--brand-rgb), 0.12);
+  transform: translateY(-2px);
+}
+.ds-quick__watermark {
+  position: absolute;
+  right: 12px;
+  bottom: -6px;
+  font-size: 64px;
+  line-height: 1;
+  font-weight: 900;
+  color: hsl(var(--muted-foreground) / 0.1);
+  pointer-events: none;
+  user-select: none;
+  transition: color 0.25s var(--ds-ease);
+}
+.ds-quick:hover .ds-quick__watermark {
+  color: rgba(var(--brand-rgb), 0.14);
+}
+
+.ds-stat__ghost {
+  position: absolute;
+  right: 10px;
+  bottom: -8px;
+  font-size: 56px;
+  line-height: 1;
+  font-weight: 900;
+  color: hsl(var(--muted-foreground) / 0.08);
+  pointer-events: none;
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-quick:hover { transform: none; }
+}

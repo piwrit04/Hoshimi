@@ -1,6 +1,17 @@
 import { Link } from 'react-router-dom'
 import { useMemo, useState } from 'react'
-import { ArrowUpRight, CalendarClock, CircleDollarSign, Hourglass, PlusCircle, ShoppingBag, type LucideIcon } from 'lucide-react'
+import {
+  ArrowUpRight,
+  CalendarClock,
+  CircleDollarSign,
+  ClipboardList,
+  Hourglass,
+  PlusCircle,
+  ShoppingBag,
+  Users,
+  Zap,
+  type LucideIcon,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { yuan as money, yuan2 } from '@/lib/format'
 import { CountUp } from '@/lib/count-up'
@@ -16,8 +27,8 @@ import { NO_PAYOUT, payoutVoid } from '@/domain/status'
 import type { Order, OrderStatus } from '@/domain/order'
 
 /*
- * 概览 —— 对齐规格保留：4 统计卡 + 走势/托管 + 最近订单。
- * 灵魂参考 Cheezit：CountUp、问候语动效、呼吸主卡、粉调层次。
+ * 概览 —— 对照工具箱首页：快捷入口大卡 + 粉色标签 + 浅底纹大数字，
+ * 再接走势 / 托管 / 最近订单。规格保留：4 KPI + 走势 + 托管 + 最近。
  */
 
 const statusTone: Record<OrderStatus, 'brand' | 'warning' | 'success' | 'danger'> = {
@@ -122,10 +133,48 @@ export default function Dashboard() {
         </div>
       ) : null}
 
+      {/* 快捷入口：对照工具箱 QuickAccessCard */}
+      <section className="ds-stagger grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <QuickCard
+          en="Orders"
+          title="订单列表"
+          to="/orders"
+          icon={ClipboardList}
+          count={orders.length}
+          tip="全部订单"
+        />
+        <QuickCard
+          en="Todo"
+          title="待办"
+          to="/todo"
+          icon={Hourglass}
+          count={k.inProgress + k.waiting}
+          tip="进行中 + 待处理"
+        />
+        <QuickCard
+          en="Customers"
+          title="客户"
+          to="/customers"
+          icon={Users}
+          count={customers.length}
+          tip="客户名录"
+        />
+        <QuickCard
+          en="New"
+          title="新建订单"
+          icon={PlusCircle}
+          count={k.newThisWeek}
+          tip="本周新单数"
+          onClick={openNewOrder}
+        />
+      </section>
+
+      {/* KPI 统计卡 */}
       <section className="ds-stagger grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           icon={CircleDollarSign}
           label="今日到手"
+          en="Today"
           value={k.payoutToday}
           money
           foot={`本月 ${money(k.payoutThisMonth)} · 上月 ${money(k.payoutLastMonth)}`}
@@ -135,6 +184,7 @@ export default function Dashboard() {
         <StatCard
           icon={Hourglass}
           label="进行中"
+          en="Active"
           value={k.inProgress}
           foot={`待处理 ${k.waiting} 单`}
           to="/todo"
@@ -142,6 +192,7 @@ export default function Dashboard() {
         <StatCard
           icon={ShoppingBag}
           label="本周新单"
+          en="Week"
           value={k.newThisWeek}
           foot={`本周下单流水 ${money(k.newThisWeekAmount)}`}
           to="/orders"
@@ -149,6 +200,7 @@ export default function Dashboard() {
         <StatCard
           icon={CalendarClock}
           label="托管快到期"
+          en="Due"
           value={m.expiring.length}
           foot={`${m.remindDays} 天内 · 托管中 ${k.custodyActive} 单`}
           to="/todo"
@@ -176,7 +228,7 @@ export default function Dashboard() {
             <span
               className={cn(
                 'text-[32px] leading-10 font-bold tracking-tight tabular-nums',
-                m.expiring.length ? 'text-foreground' : 'text-muted-foreground',
+                m.expiring.length ? 'text-brand' : 'text-muted-foreground',
               )}
             >
               <CountUp value={m.expiring.length} />
@@ -184,8 +236,9 @@ export default function Dashboard() {
             <span className="ds-caption">单</span>
           </div>
           {m.expiring.length === 0 ? (
-            <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-border py-10 text-sm text-muted-foreground">
-              近期没有要到期的托管单
+            <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-10 text-muted-foreground">
+              <Zap size={28} className="opacity-40 text-brand" />
+              <p className="text-sm">近期没有要到期的托管单</p>
             </div>
           ) : (
             <ul className="-mx-2 flex flex-col">
@@ -240,9 +293,64 @@ export default function Dashboard() {
   )
 }
 
+/** 工具箱风格快捷入口：粉标签 + 大水印数字 + 浅底 */
+function QuickCard({
+  en,
+  title,
+  icon: Icon,
+  count,
+  tip,
+  to,
+  onClick,
+}: {
+  en: string
+  title: string
+  icon: LucideIcon
+  count: number
+  tip?: string
+  to?: string
+  onClick?: () => void
+}) {
+  const inner = (
+    <div className="ds-quick ds-rise group" title={tip}>
+      <div className="relative z-10 flex h-full flex-col justify-center gap-2 p-5">
+        <div className="flex items-center gap-2 transition-transform duration-300 group-hover:translate-x-0.5">
+          <span className="inline-flex size-7 items-center justify-center rounded-md bg-brand/15 text-brand">
+            <Icon size={16} />
+          </span>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-brand">{en}</span>
+        </div>
+        <h3 className="text-lg font-bold tracking-tight text-foreground transition-colors duration-300 group-hover:text-brand">
+          {title}
+        </h3>
+      </div>
+      <span className="ds-quick__watermark tabular-nums" aria-hidden>
+        <CountUp value={count} />
+      </span>
+    </div>
+  )
+  if (to) {
+    return (
+      <Link to={to} className="block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40">
+        {inner}
+      </Link>
+    )
+  }
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="block h-full w-full rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+    >
+      {inner}
+    </button>
+  )
+}
+
 function StatCard({
   icon: Icon,
   label,
+  en,
   value,
   money: asMoney,
   foot,
@@ -252,6 +360,7 @@ function StatCard({
 }: {
   icon: LucideIcon
   label: string
+  en?: string
   value: number
   money?: boolean
   foot: string
@@ -270,7 +379,10 @@ function StatCard({
       title={tip}
     >
       <div className="ds-stat__label">
-        <span>{label}</span>
+        <span className="flex items-center gap-2 min-w-0">
+          {en ? <span className="text-[10px] font-bold uppercase tracking-wider text-brand shrink-0">{en}</span> : null}
+          <span className="truncate">{label}</span>
+        </span>
         <span className="ds-stat__icon" aria-hidden>
           <Icon size={14} />
         </span>
@@ -279,6 +391,11 @@ function StatCard({
         <CountUp value={value} money={asMoney} />
       </div>
       <div className="ds-stat__foot">{foot}</div>
+      {!asMoney && variant !== 'hero' ? (
+        <span className="ds-stat__ghost tabular-nums" aria-hidden>
+          {Math.round(value)}
+        </span>
+      ) : null}
     </div>
   )
   return to ? (
