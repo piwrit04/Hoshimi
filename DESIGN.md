@@ -438,3 +438,11 @@ localStorage("theme-storage")  →  zustand useThemeStore.mode ('dark' | 'light'
 - **DatePicker** ready：贴底上翻、`disabledDate`。**TimePicker** / **FormCheckboxGroup** / **LoadingBar** / **Modal.confirm** 已补。
 - **BrandButton / OutlineButton / IconTextButton / ProgressBar** 已薄包装到 `Button` / `Progress`，标 `@deprecated`。
 - 暂缓：Cascader、Transfer、DatetimePicker 一体控件（可用 Date + Time 拼）。
+
+## Liver2Go 氛围（锁定）
+
+- 全站壁纸 + 暗玻璃侧栏/顶栏（`AppWallpaper` / `l2g-glass-*`）
+- 概览：全幅大问候（轻打字机）→ 下滚才见 KPI
+- 订单到手：`#FF6B9D` 粉强调（非绿、非 Cheezit 金）
+- 行悬停：粉描边（edge），不做粉底铺满
+- 氛围粒子默认关；设置「氛围粒子」/壁纸路径 stub

@@ -704,7 +704,7 @@ function OrderNoCell({ order, onOpen }: { order: Order; onOpen: () => void }) {
 function OrderMoneyCell({ order }: { order: Order }) {
   return (
     <div className="dd-cell-dual dd-cell-dual--right">
-      <div className="dd-cell-dual__top tabular-nums">{yuan2(order.amount)}</div>
+      <div className="dd-cell-dual__top tabular-nums dd-money-flow">{yuan2(order.amount)}</div>
       {payoutVoid(order) ? null : (
         <div className="dd-cell-dual__bot tabular-nums dd-money-gold">{yuan2(order.payout)}</div>
       )}

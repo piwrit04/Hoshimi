@@ -19,10 +19,13 @@ import {
   Compass,
   Keyboard,
   Sparkles,
+  ImageIcon,
+  Flower2,
 } from 'lucide-react'
 import { FormSwitch, FormSegmentedControl } from '@/components/ui/form'
 import { Modal } from '@/components/ui/Modal'
 import { useThemeStore, type ThemeMode } from '@/store/useThemeStore'
+import { useAtmosphereStore, DEFAULT_WALLPAPER } from '@/store/useAtmosphereStore'
 import { useOrdersStore } from '@/store/useOrdersStore'
 import { useToastStore } from '@/store/useToastStore'
 import { normalizeSnapshot } from '@/domain/ledger'
@@ -45,6 +48,10 @@ const APP_VERSION = __APP_VERSION__
 export default function Settings() {
   const theme = useThemeStore((s) => s.mode)
   const setTheme = useThemeStore((s) => s.setMode)
+  const particlesEnabled = useAtmosphereStore((s) => s.particlesEnabled)
+  const setParticlesEnabled = useAtmosphereStore((s) => s.setParticlesEnabled)
+  const wallpaperPath = useAtmosphereStore((s) => s.wallpaperPath)
+  const setWallpaperPath = useAtmosphereStore((s) => s.setWallpaperPath)
   const reopenSetup = useSetupStore((s) => s.reopenSetup)
   const openShortcuts = useHelpStore((s) => s.openShortcuts)
   const openHighlights = useHelpStore((s) => s.openHighlights)
@@ -323,6 +330,37 @@ export default function Settings() {
                         { value: 'light', label: '浅色' },
                       ]}
                     />
+                  </SettingRow>
+
+                  <SettingRow
+                    icon={Flower2}
+                    title="氛围粒子"
+                    description="樱花飘落特效；默认关闭，桌面账本不抢眼"
+                  >
+                    <FormSwitch checked={particlesEnabled} onChange={setParticlesEnabled} />
+                  </SettingRow>
+
+                  <SettingRow
+                    icon={ImageIcon}
+                    title="壁纸"
+                    description="当前壁纸路径（可换成本地 public 资源；默认抽象渐变）"
+                  >
+                    <div className="flex items-center gap-2 justify-end max-w-xs">
+                      <input
+                        className="h-9 w-48 rounded-full border border-border bg-secondary/60 px-3 text-xs text-foreground outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                        value={wallpaperPath}
+                        onChange={(e) => setWallpaperPath(e.target.value || DEFAULT_WALLPAPER)}
+                        placeholder={DEFAULT_WALLPAPER}
+                        spellCheck={false}
+                      />
+                      <button
+                        type="button"
+                        className="btn-base btn-secondary btn--sm"
+                        onClick={() => setWallpaperPath(DEFAULT_WALLPAPER)}
+                      >
+                        默认
+                      </button>
+                    </div>
                   </SettingRow>
 
                   <SettingRow icon={Code2} title="开发模式" description="显示调试信息和开发者工具入口">
