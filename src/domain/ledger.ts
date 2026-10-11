@@ -19,6 +19,11 @@ export function defaultSettings(): AppSettings {
   }
 }
 
+/** 托管到期提醒阈值（天）。未勾选时兜底 7，待办/概览共用。 */
+export function expiryThreshold(offsets: number[], fallback = 7): number {
+  return offsets.length ? Math.max(...offsets) : fallback
+}
+
 export function feeRateOf(fees: ChannelFee[], platform: string): number {
   return fees.find((f) => f.platform === platform)?.rate ?? 0
 }

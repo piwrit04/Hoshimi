@@ -7,6 +7,7 @@
 import { dateLabel, greeting, monthKey, todayISO, daysBetween } from '@/domain/dates'
 import { fromCents, toCents } from '@/domain/money'
 import type { Order } from '@/domain/order'
+import { expiryThreshold } from '@/domain/ledger'
 import { ALL_STATUSES } from '@/domain/status'
 import type { Customer } from '@/storage/types'
 
@@ -50,9 +51,7 @@ export function dashboard(ledger: LedgerView, now = new Date()) {
       .map((o) => o.customerId || `${o.nickname}|${o.contact}`),
   ).size
 
-  const threshold = ledger.settings.expiryOffsets.length
-    ? Math.max(...ledger.settings.expiryOffsets)
-    : 7
+  const threshold = expiryThreshold(ledger.settings.expiryOffsets)
   const expiring: ExpiringItem[] = custodyActive
     .filter((o) => o.endDate)
     .map((o) => ({ order: o, days: daysBetween(today, o.endDate!) }))

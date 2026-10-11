@@ -7,6 +7,9 @@ import { useNewOrderStore } from '@/store/useNewOrderStore';
 import { useToastStore } from '@/store/useToastStore';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { Scrollbar } from '@/components/ui/Scrollbar';
+import { Badge } from '@/components/ui/data';
+import { useOrdersStore } from '@/store/useOrdersStore';
+import { workbench } from '@/domain/workbench';
 
 /*
  * 侧栏。
@@ -16,8 +19,8 @@ import { Scrollbar } from '@/components/ui/Scrollbar';
  */
 
 type NavItemType =
-  | { icon: typeof Home; label: string; path: string; modal?: false }
-  | { icon: typeof Home; label: string; modal: true };
+  | { icon: typeof Home; label: string; path: string; modal?: false; badge?: number }
+  | { icon: typeof Home; label: string; modal: true; badge?: number };
 
 /* 分组参照 shadcn dashboard-01：顶部主操作「新建订单」，下面「工作台」「系统」两组 */
 const quickCreate: NavItemType = { icon: PlusCircle, label: '新建订单', modal: true };
@@ -51,17 +54,29 @@ const NavItem = memo(function NavItem({
   const spanClass = 'font-medium text-sm whitespace-nowrap overflow-hidden transition-opacity duration-300';
   const openNewOrder = useNewOrderStore((s) => s.open);
 
-  const inner = (isActive: boolean) => (
-    <>
+  const badgeCount = 'badge' in item ? item.badge : undefined;
+  const inner = (isActive: boolean) => {
+    const icon = (
       <item.icon
         size={16}
         className={cn(iconClass, isActive ? 'text-inherit' : 'text-muted-foreground group-hover:text-foreground')}
       />
-      <span className={cn(spanClass, isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100')}>
-        {item.label}
-      </span>
-    </>
-  );
+    );
+    return (
+      <>
+        {badgeCount ? (
+          <Badge count={badgeCount} tone="warning">
+            {icon}
+          </Badge>
+        ) : (
+          icon
+        )}
+        <span className={cn(spanClass, isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100')}>
+          {item.label}
+        </span>
+      </>
+    );
+  };
 
   // 新建订单：按钮，点开模态框
   if (item.modal) {
@@ -106,6 +121,9 @@ export function Sidebar({ showLogo = true }: { showLogo?: boolean }) {
   const { isCollapsed, toggleCollapse } = useSidebarStore();
   const [isLogoHovered, setIsLogoHovered] = useState(false);
   const addToast = useToastStore((s) => s.addToast);
+  const orders = useOrdersStore((s) => s.orders);
+  const settings = useOrdersStore((s) => s.settings);
+  const todoBadge = workbench(orders, settings, '').followCount;
   const eggClicks = useRef(0);
   const eggTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -210,9 +228,16 @@ export function Sidebar({ showLogo = true }: { showLogo?: boolean }) {
             {!isCollapsed && (
               <div className="px-3 pb-1 text-xs font-medium text-muted-foreground">{g.label}</div>
             )}
-            {g.items.map((item) => (
-              <NavItem key={item.label} item={item} isCollapsed={isCollapsed} />
-            ))}
+            {g.items.map((item) => {
+              const withBadge =
+                !('modal' in item && item.modal) &&
+                'path' in item &&
+                item.path === '/todo' &&
+                todoBadge > 0
+                  ? { ...item, badge: todoBadge }
+                  : item;
+              return <NavItem key={item.label} item={withBadge} isCollapsed={isCollapsed} />;
+            })}
           </div>
         ))}
       </Scrollbar>

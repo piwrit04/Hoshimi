@@ -33,6 +33,7 @@ try {
   const importPlan = await server.ssrLoadModule('/src/domain/import-plan.ts')
   const excel = await server.ssrLoadModule('/src/domain/excel.ts')
   const dashboard = await server.ssrLoadModule('/src/domain/dashboard.ts')
+  const workbench = await server.ssrLoadModule('/src/domain/workbench.ts')
 
   // --- catalog products purity in fixtures ---
   const seed = catalog.seedCatalog()
@@ -347,6 +348,20 @@ try {
   const dash = dashboard.dashboard(demo, when)
   assert(dash.kpis.custodyActive >= 1, `dashboard custodyActive ${dash.kpis.custodyActive}`)
   assert(dash.kpis.revenueThisMonth >= 0, 'dashboard revenue defined')
+
+  // --- workbench / 待办 ---
+  assert(workbench.expiryThreshold([]) === 7, 'expiryThreshold empty → 7')
+  assert(workbench.expiryThreshold([1, 3]) === 3, 'expiryThreshold max')
+  const wb = workbench.workbench(demo.orders, demo.settings, '', when)
+  assert(wb.chaseCount >= 1, `workbench chaseCount ${wb.chaseCount}`)
+  assert(wb.dueCount >= 1, `workbench dueCount ${wb.dueCount}`)
+  assert(wb.followCount === wb.chaseCount + wb.dueCount, 'follow = chase + due')
+  const wbQ = workbench.workbench(demo.orders, demo.settings, '___no_match___', when)
+  assert(wbQ.matchCount === 0, 'workbench search miss')
+  assert(wbQ.followCount === wb.followCount, 'search does not shrink followCount')
+  assert(workbench.daysUntilLabel(wb.today, null) === '未设到期日', 'missing endDate label')
+  const noOffset = workbench.workbench(demo.orders, { expiryOffsets: [] }, '', when)
+  assert(noOffset.threshold === 7, 'empty offsets still remind within 7d')
 
   const dayTrend = dashboard.incomeTrend(demo, 'day', when)
   const tip = dashboard.incomeSmartTip(dash.kpis, dayTrend)
