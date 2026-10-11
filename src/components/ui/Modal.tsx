@@ -70,7 +70,7 @@ function ModalImpl({ isOpen, onClose, title, children, footer, className, showCl
   return ReactDOM.createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 flex items-center justify-center p-4 sm:p-6" style={{ zIndex: 'var(--z-modal)' }}>
+        <div key="modal" className="fixed inset-0 flex items-center justify-center p-4 sm:p-6" style={{ zIndex: 'var(--z-modal)' }}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

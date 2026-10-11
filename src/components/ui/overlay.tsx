@@ -423,12 +423,19 @@ export function Drawer({
     return () => document.removeEventListener('keydown', handleTab)
   }, [isOpen])
 
-  return (
+  /* 始终 portal 到 body；AnimatePresence 放在 portal 内，
+     否则 Presence 看不到 motion 子树，抽屉会停在 initial x:100% */
+  return createPortal(
     <AnimatePresence>
-      {isOpen && createPortal(
-        <div className="fixed inset-0" style={{ zIndex: 'var(--z-modal)' }}>
+      {isOpen && (
+        <div
+          key="drawer"
+          className="fixed inset-0"
+          style={{ zIndex: 'var(--z-modal)' }}
+        >
           {/* 遮罩 */}
           <motion.div
+            key="drawer-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -439,6 +446,7 @@ export function Drawer({
           />
           {/* 面板 */}
           <motion.aside
+            key="drawer-panel"
             ref={panelRef}
             initial={{ x: placement === 'right' ? '100%' : '-100%' }}
             animate={{ x: 0 }}
@@ -465,10 +473,10 @@ export function Drawer({
             </div>
             {footer && <div className="dd-drawer__foot">{footer}</div>}
           </motion.aside>
-        </div>,
-        document.body
+        </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   )
 }
 

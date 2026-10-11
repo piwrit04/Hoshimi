@@ -888,7 +888,9 @@
 }
 
 .dd-drawer-panel {
-  @apply fixed top-0 bottom-0 flex flex-col z-[60];
+  /* absolute：父级 portal 根已是 fixed inset-0 + --z-modal，
+     再用 fixed+低 z 会跳出层叠，被遮罩盖住 */
+  @apply absolute top-0 bottom-0 flex flex-col z-10;
   width: min(420px, 92vw);
   background-color: hsl(var(--card));
   box-shadow: var(--shadow-2);
