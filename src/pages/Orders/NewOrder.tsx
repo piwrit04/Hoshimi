@@ -202,6 +202,11 @@ function Inner({
       setErrors({})
     } else {
       resetForm()
+      const draft = useNewOrderStore.getState().takeDraft()
+      if (draft) {
+        if (draft.nickname) setNickname(draft.nickname)
+        if (draft.contact) setContact(draft.contact)
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- resetForm 故意不进依赖
   }, [open, editing])

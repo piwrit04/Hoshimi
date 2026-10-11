@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ChevronRight, GitMerge, PenLine, PlusCircle, Search, Trash2, Users } from 'lucide-react'
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { ChevronRight, GitMerge, PenLine, Plus, PlusCircle, Search, Trash2, Users } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { yuan, yuan2 } from '@/lib/format'
 import { PageHeader } from '@/components/ui/PageHeader'
@@ -20,6 +20,7 @@ import {
   mergeNoteLine,
   nicknameError,
   phoneTail,
+  resolveCustomerId,
 } from '@/domain/customers'
 import { payoutVoid } from '@/domain/status'
 import type { Customer } from '@/storage/types'
@@ -74,11 +75,40 @@ export default function CustomersPage() {
 function CustomerList() {
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<SortKey>('recent')
+  const [creating, setCreating] = useState(false)
+  const [nick, setNick] = useState('')
+  const [contact, setContact] = useState('')
+  const [note, setNote] = useState('')
   const rows = useCustomerRows(search, sort)
   const navigate = useNavigate()
   const openNew = useNewOrderStore((s) => s.open)
+  const createCustomer = useOrdersStore((s) => s.createCustomer)
+  const addToast = useToastStore((s) => s.addToast)
   const customers = useOrdersStore((s) => s.customers)
   const pairs = useMemo(() => duplicatePairs(customers), [customers])
+
+  const openCreate = () => {
+    setNick('')
+    setContact('')
+    setNote('')
+    setCreating(true)
+  }
+
+  const saveCreate = () => {
+    const err = nicknameError(nick)
+    if (err) {
+      addToast({ type: 'error', message: err })
+      return
+    }
+    const created = createCustomer({ nickname: nick, contact, note })
+    if (!created) {
+      addToast({ type: 'error', message: '创建失败' })
+      return
+    }
+    addToast({ type: 'success', message: '已创建客户' })
+    setCreating(false)
+    navigate(`/customers/${created.id}`)
+  }
   const totalActive = useMemo(
     () => customers.filter((c) => !c.mergedIntoId).length,
     [customers],
@@ -145,9 +175,14 @@ function CustomerList() {
         title="客户"
         description={`共 ${totalActive} 位 · 当前显示 ${rows.length} 位 · 记单时自动建档`}
         actions={
-          <Button variant="primary" icon={PlusCircle} onClick={openNew}>
-            新建订单
-          </Button>
+          <>
+            <Button variant="secondary" icon={PlusCircle} onClick={openNew}>
+              新建订单
+            </Button>
+            <Button variant="primary" icon={Plus} onClick={openCreate}>
+              新建客户
+            </Button>
+          </>
         }
       />
 
@@ -237,7 +272,10 @@ function CustomerList() {
               </p>
               {!search && totalActive === 0 ? (
                 <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-                  <Button size="sm" variant="primary" icon={PlusCircle} onClick={openNew}>
+                  <Button size="sm" variant="primary" icon={Plus} onClick={openCreate}>
+                    新建客户
+                  </Button>
+                  <Button size="sm" variant="secondary" icon={PlusCircle} onClick={openNew}>
                     新建订单
                   </Button>
                   <Button
@@ -255,6 +293,45 @@ function CustomerList() {
           }
         />
       </div>
+
+      <Modal
+        isOpen={creating}
+        onClose={() => setCreating(false)}
+        title="新建客户"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setCreating(false)}>
+              取消
+            </Button>
+            <Button variant="primary" onClick={saveCreate}>
+              创建
+            </Button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-4">
+          <FormInput
+            label="昵称"
+            required
+            value={nick}
+            onChange={(e) => setNick(e.target.value)}
+            placeholder="客户怎么称呼"
+          />
+          <FormInput
+            label="联系方式"
+            value={contact}
+            onChange={(e) => setContact(e.target.value)}
+            placeholder="手机 / 微信 / QQ"
+          />
+          <FormTextarea
+            label="备注"
+            rows={3}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="可选"
+          />
+        </div>
+      </Modal>
     </div>
   )
 }
@@ -270,17 +347,25 @@ const statusTone = {
 function CustomerDetail({ id }: { id: string }) {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  const customer = useOrdersStore((s) => s.customers.find((c) => c.id === id))
   const allCustomers = useOrdersStore((s) => s.customers)
+  const customer = useMemo(
+    () => allCustomers.find((c) => c.id === id),
+    [allCustomers, id],
+  )
+  const liveId = useMemo(
+    () => resolveCustomerId(allCustomers, id) ?? id,
+    [allCustomers, id],
+  )
   const allOrders = useOrdersStore((s) => s.orders)
   const orders = useMemo(
-    () => allOrders.filter((o) => o.customerId === id),
-    [allOrders, id],
+    () => allOrders.filter((o) => o.customerId === liveId || o.customerId === id),
+    [allOrders, liveId, id],
   )
   const updateCustomer = useOrdersStore((s) => s.updateCustomer)
   const deleteCustomer = useOrdersStore((s) => s.deleteCustomer)
   const mergeCustomers = useOrdersStore((s) => s.mergeCustomers)
   const addToast = useToastStore((s) => s.addToast)
+  const openWithCustomer = useNewOrderStore((s) => s.openWithCustomer)
 
   const [editing, setEditing] = useState(false)
   const [nick, setNick] = useState('')
@@ -322,6 +407,15 @@ function CustomerDetail({ id }: { id: string }) {
     ],
     [],
   )
+
+  // 已合并：跳到保留客户（订单点进来的旧 id 也能落地）
+  if (customer?.mergedIntoId) {
+    const target = resolveCustomerId(allCustomers, id)
+    if (target && target !== id) {
+      const qs = searchParams.toString()
+      return <Navigate to={`/customers/${target}${qs ? `?${qs}` : ''}`} replace />
+    }
+  }
 
   if (!customer || customer.mergedIntoId) {
     return (
@@ -427,6 +521,15 @@ function CustomerDetail({ id }: { id: string }) {
             >
               合并
             </Button>
+            <Button
+              variant="secondary"
+              icon={PlusCircle}
+              onClick={() =>
+                openWithCustomer({ nickname: customer.nickname, contact: customer.contact })
+              }
+            >
+              记一单
+            </Button>
             <Button variant="primary" icon={PenLine} onClick={openEdit}>
               编辑资料
             </Button>
@@ -489,7 +592,18 @@ function CustomerDetail({ id }: { id: string }) {
           empty={
             <div className="dd-customers-empty">
               <p className="text-sm text-foreground/80">尚未下单</p>
-              <p className="ds-caption">记单时选这位客户就会出现在这里</p>
+              <p className="ds-caption">点「记一单」会带上昵称和联系方式</p>
+              <Button
+                className="mt-3"
+                size="sm"
+                variant="primary"
+                icon={PlusCircle}
+                onClick={() =>
+                  openWithCustomer({ nickname: customer.nickname, contact: customer.contact })
+                }
+              >
+                记一单
+              </Button>
             </div>
           }
         />

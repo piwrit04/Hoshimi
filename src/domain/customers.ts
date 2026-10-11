@@ -102,3 +102,34 @@ export function suggestCustomers<T extends CustomerLike>(
     .filter((c) => !c.mergedIntoId && customerMatches(c, q))
     .slice(0, limit)
 }
+
+
+/** 顺着 mergedIntoId 找到最终保留的客户 id；环或断链时返回能解析到的最后一档 */
+export function resolveCustomerId(
+  customers: CustomerLike[],
+  id: string | null | undefined,
+): string | undefined {
+  if (!id) return undefined
+  const byId = new Map(customers.map((c) => [c.id, c]))
+  let cur = byId.get(id)
+  if (!cur) return undefined
+  const seen = new Set<string>()
+  while (cur.mergedIntoId) {
+    if (seen.has(cur.id)) return undefined
+    seen.add(cur.id)
+    const next = byId.get(cur.mergedIntoId)
+    if (!next) return cur.mergedIntoId
+    cur = next
+  }
+  return cur.id
+}
+
+/** 解析到仍活跃（未合并）的客户档案 */
+export function findActiveCustomer<T extends CustomerLike>(
+  customers: T[],
+  id: string | null | undefined,
+): T | undefined {
+  const resolved = resolveCustomerId(customers, id)
+  if (!resolved) return undefined
+  return customers.find((c) => c.id === resolved && !c.mergedIntoId)
+}

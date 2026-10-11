@@ -63,6 +63,12 @@ interface OrdersState {
   /** 完成订单；待处理会先开始再完成 */
   completeOrder: (id: string) => Order | null
   upsertCustomer: (data: { nickname: string; contact: string; note?: string }) => Customer
+  /** 显式建档（不按手机号合并；昵称为空则失败） */
+  createCustomer: (data: {
+    nickname: string
+    contact?: string
+    note?: string
+  }) => Customer | null
   updateCustomer: (
     id: string,
     patch: Partial<Pick<Customer, 'nickname' | 'contact' | 'note'>>,
@@ -220,6 +226,21 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
       products: s.products,
       servers: s.servers,
     }
+  },
+
+  createCustomer: ({ nickname, contact, note }) => {
+    const nick = nickname.trim()
+    if (!nick) return null
+    const created: Customer = {
+      id: `c-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      nickname: nick,
+      contact: (contact ?? '').trim(),
+      note: note ?? '',
+      createdAt: new Date().toISOString(),
+    }
+    set((s) => ({ customers: [created, ...s.customers] }))
+    schedulePersist(get, set)
+    return created
   },
 
   upsertCustomer: ({ nickname, contact, note }) => {

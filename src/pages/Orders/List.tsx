@@ -32,6 +32,7 @@ import {
   payoutVoid,
   wantsReason,
 } from '@/domain/status'
+import { resolveCustomerId, normalizePhone } from '@/domain/customers'
 import {
   filterOrders,
   sortOrders,
@@ -642,12 +643,15 @@ function OrderCustomerCell({ order }: { order: Order }) {
   const navigate = useNavigate()
   const customers = useOrdersStore((s) => s.customers)
   const id = useMemo(() => {
-    if (order.customerId) return order.customerId
+    if (order.customerId) {
+      return resolveCustomerId(customers, order.customerId)
+    }
+    const phone = normalizePhone(order.contact)
     const hit = customers.find(
       (c) =>
         !c.mergedIntoId &&
-        ((order.contact && c.contact === order.contact) ||
-          (!order.contact && c.nickname === order.nickname)),
+        ((phone && normalizePhone(c.contact) === phone) ||
+          (!phone && c.nickname === order.nickname)),
     )
     return hit?.id
   }, [order.customerId, order.contact, order.nickname, customers])
@@ -657,11 +661,16 @@ function OrderCustomerCell({ order }: { order: Order }) {
       <div className="dd-cell-dual__top">
         <button
           type="button"
-          className="dd-cell-dual__title hover:text-brand transition-colors"
+          className={
+            id
+              ? 'dd-cell-dual__title hover:text-brand transition-colors'
+              : 'dd-cell-dual__title cursor-default'
+          }
           onClick={(e) => {
             e.stopPropagation()
             if (id) navigate(`/customers/${id}`)
           }}
+          title={id ? '查看客户' : undefined}
         >
           {order.nickname || '未命名'}
         </button>

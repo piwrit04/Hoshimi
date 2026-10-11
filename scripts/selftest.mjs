@@ -60,6 +60,13 @@ try {
   )
   assert(!pairs.some((p) => p.a.id === 'd' || p.b.id === 'd'), 'merged customers excluded')
 
+  const resolved = customers.resolveCustomerId(list, 'd')
+  assert(resolved === 'a', `resolveCustomerId follows merge d→a, got ${resolved}`)
+  const active = customers.findActiveCustomer(list, 'd')
+  assert(active && active.id === 'a', 'findActiveCustomer returns survivor')
+  assert(customers.resolveCustomerId(list, 'missing') === undefined, 'resolve missing → undefined')
+
+
   const note = customers.mergedNote(
     { nickname: '小北', contact: '13900000002', note: '闲鱼' },
     { nickname: '小北', contact: '13800000001', note: '微信' },
