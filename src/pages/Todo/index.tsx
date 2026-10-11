@@ -29,7 +29,7 @@ import { daysUntilLabel, workbench } from '@/domain/workbench'
 import { actionLabel, nextStatuses, payoutVoid, NO_PAYOUT } from '@/domain/status'
 import { cn } from '@/lib/utils'
 import { yuan, yuan2 } from '@/lib/format'
-import { useFreeTodosStore } from '@/store/useFreeTodosStore'
+import { useFreeTodosStore, type FreeTodo } from '@/store/useFreeTodosStore'
 
 const PAGE = 24
 
@@ -532,116 +532,119 @@ function FreeTodosPanel() {
   const remove = useFreeTodosStore((s) => s.remove)
   const clearDone = useFreeTodosStore((s) => s.clearDone)
   const [draft, setDraft] = useState('')
-  const open = items.filter((it) => !it.done).length
-  const done = items.length - open
+  const done = items.filter((it) => it.done).length
 
   const submit = () => {
     if (!add(draft)) return
     setDraft('')
   }
 
-  return (
-    <section className="flex flex-col gap-2">
-      <SectionHead
-        title="自由待办"
-        count={open}
-        hint={done > 0 ? '未完成 · 含已完成' : '本机备忘'}
-        trailing={
-          done > 0 ? (
-            <Button size="sm" variant="ghost" onClick={() => clearDone()}>
-              清除已完成（{done}）
-            </Button>
-          ) : null
-        }
-      />
-      <div className="table-container l2g-table">
-        <div className="flex flex-col gap-2 p-3">
-          <div className="flex gap-2">
-            <div className="min-w-0 flex-1">
-              <FormInput
-                placeholder="随手记一件事…"
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    submit()
-                  }
-                }}
-              />
-            </div>
-            <Button variant="secondary" icon={Plus} onClick={submit} disabled={!draft.trim()}>
-              添加
-            </Button>
+  const columns: DataTableColumn<FreeTodo>[] = useMemo(
+    () => [
+      {
+        key: 'text',
+        title: '事项',
+        width: '78%',
+        align: 'center',
+        emphasis: 'primary',
+        render: (it) => (
+          <div className="flex items-center gap-2.5 min-w-0">
+            <button
+              type="button"
+              className={cn(
+                'flex h-5 w-5 shrink-0 items-center justify-center rounded border',
+                it.done
+                  ? 'border-brand bg-brand/15 text-brand'
+                  : 'border-border text-transparent',
+              )}
+              aria-label={it.done ? '标为未完成' : '标为完成'}
+              onClick={(e) => {
+                e.stopPropagation()
+                toggle(it.id)
+              }}
+            >
+              <Check size={12} />
+            </button>
+            <span
+              className={cn(
+                'min-w-0 truncate text-sm',
+                it.done && 'text-muted-foreground line-through',
+              )}
+              title={it.text}
+            >
+              {it.text}
+            </span>
           </div>
-          {items.length === 0 ? (
-            <div className="py-8 text-center text-muted-foreground">
-              <p className="text-sm text-foreground/80">还没有自由待办</p>
-              <p className="ds-caption mt-1">和催单 / 到期同一工作台，随手备忘留在本机</p>
-            </div>
-          ) : (
-            <ul className="flex flex-col divide-y divide-border/60">
-              {items.map((it) => (
-                <li key={it.id} className="flex items-center gap-2 px-1 py-2">
-                  <button
-                    type="button"
-                    className={cn(
-                      'flex h-5 w-5 shrink-0 items-center justify-center rounded border',
-                      it.done
-                        ? 'border-brand bg-brand/15 text-brand'
-                        : 'border-border text-transparent',
-                    )}
-                    aria-label={it.done ? '标为未完成' : '标为完成'}
-                    onClick={() => toggle(it.id)}
-                  >
-                    <Check size={12} />
-                  </button>
-                  <span
-                    className={cn(
-                      'min-w-0 flex-1 truncate text-sm',
-                      it.done && 'text-muted-foreground line-through',
-                    )}
-                  >
-                    {it.text}
-                  </span>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    icon={Trash2}
-                    iconOnly
-                    aria-label="删除"
-                    onClick={() => remove(it.id)}
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
-    </section>
+        ),
+      },
+      {
+        key: 'actions',
+        title: '操作',
+        width: '22%',
+        align: 'center',
+        render: (it) => (
+          <div
+            className="flex items-center justify-center gap-1"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button
+              size="sm"
+              variant="ghost"
+              icon={Trash2}
+              iconOnly
+              aria-label="删除"
+              onClick={() => remove(it.id)}
+            />
+          </div>
+        ),
+      },
+    ],
+    // toggle/remove are stable zustand actions
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
   )
-}
 
-function SectionHead({
-  title,
-  count,
-  hint,
-  trailing,
-}: {
-  title: string
-  count: number
-  hint?: string
-  trailing?: ReactNode
-}) {
+  // 与催单/到期同皮：无 SectionHead 徽标，记条+密行表进同一 l2g-table
   return (
-    <div className="flex h-8 items-center gap-2">
-      <h2 className="ds-section-title">{title}</h2>
-      <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary px-1.5 text-xs font-medium tabular-nums text-muted-foreground">
-        {count}
-      </span>
-      {hint ? <span className="ds-caption">{hint}</span> : null}
-      <div className="flex-1" />
-      {trailing}
+    <div className="table-container l2g-table !mt-0">
+      <div className="flex flex-wrap items-center gap-2 border-b border-border/60 px-1 pb-2.5">
+        <span className="shrink-0 text-sm text-muted-foreground">自由待办</span>
+        <span className="ds-caption shrink-0">本机备忘</span>
+        <div className="min-w-0 flex-1 basis-[12rem]">
+          <FormInput
+            placeholder="随手记一件事…"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                submit()
+              }
+            }}
+          />
+        </div>
+        <Button variant="secondary" size="sm" icon={Plus} onClick={submit} disabled={!draft.trim()}>
+          添加
+        </Button>
+        {done > 0 ? (
+          <Button size="sm" variant="ghost" onClick={() => clearDone()}>
+            清除已完成（{done}）
+          </Button>
+        ) : null}
+      </div>
+      {items.length === 0 ? (
+        <div className="py-10 text-center text-muted-foreground">
+          <p className="text-sm text-foreground/80">还没有自由待办</p>
+          <p className="ds-caption mt-1">和催单 / 到期同一工作台，备忘留在本机</p>
+        </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={items}
+          rowKey={(r) => r.id}
+          compact
+        />
+      )}
     </div>
   )
 }
