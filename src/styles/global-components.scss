@@ -1241,10 +1241,7 @@
   }
   .dd-settings-import-stat:last-child { border-right: none; }
   .dd-settings-import-stat--strong {
-    background:
-      radial-gradient(120% 100% at 50% 0%, rgba(var(--brand-rgb), 0.14) 0%, transparent 60%),
-      rgba(var(--brand-rgb), 0.05);
-    animation: ds-breathe 3.8s ease-in-out infinite;
+    background: rgba(var(--brand-rgb), 0.1); /* solid soft pink, no radial/breathe */
   }
   .dd-settings-import-stat__value {
     font-size: 16px;
@@ -1596,9 +1593,7 @@
     flex-shrink: 0;
     padding: 14px 20px;
     border-top: 1px solid hsl(var(--border) / 0.7);
-    background:
-      radial-gradient(90% 140% at 100% 0%, rgba(var(--brand-rgb), 0.12) 0%, transparent 55%),
-      hsl(var(--card));
+    background: hsl(var(--card));
     box-shadow: 0 -8px 24px -16px rgba(15, 15, 30, 0.18);
   }
   .dd-order-money {
@@ -1611,11 +1606,7 @@
     overflow: hidden;
     background: hsl(var(--card));
   }
-  .dd-order-money--sticky .dd-order-money__cell--highlight {
-    background: rgba(var(--brand-rgb), 0.1); /* solid soft pink #D8A0BC @ 10% */
-  }
   .dd-order-money--sticky .dd-order-money__cell--highlight .dd-order-money__value {
-    color: var(--brand-hex); /* #D8A0BC */
     font-size: 22px;
     line-height: 30px;
   }
@@ -1650,19 +1641,15 @@
     color: hsl(var(--foreground) / 0.85);
   }
   .dd-order-money__cell--highlight {
-    background:
-      radial-gradient(120% 100% at 50% 0%, rgba(var(--brand-rgb), 0.14) 0%, transparent 60%),
-      rgba(var(--brand-rgb), 0.06);
+    background: rgba(var(--brand-rgb), 0.1); /* solid soft pink #D8A0BC @ 10% — base, not sticky-only */
   }
   .dd-order-money__cell--highlight .dd-order-money__value {
-    color: var(--brand-text-hex);
+    color: var(--brand-hex); /* #D8A0BC */
   }
   .dd-order-money__cell--highlight.dd-order-money__cell--pulse .dd-order-money__value {
     animation: dd-order-money-pulse 0.45s var(--ds-ease, cubic-bezier(0.22, 1, 0.36, 1));
   }
-  .dd-order-money__cell--breathe {
-    animation: ds-breathe 3.6s ease-in-out infinite;
-  }
+  /* breathe removed: continuous pink glow banned with atmosphere gradients */
   .dd-order-money__value--void {
     color: hsl(var(--muted-foreground)) !important;
     font-weight: 600;
@@ -1673,7 +1660,6 @@
     100% { transform: none; opacity: 1; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .dd-order-money__cell--breathe,
     .dd-order-money__cell--highlight.dd-order-money__cell--pulse .dd-order-money__value {
       animation: none !important;
     }

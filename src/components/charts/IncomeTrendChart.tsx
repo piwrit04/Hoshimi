@@ -62,7 +62,7 @@ export function IncomeTrendChart({
             合计 <b className="text-foreground tabular-nums">{money(total)}</b>
           </span>
         </div>
-        <div className="form-radio-group form-radio-group--sm" role="tablist">
+        <div className="l2g-seg" role="tablist" aria-label="走势粒度">
           {UNITS.map((u) => (
             <button
               key={u.key}
@@ -70,7 +70,7 @@ export function IncomeTrendChart({
               onClick={() => onUnitChange(u.key)}
               role="tab"
               aria-selected={unit === u.key}
-              className={cn('form-radio-option', unit === u.key && 'form-radio-option--active')}
+              className={cn('l2g-seg__btn', unit === u.key && 'l2g-seg__btn--on')}
             >
               {u.label}
             </button>

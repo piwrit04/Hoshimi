@@ -501,7 +501,6 @@ function Inner({
             label={editing && payoutVoid(editing) ? '到手' : '预计到手'}
             value={money.payoutAmount}
             highlight
-            breathe
             pulse
             voided={Boolean(editing && payoutVoid(editing))}
           />
@@ -687,14 +686,25 @@ function Inner({
           </div>
 
           <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
-            <FormSegmentedControl
-              label="服务器"
-              required
-              disabled={moneyLocked}
-              value={server ?? ''}
-              onChange={setServer}
-              options={serverOptions.map((s) => ({ value: s, label: s }))}
-            />
+            {serverOptions.length <= 4 ? (
+              <FormSegmentedControl
+                label="服务器"
+                required
+                disabled={moneyLocked}
+                value={server ?? ''}
+                onChange={setServer}
+                options={serverOptions.map((s) => ({ value: s, label: s }))}
+              />
+            ) : (
+              <FormSelect
+                label="服务器"
+                required
+                disabled={moneyLocked}
+                value={server || null}
+                onChange={(v) => setServer(v ?? '')}
+                options={serverOptions.map((s) => ({ value: s, label: s }))}
+              />
+            )}
             {!isEdit ? (
               <FormSegmentedControl
                 label="状态"
@@ -805,7 +815,18 @@ function Inner({
         ) : (
           <Card title="托管安排">
             <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
-              {custodyOptions.length > 0 ? (
+              {custodyOptions.length === 0 ? (
+                <FormInput
+                  label="托管类型"
+                  required
+                  disabled={moneyLocked}
+                  value={custodyKind}
+                  onChange={(ev) => setCustodyKind(ev.target.value)}
+                  placeholder="目录里还没有托管项，可先手填"
+                  error={errors.custodyKind}
+                  help="可在设置 → 项目目录里添加「托管」分类项目"
+                />
+              ) : custodyOptions.length <= 4 ? (
                 <FormSegmentedControl
                   label="托管类型"
                   required
@@ -816,15 +837,14 @@ function Inner({
                   error={errors.custodyKind}
                 />
               ) : (
-                <FormInput
+                <FormSelect
                   label="托管类型"
                   required
                   disabled={moneyLocked}
-                  value={custodyKind}
-                  onChange={(ev) => setCustodyKind(ev.target.value)}
-                  placeholder="目录里还没有托管项，可先手填"
+                  value={custodyKind || null}
+                  onChange={(v) => setCustodyKind(v ?? '')}
+                  options={custodyOptions.map((p) => ({ value: p, label: p }))}
                   error={errors.custodyKind}
-                  help="可在设置 → 项目目录里添加「托管」分类项目"
                 />
               )}
               <FormSegmentedControl
@@ -1097,7 +1117,6 @@ function MoneyCell({
   value,
   accent = false,
   highlight = false,
-  breathe = false,
   pulse = false,
   voided = false,
 }: {
@@ -1105,7 +1124,6 @@ function MoneyCell({
   value: number
   accent?: boolean
   highlight?: boolean
-  breathe?: boolean
   pulse?: boolean
   /** 退款/取消：显示 —，不算到手 */
   voided?: boolean
@@ -1116,7 +1134,6 @@ function MoneyCell({
         'dd-order-money__cell',
         accent ? 'dd-order-money__cell--accent' : '',
         highlight ? 'dd-order-money__cell--highlight' : '',
-        highlight && breathe ? 'dd-order-money__cell--breathe' : '',
         highlight && pulse ? 'dd-order-money__cell--pulse' : '',
       ]
         .filter(Boolean)
