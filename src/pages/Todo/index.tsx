@@ -4,7 +4,6 @@ import {
   Check,
   ListTodo,
   MoreHorizontal,
-  PenLine,
   Play,
   Plus,
   PlusCircle,
@@ -75,6 +74,7 @@ export default function TodoPage() {
   const visibleDue = showDue ? model.expiring : []
   const quiet = visibleNormal.length === 0 && visibleDue.length === 0
 
+  // 到手：dd-money-gold = 品牌柔粉 #D8A0BC（同 Orders da437eb / Customers）
   const meta =
     orders.length === 0
       ? '催单 + 进行中托管到期'
@@ -150,12 +150,35 @@ export default function TodoPage() {
     [visibleDue, expireLimit, model.today],
   )
 
-  const columns: DataTableColumn<TodoRow>[] = useMemo(
-    () => [
+  const allRows: TodoRow[] = useMemo(
+    () => [...chaseRows, ...dueRows],
+    [chaseRows, dueRows],
+  )
+
+  const showTypeCol = tab === 'all'
+
+  const columns: DataTableColumn<TodoRow>[] = useMemo(() => {
+    const cols: DataTableColumn<TodoRow>[] = []
+
+    if (showTypeCol) {
+      cols.push({
+        key: 'kind',
+        title: '类型',
+        width: '8%',
+        align: 'center',
+        render: (r) => (
+          <Tag tone={r.section === 'chase' ? 'warning' : 'brand'}>
+            {r.section === 'chase' ? '催单' : '到期'}
+          </Tag>
+        ),
+      })
+    }
+
+    cols.push(
       {
         key: 'customer',
         title: '客户',
-        width: '18%',
+        width: showTypeCol ? '16%' : '18%',
         align: 'center',
         emphasis: 'primary',
         render: (r) => (
@@ -172,7 +195,7 @@ export default function TodoPage() {
       {
         key: 'content',
         title: '订单内容',
-        width: '24%',
+        width: showTypeCol ? '22%' : '24%',
         align: 'center',
         render: (r) => {
           const summary =
@@ -232,7 +255,7 @@ export default function TodoPage() {
       {
         key: 'actions',
         title: '操作',
-        width: '18%',
+        width: '16%',
         align: 'center',
         render: (r) => (
           <TodoRowActions
@@ -243,11 +266,12 @@ export default function TodoPage() {
           />
         ),
       },
-    ],
-    // move/cancel/openEdit are stable enough for this page; columns rebuild on tab data change
+    )
+
+    return cols
+    // move/cancel/openEdit are stable enough for this page
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
+  }, [showTypeCol])
 
   const emptyReason = searching
     ? `没有符合「${query.trim()}」的待办`
@@ -302,6 +326,43 @@ export default function TodoPage() {
         </Button>
       </div>
     </div>
+  )
+
+  const moreNormal = visibleNormal.length > normalLimit
+  const moreDue = visibleDue.length > expireLimit
+  const loadMore = (
+    <>
+      {tab === 'all' && (moreNormal || moreDue) ? (
+        <div className="flex justify-center pt-1">
+          <Button
+            variant="secondary"
+            onClick={() => {
+              if (moreNormal) setNormalLimit((n) => n + PAGE)
+              if (moreDue) setExpireLimit((n) => n + PAGE)
+            }}
+          >
+            加载更多（还有{' '}
+            {(moreNormal ? visibleNormal.length - normalLimit : 0) +
+              (moreDue ? visibleDue.length - expireLimit : 0)}{' '}
+            单）
+          </Button>
+        </div>
+      ) : null}
+      {tab === 'chase' && moreNormal ? (
+        <div className="flex justify-center pt-1">
+          <Button variant="secondary" onClick={() => setNormalLimit((n) => n + PAGE)}>
+            加载更多（还有 {visibleNormal.length - normalLimit} 单）
+          </Button>
+        </div>
+      ) : null}
+      {tab === 'due' && moreDue ? (
+        <div className="flex justify-center pt-1">
+          <Button variant="secondary" onClick={() => setExpireLimit((n) => n + PAGE)}>
+            加载更多（还有 {visibleDue.length - expireLimit} 单）
+          </Button>
+        </div>
+      ) : null}
+    </>
   )
 
   return (
@@ -411,51 +472,51 @@ export default function TodoPage() {
 
           {quiet ? (
             <div className="table-container l2g-table">{emptyBlock}</div>
-          ) : null}
-
-          {visibleNormal.length > 0 ? (
+          ) : tab === 'all' ? (
             <section className="flex flex-col gap-2">
-              <SectionHead title="催单 · 普通单" count={visibleNormal.length} />
               <div className="table-container l2g-table">
                 <DataTable
                   columns={columns}
-                  data={chaseRows}
+                  data={allRows}
                   rowKey={(r) => r.id}
                   compact
                   onRowClick={(r) => openEdit(r.id)}
                 />
               </div>
-              {visibleNormal.length > normalLimit ? (
-                <div className="flex justify-center pt-1">
-                  <Button variant="secondary" onClick={() => setNormalLimit((n) => n + PAGE)}>
-                    加载更多（还有 {visibleNormal.length - normalLimit} 单）
-                  </Button>
-                </div>
-              ) : null}
+              {loadMore}
             </section>
-          ) : null}
-
-          {visibleDue.length > 0 ? (
-            <section className="flex flex-col gap-2">
-              <SectionHead title="到期 · 进行中托管" count={visibleDue.length} />
-              <div className="table-container l2g-table">
-                <DataTable
-                  columns={columns}
-                  data={dueRows}
-                  rowKey={(r) => r.id}
-                  compact
-                  onRowClick={(r) => openEdit(r.id)}
-                />
-              </div>
-              {visibleDue.length > expireLimit ? (
-                <div className="flex justify-center pt-1">
-                  <Button variant="secondary" onClick={() => setExpireLimit((n) => n + PAGE)}>
-                    加载更多（还有 {visibleDue.length - expireLimit} 单）
-                  </Button>
-                </div>
+          ) : (
+            <>
+              {tab === 'chase' && visibleNormal.length > 0 ? (
+                <section className="flex flex-col gap-2">
+                  <div className="table-container l2g-table">
+                    <DataTable
+                      columns={columns}
+                      data={chaseRows}
+                      rowKey={(r) => r.id}
+                      compact
+                      onRowClick={(r) => openEdit(r.id)}
+                    />
+                  </div>
+                  {loadMore}
+                </section>
               ) : null}
-            </section>
-          ) : null}
+              {tab === 'due' && visibleDue.length > 0 ? (
+                <section className="flex flex-col gap-2">
+                  <div className="table-container l2g-table">
+                    <DataTable
+                      columns={columns}
+                      data={dueRows}
+                      rowKey={(r) => r.id}
+                      compact
+                      onRowClick={(r) => openEdit(r.id)}
+                    />
+                  </div>
+                  {loadMore}
+                </section>
+              ) : null}
+            </>
+          )}
 
           <FreeTodosPanel />
         </>
@@ -601,6 +662,11 @@ const TodoRowActions = memo(function TodoRowActions({
     order.status === '待处理' ? '进行中' : order.status === '进行中' ? '已完成' : null
   const canCancel = next.includes('已取消')
 
+  const menuItems = [
+    { key: 'edit', label: '编辑' },
+    ...(canCancel ? [{ key: 'cancel', label: '取消订单', danger: true as const }] : []),
+  ]
+
   return (
     <div
       className="flex items-center justify-center gap-1"
@@ -617,32 +683,24 @@ const TodoRowActions = memo(function TodoRowActions({
         </Button>
       ) : null}
 
-      {canCancel ? (
-        <Dropdown
-          align="end"
-          trigger={
-            <span className="inline-flex">
-              <Button
-                variant="ghost"
-                size="sm"
-                icon={MoreHorizontal}
-                iconOnly
-                aria-label="取消订单"
-              />
-            </span>
-          }
-          items={[{ key: 'cancel', label: '取消订单', danger: true }]}
-          onSelect={() => onCancel()}
-        />
-      ) : null}
-
-      <Button
-        variant="ghost"
-        size="sm"
-        icon={PenLine}
-        iconOnly
-        aria-label="编辑"
-        onClick={onEdit}
+      <Dropdown
+        align="end"
+        trigger={
+          <span className="inline-flex">
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={MoreHorizontal}
+              iconOnly
+              aria-label="更多操作"
+            />
+          </span>
+        }
+        items={menuItems}
+        onSelect={(key) => {
+          if (key === 'edit') onEdit()
+          else if (key === 'cancel') onCancel()
+        }}
       />
     </div>
   )
