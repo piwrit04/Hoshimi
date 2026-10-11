@@ -12,7 +12,7 @@ import {
   FormInput,
   FormNumberInput,
   FormSelect,
-  FormRadioGroup,
+  FormSegmentedControl,
   FormSwitch,
   FormTextarea,
   Field,
@@ -474,7 +474,7 @@ function Inner({
       title={title}
       width={720}
       summary={
-        <div className="dd-order-money" key={moneyPulse}>
+        <div className="dd-order-money dd-order-money--sticky" key={moneyPulse}>
           <MoneyCell label="订单金额" value={amount} voided={Boolean(editing && payoutVoid(editing))} />
           {transferEnabled ? (
             <MoneyCell
@@ -632,8 +632,8 @@ function Inner({
             </div>
           ) : null}
 
-          <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
-            <FormRadioGroup
+          <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
+            <FormSegmentedControl
               label="订单类型"
               required
               disabled={moneyLocked}
@@ -642,53 +642,42 @@ function Inner({
                 const next = v as '普通' | '托管'
                 setOrderType(next)
                 setLines([{ key: 1, category: '', product: '', price: '' }])
-                if (next === '普通') {
-                  setCustodyKind('')
-                  setSettleKind('')
-                  setStartDate('')
-                  setEndDate('')
-                  setManualAmount(null)
-                } else {
-                  setCustodyKind('')
-                  setSettleKind('')
-                  setStartDate('')
-                  setEndDate('')
-                  setManualAmount(null)
-                }
+                setCustodyKind('')
+                setSettleKind('')
+                setStartDate('')
+                setEndDate('')
+                setManualAmount(null)
               }}
               options={[
                 { value: '普通', label: '普通单' },
                 { value: '托管', label: '托管单' },
               ]}
             />
-            <FormRadioGroup
+            <FormSegmentedControl
               label="渠道"
               required
               disabled={moneyLocked}
               value={platform}
               onChange={(v) => setPlatform(v as Platform)}
+              help={`手续费 ${feePercentLabel(feeRate)}`}
               options={(channelFees.length
                 ? channelFees.map((f) => f.platform)
                 : (Object.keys(PLATFORM_FEE) as Platform[])
-              ).map((p) => {
-                const hit = channelFees.find((f) => f.platform === p)
-                const rate = hit ? hit.rate : (PLATFORM_FEE[p as Platform] ?? 0)
-                return { value: p, label: `${p}（${feePercentLabel(rate)}）` }
-              })}
+              ).map((p) => ({ value: p, label: p }))}
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
-            <FormRadioGroup
+          <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
+            <FormSegmentedControl
               label="服务器"
               required
               disabled={moneyLocked}
-              value={server}
+              value={server ?? ''}
               onChange={setServer}
               options={serverOptions.map((s) => ({ value: s, label: s }))}
             />
             {!isEdit ? (
-              <FormRadioGroup
+              <FormSegmentedControl
                 label="状态"
                 required
                 value={status}
@@ -799,7 +788,7 @@ function Inner({
           <Card title="托管安排">
             <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
               {custodyOptions.length > 0 ? (
-                <FormRadioGroup
+                <FormSegmentedControl
                   label="托管类型"
                   required
                   disabled={moneyLocked}
@@ -820,7 +809,7 @@ function Inner({
                   help="可在设置 → 项目目录里添加「托管」分类项目"
                 />
               )}
-              <FormRadioGroup
+              <FormSegmentedControl
                 label="结算方式"
                 required
                 disabled={moneyLocked}
@@ -890,7 +879,7 @@ function Inner({
             <div className="dd-order-transfer">
               <p className="ds-caption">默认打手拿成 80%，可按实际改</p>
               {errors.transfer ? <p className="dd-error-text">{errors.transfer}</p> : null}
-              <FormRadioGroup
+              <FormSegmentedControl
                 label="转出方式"
                 required
                 disabled={moneyLocked}

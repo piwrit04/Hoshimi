@@ -1162,30 +1162,54 @@ export function FormSegmentedControl({
   onChange,
   options,
   className,
+  disabled,
+  required,
+  help,
+  error,
+  name,
 }: {
   label?: ReactNode
   value: string
   onChange: (v: string) => void
   options: SelectOption[]
   className?: string
+  disabled?: boolean
+  required?: boolean
+  help?: ReactNode
+  error?: ReactNode
+  name?: string
 }) {
   return (
-    <Field label={label} className={className}>
-      <div className="form-radio-group flex-wrap">
-        {options.map((o) => (
-          <button
-            key={o.value}
-            type="button"
-            onClick={() => onChange(o.value)}
-            disabled={o.disabled}
-            className={cn(
-              'form-radio-option',
-              o.value === value && 'form-radio-option--active'
-            )}
-          >
-            {o.label}
-          </button>
-        ))}
+    <Field
+      label={label}
+      className={className}
+      required={required}
+      help={help}
+      error={error}
+      name={name}
+    >
+      <div
+        className="l2g-seg l2g-seg--form"
+        role="radiogroup"
+        aria-label={typeof label === 'string' ? label : undefined}
+        aria-invalid={error ? true : undefined}
+      >
+        {options.map((o) => {
+          const on = o.value === value
+          return (
+            <button
+              key={o.value}
+              type="button"
+              role="radio"
+              aria-checked={on}
+              disabled={disabled || o.disabled}
+              onClick={() => onChange(o.value)}
+              className={on ? 'l2g-seg__btn l2g-seg__btn--on' : 'l2g-seg__btn'}
+            >
+              {o.label}
+            </button>
+          )
+        })}
       </div>
     </Field>
   )

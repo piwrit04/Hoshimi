@@ -1464,7 +1464,30 @@
   .dd-order-drawer .ds-card__body {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
+  }
+  /* 录单抽屉：胶囊段控填满字段宽，少滚一截 */
+  .dd-order-drawer .l2g-seg--form,
+  .l2g-seg--form {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .dd-order-drawer .l2g-seg--form .l2g-seg__btn,
+  .l2g-seg--form .l2g-seg__btn {
+    flex: 1 1 auto;
+    min-width: 4.5rem;
+    justify-content: center;
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 12px;
+    font-size: 0.8125rem;
+  }
+  .dd-order-drawer .l2g-seg--form .l2g-seg__btn:disabled,
+  .l2g-seg--form .l2g-seg__btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
   }
   .dd-order-status {
     display: flex;
@@ -1549,14 +1572,15 @@
       grid-template-rows: auto auto;
     }
   }
-  /* 金额条：吸在抽屉脚上方常显 */
+  /* 金额条：吸在抽屉脚上方常显（先记单主路径：到手一眼可见） */
   .dd-drawer__summary {
     flex-shrink: 0;
-    padding: 12px 20px;
+    padding: 14px 20px;
     border-top: 1px solid hsl(var(--border) / 0.7);
     background:
-      radial-gradient(80% 120% at 100% 0%, rgba(var(--brand-rgb), 0.08) 0%, transparent 55%),
+      radial-gradient(90% 140% at 100% 0%, rgba(var(--brand-rgb), 0.12) 0%, transparent 55%),
       hsl(var(--card));
+    box-shadow: 0 -8px 24px -16px rgba(15, 15, 30, 0.18);
   }
   .dd-order-money {
     display: grid;
@@ -1567,6 +1591,16 @@
     border: 1px solid hsl(var(--border) / 0.65);
     overflow: hidden;
     background: hsl(var(--card));
+  }
+  .dd-order-money--sticky .dd-order-money__cell--highlight {
+    background:
+      radial-gradient(120% 100% at 50% 0%, rgba(var(--brand-rgb), 0.2) 0%, transparent 60%),
+      rgba(var(--brand-rgb), 0.1);
+  }
+  .dd-order-money--sticky .dd-order-money__cell--highlight .dd-order-money__value {
+    color: var(--brand-hex); /* #D8A0BC */
+    font-size: 22px;
+    line-height: 30px;
   }
   .dd-order-money__cell {
     display: flex;
