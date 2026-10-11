@@ -13,7 +13,13 @@ import { yuan as money, yuan2 } from '@/lib/format'
 import { CountUp } from '@/lib/count-up'
 import { useOrdersStore } from '@/store/useOrdersStore'
 import { useNewOrderStore } from '@/store/useNewOrderStore'
-import { dashboard, incomeTrend, type TrendUnit, type ExpiringItem } from '@/domain/dashboard'
+import {
+  dashboard,
+  incomeTrend,
+  incomeSmartTip,
+  type TrendUnit,
+  type ExpiringItem,
+} from '@/domain/dashboard'
 import { IncomeTrendChart } from '@/components/charts/IncomeTrendChart'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Card } from '@/components/ui/Card'
@@ -24,8 +30,8 @@ import { NO_PAYOUT, payoutVoid } from '@/domain/status'
 import type { Order, OrderStatus } from '@/domain/order'
 
 /*
- * 概览：4 KPI（可点开轻量明细）+ 半宽收入走势 + 另一侧轻提示。
- * 托管到期明细只在「托管快到期」KPI 弹层里，不另开列表。
+ * 概览：4 KPI（右下水印图标）+ 约 2/3 走势图 + 约 1/3 智能提示。
+ * 托管到期明细只在「托管快到期」KPI 弹层里。
  */
 
 type KpiKey = 'today' | 'active' | 'month' | 'due'
@@ -65,6 +71,11 @@ export default function Dashboard() {
     () => incomeTrend({ orders, customers, settings }, unit),
     [orders, customers, settings, unit],
   )
+  const dayTrend = useMemo(
+    () => incomeTrend({ orders, customers, settings }, 'day'),
+    [orders, customers, settings],
+  )
+  const tip = useMemo(() => incomeSmartTip(m.kpis, dayTrend), [m.kpis, dayTrend])
   const k = m.kpis
   const showSetupTip = !tipDismissed && orders.length === 0
 
@@ -160,49 +171,18 @@ export default function Dashboard() {
         />
       </section>
 
-      <section className="ds-rise grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card title="收入走势" description="已完成订单的到手金额">
+      <section className="ds-rise grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Card
+          className="lg:col-span-2"
+          title="收入走势"
+          description="已完成订单的到手金额"
+        >
           <IncomeTrendChart points={trend} unit={unit} onUnitChange={setUnit} />
         </Card>
-        <Card
-          title="今日完成"
-          description="今天已完成订单"
-          extra={
-            <button
-              type="button"
-              className="btn-base btn-ghost btn--sm"
-              onClick={() => setKpiOpen('today')}
-            >
-              明细
-            </button>
-          }
-        >
-          <button
-            type="button"
-            className="w-full text-left"
-            onClick={() => setKpiOpen('today')}
-          >
-            <div className="flex items-end justify-between gap-4">
-              <div>
-                <div className="text-3xl font-semibold tabular-nums tracking-tight">
-                  <CountUp value={k.completedToday} />
-                  <span className="ml-1 text-sm font-normal text-muted-foreground">单</span>
-                </div>
-                <div className="mt-1 text-xs text-muted-foreground">完成笔数</div>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-semibold tabular-nums text-brand">
-                  <CountUp value={k.payoutToday} money />
-                </div>
-                <div className="mt-1 text-xs text-muted-foreground">今日到手</div>
-              </div>
-            </div>
-            <p className="mt-5 text-xs text-muted-foreground">
-              {k.completedToday === 0
-                ? '今天还没有完成单，点此查看说明'
-                : `共 ${k.completedToday} 单 · 点开看明细`}
-            </p>
-          </button>
+        <Card title="今日提示" description="根据近期到手自动生成">
+          <div className={cn('ds-tip', `ds-tip--${tip.kind}`)}>
+            <p className="ds-tip__text">{tip.text}</p>
+          </div>
         </Card>
       </section>
 
@@ -266,17 +246,22 @@ function StatCard({
     >
       <div className="ds-stat__label">
         <span className="flex items-center gap-2 min-w-0">
-          {en ? <span className="text-[10px] font-bold uppercase tracking-wider text-brand shrink-0">{en}</span> : null}
+          {en ? (
+            <span className="text-[10px] font-bold uppercase tracking-wider text-brand shrink-0">
+              {en}
+            </span>
+          ) : null}
           <span className="truncate">{label}</span>
-        </span>
-        <span className="ds-stat__icon" aria-hidden>
-          <Icon size={14} />
         </span>
       </div>
       <div className="ds-stat__value">
         <CountUp value={value} money={asMoney} />
       </div>
       <div className="ds-stat__foot">{foot}</div>
+      {/* 工具箱首页同款：右下角超大灰色水印图标 */}
+      <span className="ds-stat__mark" aria-hidden>
+        <Icon size={72} strokeWidth={1.25} />
+      </span>
     </button>
   )
 }

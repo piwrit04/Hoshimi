@@ -298,10 +298,12 @@
   animation: ds-accent-grow 0.55s var(--ds-ease) 0.12s both;
 }
 
-/* 统计卡：图标胶囊 + 悬停微抬 + 层次色 */
+/* 统计卡：扁平 + 右下角灰色水印图标（对齐工具箱首页） */
 .ds-stat {
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   transition: border-color 0.2s var(--ds-ease), box-shadow 0.2s var(--ds-ease), transform 0.2s var(--ds-ease);
 }
 .ds-stat:hover {
@@ -309,26 +311,31 @@
   box-shadow: 0 4px 16px rgba(15, 15, 30, 0.06);
   transform: translateY(-1px);
 }
-.ds-stat__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: rgba(var(--brand-rgb), 0.12);
-  color: var(--brand-text-hex);
-  flex-shrink: 0;
+.ds-stat__value { font-weight: 700; position: relative; z-index: 1; }
+.ds-stat__foot { position: relative; z-index: 1; }
+.ds-stat__label { position: relative; z-index: 1; }
+
+/* 右下角超大灰色水印图标 —— 无粉底、无胶囊 */
+.ds-stat__mark {
+  position: absolute;
+  right: 6px;
+  bottom: -10px;
+  display: flex;
+  color: hsl(var(--muted-foreground) / 0.14);
+  pointer-events: none;
+  user-select: none;
+  transition: color 0.25s var(--ds-ease), transform 0.25s var(--ds-ease);
 }
-.ds-stat__value { font-weight: 700; }
+.ds-stat:hover .ds-stat__mark {
+  color: hsl(var(--muted-foreground) / 0.22);
+  transform: translateY(-2px);
+}
 
 .ds-stat--hero {
   background:
-    radial-gradient(90% 80% at 100% -10%, rgba(var(--brand-rgb), 0.32) 0%, transparent 55%),
-    radial-gradient(70% 60% at 0% 110%, rgba(var(--brand-rgb), 0.12) 0%, transparent 50%),
-    linear-gradient(160deg, rgba(var(--brand-rgb), 0.08) 0%, transparent 42%),
+    radial-gradient(90% 80% at 100% -10%, rgba(var(--brand-rgb), 0.22) 0%, transparent 55%),
     hsl(var(--card));
-  border-color: rgba(var(--brand-rgb), 0.42);
+  border-color: rgba(var(--brand-rgb), 0.36);
   animation:
     ds-rise 0.36s var(--ds-ease) var(--ds-delay, 0ms) both,
     ds-breathe 3.6s ease-in-out calc(var(--ds-delay, 0ms) + 0.5s) infinite;
@@ -338,27 +345,28 @@
   line-height: 44px;
   color: var(--brand-text-hex);
 }
-.ds-stat--hero .ds-stat__icon {
-  background: rgba(var(--brand-rgb), 0.2);
+.ds-stat--hero .ds-stat__mark {
+  color: rgba(var(--brand-rgb), 0.16);
+}
+.ds-stat--hero:hover .ds-stat__mark {
+  color: rgba(var(--brand-rgb), 0.24);
 }
 
 .ds-stat--warn {
   background:
-    radial-gradient(120% 90% at 100% 0%, rgba(var(--warning-rgb), 0.12) 0%, transparent 55%),
+    radial-gradient(120% 90% at 100% 0%, rgba(var(--warning-rgb), 0.10) 0%, transparent 55%),
     hsl(var(--card));
   border-color: rgba(var(--warning-rgb), 0.28);
   animation:
     ds-rise 0.36s var(--ds-ease) var(--ds-delay, 0ms) both,
     ds-breathe-warn 3.6s ease-in-out calc(var(--ds-delay, 0ms) + 0.6s) infinite;
 }
-.ds-stat--warn .ds-stat__icon {
-  background: rgba(var(--warning-rgb), 0.16);
-  color: hsl(var(--warning));
-}
 .ds-stat--warn .ds-stat__value { color: hsl(var(--warning)); }
+.ds-stat--warn .ds-stat__mark {
+  color: rgba(var(--warning-rgb), 0.18);
+}
 
 .ds-stat--link:hover { border-color: rgba(var(--brand-rgb), 0.45); }
-
 
 /* 卡片软底纹：淡粉光斑，增加层次但不抢眼 */
 .ds-card:not(.ds-stat) {
@@ -367,12 +375,29 @@
     hsl(var(--card));
 }
 .ds-stat:not(.ds-stat--hero):not(.ds-stat--warn) {
-  background:
-    radial-gradient(90% 80% at 100% 0%, rgba(var(--brand-rgb), 0.10) 0%, transparent 55%),
-    hsl(var(--card));
+  background: hsl(var(--card));
   border-color: hsl(var(--border) / 0.9);
 }
 .ds-stat__label { font-weight: 600; color: hsl(var(--foreground) / 0.72); }
+
+/* 概览智能提示（走势图旁） */
+.ds-tip {
+  display: flex;
+  align-items: center;
+  min-height: 180px;
+  padding: 4px 2px;
+}
+.ds-tip__text {
+  font-size: 15px;
+  line-height: 1.7;
+  color: hsl(var(--foreground) / 0.88);
+  font-weight: 500;
+}
+.ds-tip--empty .ds-tip__text,
+.ds-tip--quiet .ds-tip__text { color: hsl(var(--muted-foreground)); }
+.ds-tip--up .ds-tip__text { color: var(--brand-text-hex); }
+.ds-tip--busy .ds-tip__text { color: var(--brand-text-hex); }
+.ds-tip--down .ds-tip__text { color: hsl(var(--foreground) / 0.8); }
 
 @media (prefers-reduced-motion: reduce) {
   .ds-rise,

@@ -340,6 +340,17 @@ try {
   const dash = dashboard.dashboard(demo, when)
   assert(dash.kpis.custodyActive >= 1, `dashboard custodyActive ${dash.kpis.custodyActive}`)
   assert(dash.kpis.revenueThisMonth >= 0, 'dashboard revenue defined')
+
+  const dayTrend = dashboard.incomeTrend(demo, 'day', when)
+  const tip = dashboard.incomeSmartTip(dash.kpis, dayTrend)
+  assert(tip && typeof tip.text === 'string' && tip.text.length > 4, `incomeSmartTip text: ${tip?.text}`)
+  assert(['empty', 'quiet', 'down', 'up', 'busy'].includes(tip.kind), `incomeSmartTip kind: ${tip.kind}`)
+  const emptyTip = dashboard.incomeSmartTip(
+    { total: 0, payoutToday: 0, completedToday: 0, payoutThisMonth: 0, inProgress: 0, waiting: 0 },
+    [],
+  )
+  assert(emptyTip.kind === 'empty', 'incomeSmartTip empty ledger')
+
   // 退款不算营收：本月完成到手不应含退款单金额
   const doneMonth = demo.orders.filter(
     (o) => o.status === '已完成' && o.completedAt && o.completedAt.startsWith('2026-10'),

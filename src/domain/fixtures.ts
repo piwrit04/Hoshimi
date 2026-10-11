@@ -58,20 +58,32 @@ const CUSTOMERS: [string, string][] = [
 ]
 
 const SPECS: Spec[] = [
+  // 今天完成：让「今日到手」和提示有东西可说
   { c: 0, platform: '微信', status: '已完成', ago: 0, doneAgo: 0, lines: ['都市活力', '排球之星（周常联赛）'] },
-  { c: 1, platform: '闲鱼', status: '已完成', ago: 1, doneAgo: 0, lines: ['全异象委托'] },
+  { c: 1, platform: '闲鱼', status: '已完成', ago: 0, doneAgo: 0, lines: ['月光当铺'] },
+  { c: 4, platform: '微信', status: '已完成', ago: 1, doneAgo: 0, lines: ['粉爪大劫案'] },
+  // 近两周完成：走势图有起伏
+  { c: 1, platform: '闲鱼', status: '已完成', ago: 1, doneAgo: 1, lines: ['全异象委托'] },
+  { c: 3, platform: '闲鱼', status: '已完成', ago: 2, doneAgo: 2, lines: ['谕石全收集'] },
+  { c: 5, platform: '微信', status: '已完成', ago: 3, doneAgo: 3, lines: ['套餐2'] },
+  { c: 0, platform: '闲鱼', status: '已完成', ago: 4, doneAgo: 4, lines: ['十三日梦醒（1.1）'] },
+  { c: 2, platform: '微信', status: '已完成', ago: 5, doneAgo: 5, lines: ['全支线任务'], transfer: 0.7 },
+  { c: 4, platform: '闲鱼', status: '已完成', ago: 7, doneAgo: 7, lines: ['轨外回响（1.3）'] },
+  { c: 3, platform: '微信', status: '已完成', ago: 9, doneAgo: 8, lines: ['无名医院（全结局）'] },
+  { c: 5, platform: '闲鱼', status: '已完成', ago: 11, doneAgo: 10, lines: ['第四章：红字的研究'] },
+  { c: 1, platform: '微信', status: '已完成', ago: 14, doneAgo: 13, lines: ['第五章：游梦洄廊', '都市活力'] },
+  { c: 0, platform: '闲鱼', status: '已完成', ago: 18, doneAgo: 16, lines: ['套餐2', '十三日梦醒（1.1）'] },
+  { c: 2, platform: '微信', status: '已完成', ago: 28, doneAgo: 26, lines: ['账号开荒'] },
+  { c: 4, platform: '闲鱼', status: '已完成', ago: 40, doneAgo: 38, lines: ['账号开荒'] },
+  { c: 5, platform: '微信', status: '已完成', ago: 70, doneAgo: 66, lines: ['轨外回响（1.3）', '无名医院（全结局）'] },
+  // 进行中 / 待处理 / 托管
   { c: 2, platform: '闲鱼', status: '进行中', ago: 1, lines: ['1.3版本全收集'], server: '国际服' },
   { c: 3, platform: '微信', status: '进行中', ago: 2, lines: ['第四章：红字的研究', '第五章：游梦洄廊'] },
   { c: 4, platform: '微信', status: '待处理', ago: 0, lines: ['月光当铺'] },
   { c: 5, platform: '闲鱼', status: '待处理', ago: 0, lines: ['粉爪大劫案', '都市活力'], server: 'B服' },
   { c: 0, platform: '微信', status: '进行中', ago: 20, custody: { kind: '全托', settle: '月结', startAgo: 26, days: 30 } },
   { c: 2, platform: '闲鱼', status: '进行中', ago: 12, custody: { kind: '普托', settle: '周结', startAgo: 12, days: 14 } },
-  { c: 1, platform: '微信', status: '已完成', ago: 5, doneAgo: 3, lines: ['全支线任务'], transfer: 0.7 },
-  { c: 3, platform: '闲鱼', status: '已完成', ago: 9, doneAgo: 7, lines: ['谕石全收集'] },
-  { c: 4, platform: '微信', status: '已完成', ago: 16, doneAgo: 14, lines: ['套餐2', '十三日梦醒（1.1）'] },
-  { c: 5, platform: '闲鱼', status: '已完成', ago: 40, doneAgo: 38, lines: ['账号开荒'] },
-  { c: 0, platform: '微信', status: '已完成', ago: 70, doneAgo: 66, lines: ['轨外回响（1.3）', '无名医院（全结局）'] },
-  { c: 2, platform: '闲鱼', status: '已退款', ago: 6, lines: ['无名医院（全结局）'] },
+  { c: 1, platform: '闲鱼', status: '已退款', ago: 6, lines: ['无名医院（全结局）'] },
   { c: 3, platform: '微信', status: '已取消', ago: 3, lines: ['月光当铺'] },
 ]
 

@@ -175,3 +175,75 @@ export function incomeTrend(
     }
   })
 }
+
+export type IncomeTipKind = 'empty' | 'quiet' | 'down' | 'up' | 'busy'
+
+export type IncomeTip = { kind: IncomeTipKind; text: string }
+
+/**
+ * 根据今日 / 近几日到手写一句提示（概览右侧面板用）。
+ * dayTrend：日粒度走势，最后一点通常是今天。
+ */
+export function incomeSmartTip(
+  kpis: {
+    total: number
+    payoutToday: number
+    completedToday: number
+    payoutThisMonth: number
+    inProgress: number
+    waiting: number
+  },
+  dayTrend: TrendPoint[],
+): IncomeTip {
+  if (kpis.total === 0) {
+    return { kind: 'empty', text: '账本还是空的。记第一单之后，这里会根据收入给你一句提醒。' }
+  }
+
+  const todayPayout = kpis.payoutToday
+  const todayCount = kpis.completedToday
+  const prior = dayTrend.slice(0, -1)
+  const priorWithMoney = prior.filter((p) => p.payout > 0)
+  const avgPrior =
+    priorWithMoney.length > 0
+      ? priorWithMoney.reduce((s, p) => s + p.payout, 0) / priorWithMoney.length
+      : 0
+
+  if (todayCount === 0 && todayPayout === 0) {
+    if (kpis.inProgress + kpis.waiting > 0) {
+      return {
+        kind: 'quiet',
+        text: `今天还没入账。手头还有 ${kpis.inProgress + kpis.waiting} 单未完成，做完一单走势就会动。`,
+      }
+    }
+    if (kpis.payoutThisMonth === 0) {
+      return { kind: 'quiet', text: '本月还没有到手，找个空档记一单或把进行中的做完吧。' }
+    }
+    return { kind: 'quiet', text: '今天还没入账，不着急，稳住节奏就好。' }
+  }
+
+  if (todayCount >= 3 || (avgPrior > 0 && todayPayout >= avgPrior * 1.6)) {
+    return {
+      kind: 'busy',
+      text: `今天已到手 ${todayCount} 单，忙得漂亮。记得顺手把进行中的也清一清。`,
+    }
+  }
+
+  if (avgPrior > 0 && todayPayout < avgPrior * 0.65) {
+    return {
+      kind: 'down',
+      text: '今天到手比近几日淡一些，没事，曲线总会有起伏。',
+    }
+  }
+
+  if (avgPrior > 0 && todayPayout > avgPrior * 1.15) {
+    return {
+      kind: 'up',
+      text: '今天到手比近几日好一截，保持这个手感就行。',
+    }
+  }
+
+  return {
+    kind: 'up',
+    text: `今天已完成 ${todayCount} 单，节奏不错，继续保持。`,
+  }
+}
