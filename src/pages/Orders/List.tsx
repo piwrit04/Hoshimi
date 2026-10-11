@@ -47,6 +47,10 @@ import { exportCsv, exportXlsx } from '@/domain/export'
 import { useState, memo, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { yuan, yuan2 } from '@/lib/format'
+import { calcMoney, feePercentLabel } from '@/domain/money'
+import { daysUntilLabel } from '@/domain/workbench'
+import { daysBetween, todayISO } from '@/domain/dates'
+import { cn } from '@/lib/utils'
 import { seedDemoLedger } from '@/lib/seed-demo'
 
 /*
@@ -265,88 +269,31 @@ export default function Orders() {
     })
   }
 
+  const games = useOrdersStore((s) => s.games)
+
   const columns: DataTableColumn<Order>[] = useMemo(
     () => [
       {
-        key: 'orderNo',
-        title: '单号',
-        width: '136px',
-        emphasis: 'secondary',
-        render: (r) => <span className="font-mono text-[13px]">{r.orderNo}</span>,
-      },
-      {
-        key: 'createdAt',
-        title: '日期',
-        width: '64px',
-        emphasis: 'secondary',
-        render: (r) => (
-          <span className="tabular-nums">
-            {new Date(r.createdAt).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}
-          </span>
-        ),
-      },
-      {
-        key: 'nickname',
-        title: '客户',
-        width: '144px',
+        key: 'primary',
+        title: '客户 · 项目',
         emphasis: 'primary',
-        render: (r) => <CustomerCell order={r} />,
-      },
-      {
-        key: 'items',
-        title: '项目',
-        emphasis: 'primary',
-        render: (r) =>
-          r.type === '托管' ? (
-            <span className="flex items-center gap-2 min-w-0">
-              <Tag tone="info">托管</Tag>
-              <span className="truncate font-medium">
-                {r.custodyKind}
-                {r.settleKind ? ` · ${r.settleKind}` : ''}
-                {r.endDate ? ` · 至 ${r.endDate.slice(5)}` : ''}
-              </span>
-            </span>
-          ) : (
-            <span className="block truncate font-medium" title={r.items.map((i) => i.product).join('、')}>
-              {r.items.map((i) => i.product).join('、')}
-            </span>
-          ),
-      },
-      {
-        key: 'platform',
-        title: '渠道',
-        width: '64px',
-        emphasis: 'secondary',
-        render: (r) => <span>{r.platform}</span>,
-      },
-      {
-        key: 'amount',
-        title: '金额',
-        width: '104px',
-        align: 'right',
-        sortable: true,
-        emphasis: 'anchor',
-        render: (r) => <span>{yuan2(r.amount)}</span>,
+        render: (r) => <OrderPrimaryCell order={r} games={games} />,
       },
       {
         key: 'payout',
         title: '到手',
-        width: '104px',
+        width: '128px',
         align: 'right',
+        sortable: true,
         emphasis: 'anchor',
-        render: (r) =>
-          payoutVoid(r) ? (
-            <span className="text-muted-foreground font-normal">{NO_PAYOUT}</span>
-          ) : (
-            <span>{yuan2(r.payout)}</span>
-          ),
+        render: (r) => <OrderMoneyCell order={r} />,
       },
       {
-        key: 'status',
-        title: '状态',
-        width: '96px',
+        key: 'tempo',
+        title: '节奏',
+        width: '148px',
         emphasis: 'anchor',
-        render: (r) => <Tag tone={statusTone[r.status]}>{r.status}</Tag>,
+        render: (r) => <OrderTempoCell order={r} />,
       },
       {
         key: 'actions',
@@ -358,7 +305,7 @@ export default function Orders() {
         ),
       },
     ],
-    [],
+    [games],
   )
 
   const active = rows.filter((o) => !payoutVoid(o))
@@ -629,7 +576,47 @@ export default function Orders() {
   )
 }
 
-function CustomerCell({ order }: { order: Order }) {
+function shortDay(iso?: string | null) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return '—'
+  return d.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })
+}
+
+function gameLabel(order: Order, games: { id: string; name: string }[]) {
+  if (order.gameId) {
+    const hit = games.find((g) => g.id === order.gameId)
+    if (hit?.name) return hit.name
+  }
+  return order.items[0]?.category || '—'
+}
+
+function projectLabel(order: Order) {
+  if (order.type === '托管') {
+    return [order.custodyKind, order.settleKind].filter(Boolean).join(' · ') || '托管'
+  }
+  return order.items.map((i) => i.product).join('、') || '—'
+}
+
+function transferOutOf(order: Order) {
+  if (!order.transferEnabled) return 0
+  return calcMoney({
+    amount: order.amount,
+    feeRate: order.feeRate,
+    transferEnabled: order.transferEnabled,
+    transferMode: order.transferMode,
+    transferRatio: order.transferRatio,
+    transferAmount: order.transferAmount,
+  }).transferOut
+}
+
+function OrderPrimaryCell({
+  order,
+  games,
+}: {
+  order: Order
+  games: { id: string; name: string }[]
+}) {
   const navigate = useNavigate()
   const customers = useOrdersStore((s) => s.customers)
   const id = useMemo(() => {
@@ -643,18 +630,95 @@ function CustomerCell({ order }: { order: Order }) {
     return hit?.id
   }, [order.customerId, order.contact, order.nickname, customers])
 
+  const game = gameLabel(order, games)
+  const project = projectLabel(order)
+  const today = todayISO()
+  const due =
+    order.type === '托管' && order.endDate ? daysUntilLabel(today, order.endDate) : null
+  const dueDays =
+    order.type === '托管' && order.endDate ? daysBetween(today, order.endDate) : null
+
   return (
-    <button
-      type="button"
-      className="block w-full min-w-0 text-left hover:text-brand transition-colors"
-      onClick={(e) => {
-        e.stopPropagation()
-        if (id) navigate(`/customers/${id}`)
-      }}
-    >
-      <div className="truncate text-[14px] font-semibold leading-5">{order.nickname}</div>
-      <div className="ds-caption truncate opacity-80">{order.contact}</div>
-    </button>
+    <div className="dd-cell-dual" title={order.orderNo}>
+      <div className="dd-cell-dual__top">
+        <button
+          type="button"
+          className="dd-cell-dual__title text-left hover:text-brand transition-colors"
+          onClick={(e) => {
+            e.stopPropagation()
+            if (id) navigate(`/customers/${id}`)
+          }}
+        >
+          {order.nickname || '未命名'}
+        </button>
+        <span className="dd-chip-mini">{order.platform}</span>
+        <span className="dd-order-no">{order.orderNo}</span>
+      </div>
+      <div className="dd-cell-dual__bot">
+        {due ? (
+          <span
+            className={cn(
+              'truncate',
+              dueDays != null && dueDays < 0
+                ? 'dd-due--hot'
+                : dueDays != null && dueDays <= 2
+                  ? 'dd-due--warn'
+                  : 'dd-due--ok',
+            )}
+            title={project}
+          >
+            {due}
+          </span>
+        ) : (
+          <span className="truncate">
+            {game} / {project}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function OrderMoneyCell({ order }: { order: Order }) {
+  const transfer = transferOutOf(order)
+  if (payoutVoid(order)) {
+    return (
+      <div className="dd-cell-dual dd-cell-dual--right">
+        <div className="dd-cell-dual__top text-muted-foreground font-normal">{NO_PAYOUT}</div>
+        <div className="dd-cell-dual__bot tabular-nums">{yuan2(order.amount)}</div>
+      </div>
+    )
+  }
+  return (
+    <div className="dd-cell-dual dd-cell-dual--right">
+      <div className="dd-cell-dual__top tabular-nums">{yuan2(order.payout)}</div>
+      <div className="dd-cell-dual__bot tabular-nums">
+        <span>{yuan2(order.amount)}</span>
+        {transfer > 0 ? <span>转¥{Math.round(transfer)}</span> : null}
+      </div>
+    </div>
+  )
+}
+
+function OrderTempoCell({ order }: { order: Order }) {
+  const ordered = shortDay(order.createdAt)
+  const done = order.completedAt ? shortDay(order.completedAt) : '…'
+  const fee =
+    order.status === '进行中' && order.feeRate > 0
+      ? feePercentLabel(order.feeRate)
+      : null
+  return (
+    <div className="dd-cell-dual">
+      <div className="dd-cell-dual__top">
+        <Tag tone={statusTone[order.status]}>{order.status}</Tag>
+      </div>
+      <div className="dd-cell-dual__bot tabular-nums">
+        <span>
+          {ordered}→{done}
+        </span>
+        {fee ? <span className="dd-chip-mini">{fee}</span> : null}
+      </div>
+    </div>
   )
 }
 

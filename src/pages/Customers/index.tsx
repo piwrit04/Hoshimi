@@ -93,45 +93,38 @@ function CustomerList() {
         render: (r) => (
           <div className="flex min-w-0 items-center gap-3">
             <Avatar size="sm">{letter(r.customer.nickname)}</Avatar>
-            <div className="min-w-0">
-              <div className="truncate text-[14px] font-semibold leading-5">{r.customer.nickname}</div>
-              <div className="ds-caption truncate opacity-80">{r.customer.contact || '无联系方式'}</div>
+            <div className="dd-cell-dual min-w-0 flex-1">
+              <div className="dd-cell-dual__top">
+                <span className="dd-cell-dual__title">{r.customer.nickname}</span>
+              </div>
+              <div className="dd-cell-dual__bot">
+                <span className="truncate">{r.customer.contact || '无联系方式'}</span>
+                {r.customer.note ? (
+                  <span className="truncate opacity-70">· {r.customer.note}</span>
+                ) : null}
+              </div>
             </div>
           </div>
         ),
       },
       {
-        key: 'note',
-        title: '备注',
-        emphasis: 'secondary',
-        render: (r) => <span className="block truncate">{r.customer.note || '—'}</span>,
-      },
-      {
-        key: 'orderCount',
-        title: '有效订单',
-        width: '104px',
-        align: 'right',
-        emphasis: 'secondary',
-        render: (r) => r.orderCount,
-      },
-      {
         key: 'spent',
-        title: '已完成消费',
-        width: '128px',
+        title: '消费 · 近况',
+        width: '148px',
         align: 'right',
         emphasis: 'anchor',
-        render: (r) => <span>{yuan2(r.spent)}</span>,
-      },
-      {
-        key: 'last',
-        title: '最近下单',
-        width: '112px',
-        align: 'right',
-        emphasis: 'secondary',
         render: (r) => (
-          <span>
-            {r.last ? new Date(r.last).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) : '—'}
-          </span>
+          <div className="dd-cell-dual dd-cell-dual--right">
+            <div className="dd-cell-dual__top tabular-nums">{yuan2(r.spent)}</div>
+            <div className="dd-cell-dual__bot tabular-nums">
+              <span>{r.orderCount} 单</span>
+              <span>
+                {r.last
+                  ? new Date(r.last).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })
+                  : '—'}
+              </span>
+            </div>
+          </div>
         ),
       },
       {

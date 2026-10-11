@@ -526,7 +526,7 @@
     white-space: nowrap;
   }
   .dd-table td {
-    height: 52px;
+    height: 60px;
     padding-top: 8px;
     padding-bottom: 8px;
     line-height: 20px;
@@ -546,6 +546,131 @@
   .dd-table tbody tr:last-child td {
     border-bottom: none;
   }
+  /* 双行单元格（密度改法） */
+  .dd-cell-dual {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    min-width: 0;
+    line-height: 1.25;
+  }
+  .dd-cell-dual__top {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+  .dd-cell-dual__top .dd-cell-dual__title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .dd-cell-dual__bot {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    font-size: 12px;
+    line-height: 16px;
+    color: hsl(var(--muted-foreground));
+  }
+  .dd-cell-dual__bot .truncate { min-width: 0; }
+  .dd-cell-dual--right { align-items: flex-end; text-align: right; }
+  .dd-cell-dual--right .dd-cell-dual__top,
+  .dd-cell-dual--right .dd-cell-dual__bot { justify-content: flex-end; }
+  .dd-chip-mini {
+    display: inline-flex;
+    align-items: center;
+    height: 18px;
+    padding: 0 7px;
+    border-radius: var(--radius-pill);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    flex-shrink: 0;
+    background: hsl(var(--secondary));
+    color: hsl(var(--muted-foreground));
+    border: 1px solid hsl(var(--border) / 0.6);
+  }
+  .dd-order-no {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: hsl(var(--muted-foreground) / 0.85);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    flex-shrink: 0;
+  }
+  .dd-table tbody tr:hover .dd-order-no,
+  .dd-table tbody tr:focus-within .dd-order-no { opacity: 1; }
+  .dd-due--hot { color: rgb(var(--danger-rgb)); font-weight: 600; }
+  .dd-due--warn { color: rgb(var(--warning-rgb)); font-weight: 600; }
+  .dd-due--ok { color: hsl(var(--muted-foreground)); }
+  .dd-greeting {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 20px;
+    border-radius: var(--ds-r-card, 12px);
+    border: 1px solid hsl(var(--border) / 0.7);
+    background:
+      radial-gradient(80% 120% at 0% 0%, rgba(var(--brand-rgb), 0.1) 0%, transparent 55%),
+      hsl(var(--card));
+    box-shadow: var(--ds-shadow-xs, 0 1px 2px rgba(15, 15, 30, 0.04));
+  }
+  .dd-greeting__left { min-width: 0; }
+  .dd-greeting__hello {
+    font-size: 22px;
+    line-height: 30px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--brand-text-hex);
+  }
+  .dd-greeting__meta {
+    margin-top: 2px;
+    font-size: 13px;
+    line-height: 20px;
+    color: hsl(var(--muted-foreground));
+  }
+  .dd-greeting__right {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+  .dd-greeting__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: var(--radius-pill);
+    border: 1px solid hsl(var(--border) / 0.7);
+    background: hsl(var(--card));
+    font-size: 13px;
+    font-weight: 500;
+    color: hsl(var(--foreground));
+    transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .dd-greeting__chip:hover {
+    border-color: rgba(var(--brand-rgb), 0.4);
+    background: rgba(var(--brand-rgb), 0.06);
+  }
+  .dd-greeting__chip strong {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    color: var(--brand-text-hex);
+  }
+  .dd-greeting__chip--warn strong { color: rgb(var(--warning-rgb)); }
+  .dd-greeting__chip--muted strong { color: hsl(var(--foreground)); }
+
   /* 行当卡片：悬停微抬升 + 品牌浅晕（对齐 Toolbox card-panel） */
   .dd-table tbody tr {
     transition: opacity 0.2s var(--ds-ease, cubic-bezier(0.22, 1, 0.36, 1));

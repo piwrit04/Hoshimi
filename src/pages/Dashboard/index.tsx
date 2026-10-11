@@ -20,7 +20,6 @@ import {
   type ExpiringItem,
 } from '@/domain/dashboard'
 import { IncomeTrendChart } from '@/components/charts/IncomeTrendChart'
-import { PageHeader } from '@/components/ui/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
@@ -86,21 +85,50 @@ export default function Dashboard() {
 
   return (
     <div className="ds-page">
-      <PageHeader
-        live
-        title={m.hello}
-        description={
-          <>
+      <section className="dd-greeting ds-rise">
+        <div className="dd-greeting__left">
+          <h1 className="dd-greeting__hello">{m.hello}</h1>
+          <p className="dd-greeting__meta">
             {m.todayLabel}
             {m.usingTest ? ' · 当前为示例数据' : ''}
-          </>
-        }
-        actions={
+          </p>
+        </div>
+        <div className="dd-greeting__right">
+          <button
+            type="button"
+            className="dd-greeting__chip"
+            onClick={() => setKpiOpen('today')}
+            title="查看今日到手明细"
+          >
+            <span>今日到手</span>
+            <strong>{money(k.payoutToday)}</strong>
+          </button>
+          <button
+            type="button"
+            className="dd-greeting__chip dd-greeting__chip--muted"
+            onClick={() => setKpiOpen('open')}
+            title="查看未完成订单"
+          >
+            <span>待跟进</span>
+            <strong>{k.openCount}</strong>
+          </button>
+          <button
+            type="button"
+            className={cn(
+              'dd-greeting__chip',
+              m.expiring.length ? 'dd-greeting__chip--warn' : 'dd-greeting__chip--muted',
+            )}
+            onClick={() => setKpiOpen('due')}
+            title={`${m.remindDays} 天内托管到期`}
+          >
+            <span>{m.remindDays}天内到期</span>
+            <strong>{m.expiring.length}</strong>
+          </button>
           <Button variant="primary" icon={PlusCircle} onClick={openNewOrder}>
             新建订单
           </Button>
-        }
-      />
+        </div>
+      </section>
 
       {showSetupTip ? (
         <div className="ds-rise flex items-center justify-between gap-4 rounded-xl border border-brand/30 bg-brand/5 px-6 py-4">
