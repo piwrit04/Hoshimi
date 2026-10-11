@@ -86,11 +86,10 @@
      通用按钮变体
      ============================================ */
 
-  /* Primary Button - 主要操作按钮 */
-  /* Liver2Go：粉→紫渐变主钮 + 粉光，圆角仍走胶囊 */
+  /* Primary Button - 实色粉主钮 + 粉光，圆角仍走胶囊 */
   .btn-primary {
     @apply btn-base;
-    background: linear-gradient(135deg, #FF6B9D 0%, rgb(var(--l2g-purple-rgb)) 100%);
+    background: #FF6B9D;
     color: #ffffff;
     border: 1px solid transparent;
     box-shadow: 0 4px 14px rgba(var(--brand-rgb), 0.35);

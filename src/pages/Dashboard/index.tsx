@@ -1,90 +1,56 @@
 import { Link } from 'react-router-dom'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
-  CalendarClock,
+  BarChart3,
   ChevronDown,
   CircleDollarSign,
-  Hourglass,
+  Heart,
   PlusCircle,
+  Sparkles,
+  Users,
   type LucideIcon,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { yuan as money, yuan2 } from '@/lib/format'
-import { CountUp } from '@/lib/count-up'
 import { useOrdersStore } from '@/store/useOrdersStore'
 import { useNewOrderStore } from '@/store/useNewOrderStore'
-import {
-  dashboard,
-  incomeTrend,
-  incomeSmartTip,
-  type TrendUnit,
-  type ExpiringItem,
-} from '@/domain/dashboard'
-import { IncomeTrendChart } from '@/components/charts/IncomeTrendChart'
-import { Card } from '@/components/ui/Card'
+import { dashboard } from '@/domain/dashboard'
 import { Button } from '@/components/ui/Button'
-import { Modal } from '@/components/ui/Modal'
-import { Tag } from '@/components/ui/data'
-import { NO_PAYOUT, payoutVoid } from '@/domain/status'
-import type { Order, OrderStatus } from '@/domain/order'
 
 /*
- * 概览（Liver2Go）：全幅问候 hero（大字轻打字机）→ 下滚才见 KPI/走势。
- * 问候旁不放经营芯片；点 KPI 弹明细。
+ * 首页两整页 snap（对齐 Liver2Go）：
+ *   page1 = 全幅问候
+ *   page2 = 数据中心骨架占位（KPI 玻璃卡 + 空图表），不塞订单表/订单 KPI
  */
 
-type KpiKey = 'today' | 'open' | 'due'
+const KPI_SLOTS: {
+  key: string
+  label: string
+  icon: LucideIcon
+  hint: string
+}[] = [
+  { key: 'yesterday', label: '昨日收入', icon: CircleDollarSign, hint: '占位 · 待接入' },
+  { key: 'today', label: '今日收入', icon: Sparkles, hint: '占位 · 待接入' },
+  { key: 'fans', label: '粉丝数', icon: Heart, hint: '占位 · 待接入' },
+  { key: 'served', label: '已服务', icon: Users, hint: '占位 · 待接入' },
+]
 
-const statusTone: Record<OrderStatus, 'brand' | 'warning' | 'success' | 'danger'> = {
-  待处理: 'warning',
-  进行中: 'brand',
-  已完成: 'success',
-  已退款: 'danger',
-  已取消: 'danger',
-}
-
-function orderTitle(o: Order) {
-  if (o.type === '托管') return `${o.custodyKind ?? '托管'} · ${o.settleKind ?? ''}`
-  return o.items.map((i) => i.product).join('、') || '—'
-}
+const METRIC_SLOTS = [
+  { label: '服务天数', unit: '天' },
+  { label: '已成交', unit: '' },
+  { label: '累计到手', unit: '' },
+  { label: '服务用户', unit: '位' },
+]
 
 export default function Dashboard() {
   const orders = useOrdersStore((s) => s.orders)
   const customers = useOrdersStore((s) => s.customers)
   const settings = useOrdersStore((s) => s.settings)
   const openNewOrder = useNewOrderStore((s) => s.open)
-  const openEdit = useNewOrderStore((s) => s.openEdit)
-
-  const [unit, setUnit] = useState<TrendUnit>('day')
-  const [kpiOpen, setKpiOpen] = useState<KpiKey | null>(null)
-  const [tipDismissed, setTipDismissed] = useState(() => {
-    try {
-      return localStorage.getItem('hoshimi.emptyLedgerTipDismissed') === '1'
-    } catch {
-      return false
-    }
-  })
 
   const m = useMemo(() => dashboard({ orders, customers, settings }), [orders, customers, settings])
-  const trend = useMemo(
-    () => incomeTrend({ orders, customers, settings }, unit),
-    [orders, customers, settings, unit],
-  )
-  const dayTrend = useMemo(
-    () => incomeTrend({ orders, customers, settings }, 'day'),
-    [orders, customers, settings],
-  )
-  const tip = useMemo(() => incomeSmartTip(m.kpis, dayTrend), [m.kpis, dayTrend])
-  const k = m.kpis
-  const showSetupTip = !tipDismissed && orders.length === 0
-
-  const modalMeta: Record<KpiKey, { title: string; hint: string }> = {
-    today: { title: '今日到手', hint: '今天「已完成」订单的到手明细' },
-    open: { title: '未完成', hint: '待处理 + 进行中的订单' },
-    due: { title: '托管快到期', hint: `${m.remindDays} 天内到期的托管单` },
-  }
 
   const [typed, setTyped] = useState('')
+  const [clock, setClock] = useState(() => formatClock())
+
   useEffect(() => {
     const full = m.hello
     setTyped('')
@@ -104,22 +70,38 @@ export default function Dashboard() {
     return () => window.clearInterval(id)
   }, [m.hello])
 
-  const scrollToData = () => {
-    const root = document.querySelector('[data-scroll-root]')
-    const target = document.getElementById('dashboard-data')
+  useEffect(() => {
+    const id = window.setInterval(() => setClock(formatClock()), 1000)
+    return () => window.clearInterval(id)
+  }, [])
+
+  /* 首页启用 scroll-snap；离开时卸掉，避免其它页被强制整页吸附 */
+  useEffect(() => {
+    const root = document.querySelector('[data-scroll-root]') as HTMLElement | null
+    if (!root) return
+    root.classList.add('l2g-home-snap')
+    root.scrollTop = 0
+    return () => {
+      root.classList.remove('l2g-home-snap')
+    }
+  }, [])
+
+  const scrollToPage2 = () => {
+    const root = document.querySelector('[data-scroll-root]') as HTMLElement | null
+    const target = document.getElementById('dashboard-page2')
     if (root && target) {
       const top =
         target.getBoundingClientRect().top -
         root.getBoundingClientRect().top +
-        (root as HTMLElement).scrollTop -
-        12
-      ;(root as HTMLElement).scrollTo({ top, behavior: 'smooth' })
+        root.scrollTop
+      root.scrollTo({ top, behavior: 'smooth' })
     }
   }
 
   return (
     <div className="ds-page ds-page--l2g">
-      <section className="l2g-hero ds-rise">
+      {/* —— Page 1: 全幅问候 —— */}
+      <section className="l2g-snap-page l2g-hero ds-rise" aria-label="问候">
         <h1 className="l2g-hero__title">
           {typed}
           <span className="l2g-hero__caret" aria-hidden />
@@ -133,261 +115,130 @@ export default function Dashboard() {
             新建订单
           </Button>
         </div>
-        <button type="button" className="l2g-hero__scroll" onClick={scrollToData}>
+        <button type="button" className="l2g-hero__scroll" onClick={scrollToPage2}>
           <span>向下滚动查看数据</span>
           <ChevronDown size={20} />
         </button>
       </section>
 
-      <div id="dashboard-data" className="l2g-dashboard-data flex flex-col gap-6">
-      {showSetupTip ? (
-        <div className="ds-rise flex items-center justify-between gap-4 rounded-xl border border-brand/30 bg-brand/5 px-6 py-4">
-          <p className="text-sm text-foreground">
-            账本还是空的。点右上角「新建订单」记第一单，或在「设置」里导入备份、调整项目目录。
-          </p>
-          <div className="flex shrink-0 items-center gap-2">
-            <Link to="/settings" className="btn-base btn-secondary btn--sm">去设置</Link>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                try {
-                  localStorage.setItem('hoshimi.emptyLedgerTipDismissed', '1')
-                } catch {
-                  /* ignore */
-                }
-                setTipDismissed(true)
-              }}
-            >
-              知道了
-            </Button>
+      {/* —— Page 2: 数据中心骨架（占位，不塞订单） —— */}
+      <section
+        id="dashboard-page2"
+        className="l2g-snap-page l2g-datacenter ds-rise"
+        aria-label="数据中心"
+      >
+        <div className="l2g-datacenter__inner">
+          <header className="l2g-datacenter__clock">
+            <div className="l2g-datacenter__date">{clock.date}</div>
+            <div className="l2g-datacenter__time">{clock.time}</div>
+            <p className="l2g-datacenter__msg">{clock.message}</p>
+          </header>
+
+          <nav className="l2g-datacenter__nav" aria-label="快捷入口">
+            <Link to="/orders" className="l2g-capsule">
+              订单
+            </Link>
+            <Link to="/customers" className="l2g-capsule">
+              客户
+            </Link>
+            <Link to="/todo" className="l2g-capsule">
+              待办
+            </Link>
+          </nav>
+
+          <div className="l2g-datacenter__metrics">
+            {METRIC_SLOTS.map((s) => (
+              <div key={s.label} className="l2g-metric">
+                <div className="l2g-metric__value">
+                  —{s.unit ? <span className="l2g-metric__unit">{s.unit}</span> : null}
+                </div>
+                <div className="l2g-metric__label">{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="l2g-datacenter__section">
+            <h2 className="l2g-datacenter__heading">数据一览</h2>
+            <div className="l2g-kpi-grid">
+              {KPI_SLOTS.map((slot) => (
+                <PlaceholderKpi
+                  key={slot.key}
+                  icon={slot.icon}
+                  label={slot.label}
+                  hint={slot.hint}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="l2g-datacenter__section l2g-datacenter__chart">
+            <div className="l2g-glass-panel">
+              <div className="l2g-glass-panel__head">
+                <div>
+                  <h2 className="l2g-datacenter__heading l2g-datacenter__heading--inline">
+                    收入走势
+                  </h2>
+                  <p className="l2g-glass-panel__desc">占位 · 接入后显示到手趋势</p>
+                </div>
+                <div className="l2g-capsule-group" aria-hidden>
+                  <span className="l2g-capsule l2g-capsule--muted">日</span>
+                  <span className="l2g-capsule l2g-capsule--muted">周</span>
+                  <span className="l2g-capsule l2g-capsule--muted">月</span>
+                </div>
+              </div>
+              <div className="l2g-chart-empty">
+                <BarChart3 size={36} strokeWidth={1.5} className="l2g-chart-empty__icon" />
+                <p className="l2g-chart-empty__title">暂无走势数据</p>
+                <p className="l2g-chart-empty__desc">位置已留好，不在此塞订单明细</p>
+              </div>
+            </div>
           </div>
         </div>
-      ) : null}
-
-      <section className="ds-stagger grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard
-          icon={CircleDollarSign}
-          label="今日到手"
-          en="Today"
-          value={k.payoutToday}
-          money
-          foot={`完成 ${k.completedToday} 单 · 本月 ${money(k.payoutThisMonth)}`}
-          tip="点击查看今日完成明细"
-          variant="hero"
-          onClick={() => setKpiOpen('today')}
-        />
-        <StatCard
-          icon={Hourglass}
-          label="未完成"
-          en="Open"
-          value={k.openCount}
-          foot={`待处理 ${k.waiting} · 进行中 ${k.inProgress}`}
-          tip="点击查看未完成订单"
-          onClick={() => setKpiOpen('open')}
-        />
-        <StatCard
-          icon={CalendarClock}
-          label="托管快到期"
-          en="Due"
-          value={m.expiring.length}
-          foot={`${m.remindDays} 天内 · 托管中 ${k.custodyActive} 单`}
-          tip="点击查看即将到期的托管"
-          variant={m.expiring.length ? 'warn' : undefined}
-          onClick={() => setKpiOpen('due')}
-        />
       </section>
-
-      <section className="ds-rise grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card
-          className="lg:col-span-2"
-          title="收入走势"
-          description="已完成订单的到手金额"
-        >
-          <IncomeTrendChart points={trend} unit={unit} onUnitChange={setUnit} />
-        </Card>
-        <Card title="今日提示" description="根据近期到手自动生成">
-          <div className={cn('ds-tip', `ds-tip--${tip.kind}`)}>
-            <p className="ds-tip__text">{tip.text}</p>
-          </div>
-        </Card>
-      </section>
-
-      <Modal
-        isOpen={kpiOpen != null}
-        onClose={() => setKpiOpen(null)}
-        title={kpiOpen ? modalMeta[kpiOpen].title : ''}
-        className="max-w-md"
-      >
-        {kpiOpen ? (
-          <KpiDetail
-            kind={kpiOpen}
-            hint={modalMeta[kpiOpen].hint}
-            doneToday={m.lists.doneToday}
-            openOrders={m.lists.openOrders}
-            expiring={m.lists.expiring}
-            payoutToday={k.payoutToday}
-            onOpen={(id) => {
-              setKpiOpen(null)
-              openEdit(id)
-            }}
-          />
-        ) : null}
-      </Modal>
-      </div>
     </div>
   )
 }
 
-function StatCard({
+function PlaceholderKpi({
   icon: Icon,
   label,
-  en,
-  value,
-  money: asMoney,
-  foot,
-  tip,
-  variant,
-  onClick,
+  hint,
 }: {
   icon: LucideIcon
   label: string
-  en?: string
-  value: number
-  money?: boolean
-  foot: string
-  tip?: string
-  variant?: 'hero' | 'warn'
-  onClick?: () => void
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={tip}
-      className={cn(
-        'ds-card ds-stat ds-rise text-left w-full ds-stat--link',
-        variant === 'hero' && 'ds-stat--hero',
-        variant === 'warn' && 'ds-stat--warn',
-      )}
-    >
-      <div className="ds-stat__label">
-        <span className="flex items-center gap-2 min-w-0">
-          {en ? (
-            <span className="text-[10px] font-bold uppercase tracking-wider text-brand shrink-0">
-              {en}
-            </span>
-          ) : null}
-          <span className="truncate">{label}</span>
-        </span>
-      </div>
-      <div className="ds-stat__value">
-        <CountUp value={value} money={asMoney} />
-      </div>
-      <div className="ds-stat__foot">{foot}</div>
-      {/* 工具箱首页同款：右下角超大灰色水印图标 */}
-      <span className="ds-stat__mark" aria-hidden>
-        <Icon size={72} strokeWidth={1.25} />
-      </span>
-    </button>
-  )
-}
-
-function KpiDetail({
-  kind,
-  hint,
-  doneToday,
-  openOrders,
-  expiring,
-  payoutToday,
-  onOpen,
-}: {
-  kind: KpiKey
   hint: string
-  doneToday: Order[]
-  openOrders: Order[]
-  expiring: ExpiringItem[]
-  payoutToday: number
-  onOpen: (id: string) => void
 }) {
-  if (kind === 'due') {
-    return (
-      <div className="space-y-3">
-        <p className="text-xs text-muted-foreground">{hint}</p>
-        {expiring.length === 0 ? (
-          <Empty>暂无即将到期的托管</Empty>
-        ) : (
-          <ul className="divide-y divide-border rounded-lg border border-border overflow-hidden">
-            {expiring.map(({ order, days }) => (
-              <li key={order.id}>
-                <button
-                  type="button"
-                  onClick={() => onOpen(order.id)}
-                  className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-secondary/60 transition-colors"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium">{order.nickname || '未命名'}</div>
-                    <div className="truncate text-xs text-muted-foreground">{orderTitle(order)}</div>
-                  </div>
-                  <span
-                    className={cn(
-                      'shrink-0 text-xs font-medium tabular-nums',
-                      days < 0 ? 'text-destructive' : days <= 2 ? 'text-warning' : 'text-muted-foreground',
-                    )}
-                  >
-                    {days < 0 ? `已过期 ${-days} 天` : days === 0 ? '今天到期' : `剩 ${days} 天`}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    )
-  }
-
-  const list = kind === 'today' ? doneToday : openOrders
-
   return (
-    <div className="space-y-3">
-      <p className="text-xs text-muted-foreground">
-        {hint}
-        {kind === 'today' ? ` · 合计 ${money(payoutToday)}` : ''}
-      </p>
-      {list.length === 0 ? (
-        <Empty>暂无相关订单</Empty>
-      ) : (
-        <ul className="divide-y divide-border rounded-lg border border-border overflow-hidden max-h-[50vh] overflow-y-auto">
-          {list.map((o) => (
-            <li key={o.id}>
-              <button
-                type="button"
-                onClick={() => onOpen(o.id)}
-                className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-secondary/60 transition-colors"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="truncate text-sm font-medium">{o.nickname || '未命名'}</span>
-                    <Tag tone={statusTone[o.status]}>{o.status}</Tag>
-                  </div>
-                  <div className="truncate text-xs text-muted-foreground">{orderTitle(o)}</div>
-                </div>
-                <span className="shrink-0 text-sm tabular-nums font-medium">
-                  {kind === 'today'
-                    ? payoutVoid(o)
-                      ? NO_PAYOUT
-                      : yuan2(o.payout)
-                    : yuan2(o.amount)}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+    <div className="l2g-kpi-card" title={hint}>
+      <span className="l2g-kpi-card__icon" aria-hidden>
+        <Icon size={22} strokeWidth={1.75} />
+      </span>
+      <div className="l2g-kpi-card__value">—</div>
+      <div className="l2g-kpi-card__label">{label}</div>
     </div>
   )
 }
 
-function Empty({ children }: { children: ReactNode }) {
-  return <div className="py-8 text-center text-sm text-muted-foreground">{children}</div>
+function formatClock() {
+  const now = new Date()
+  const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
+  const date = now.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+  const time = now.toLocaleTimeString('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  })
+  const hour = now.getHours()
+  let message = '星光不问赶路人，深夜也请照顾好自己。'
+  if (hour >= 5 && hour < 9) message = '清晨好，新的一天从一单开始。'
+  else if (hour >= 9 && hour < 12) message = '上午好，保持节奏，慢慢来也很好。'
+  else if (hour >= 12 && hour < 14) message = '中午记得吃饭，眼睛也休息一下。'
+  else if (hour >= 14 && hour < 18) message = '下午好，喝口水再继续。'
+  else if (hour >= 18 && hour < 22) message = '晚上好，辛苦了，欢迎回来。'
+  return { date: `${date} ${days[now.getDay()]}`, time, message }
 }
