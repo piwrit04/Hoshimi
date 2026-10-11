@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from 'react'
 import { createPortal } from 'react-dom'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { QrCode, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Scrollbar } from './Scrollbar'
@@ -360,6 +360,8 @@ export function Drawer({
   title,
   children,
   footer,
+  /** 吸底常显区（金额条等），夹在滚动区与脚按钮之间 */
+  summary,
   /** 从哪一侧滑出 */
   placement = 'right',
   width,
@@ -369,10 +371,12 @@ export function Drawer({
   title?: ReactNode
   children: ReactNode
   footer?: ReactNode
+  summary?: ReactNode
   placement?: 'right' | 'left'
   /** 覆盖默认宽度 */
   width?: number | string
 }) {
+  const reduceMotion = useReducedMotion()
   const onCloseRef = useRef(onClose);
   const panelRef = useRef<HTMLElement>(null);
 
@@ -439,19 +443,39 @@ export function Drawer({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
+            transition={{ duration: reduceMotion ? 0.01 : 0.2 }}
             onClick={onClose}
             className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
             aria-hidden="true"
           />
-          {/* 面板 */}
+          {/* 面板：缩放+淡入（退场播完）；减动时瞬时 */}
           <motion.aside
             key="drawer-panel"
             ref={panelRef}
-            initial={{ x: placement === 'right' ? '100%' : '-100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: placement === 'right' ? '100%' : '-100%' }}
-            transition={{ type: 'tween', duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            initial={
+              reduceMotion
+                ? { opacity: 1, scale: 1, x: 0 }
+                : {
+                    opacity: 0,
+                    scale: 0.98,
+                    x: placement === 'right' ? 28 : -28,
+                  }
+            }
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            exit={
+              reduceMotion
+                ? { opacity: 0, scale: 1, x: 0 }
+                : {
+                    opacity: 0,
+                    scale: 0.98,
+                    x: placement === 'right' ? 28 : -28,
+                  }
+            }
+            transition={
+              reduceMotion
+                ? { duration: 0.01 }
+                : { type: 'tween', duration: 0.28, ease: [0.22, 1, 0.36, 1] }
+            }
             className={cn('dd-drawer-panel', `dd-drawer-panel--${placement}`)}
             style={width ? { width } : undefined}
             role="dialog"
@@ -471,6 +495,7 @@ export function Drawer({
             <div className="dd-drawer__body">
               <Scrollbar className="h-full">{children}</Scrollbar>
             </div>
+            {summary ? <div className="dd-drawer__summary">{summary}</div> : null}
             {footer && <div className="dd-drawer__foot">{footer}</div>}
           </motion.aside>
         </div>

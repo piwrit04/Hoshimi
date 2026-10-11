@@ -550,10 +550,10 @@
   .dd-table tbody tr {
     transition: opacity 0.2s var(--ds-ease, cubic-bezier(0.22, 1, 0.36, 1));
   }
+  /* 抬升感用阴影而非 per-td translateY，避免单元格缝隙 */
   .dd-table tbody tr:hover td {
     background-color: rgba(var(--brand-rgb), 0.06);
     border-bottom-color: transparent;
-    transform: translateY(-1px);
     box-shadow:
       0 6px 16px -4px rgba(var(--brand-rgb), 0.14),
       0 2px 6px rgba(15, 15, 30, 0.04);
@@ -583,7 +583,6 @@
   }
   .dd-table tbody tr[data-selected="true"]:hover td {
     background-color: rgba(var(--brand-rgb), 0.12);
-    transform: translateY(-1px);
     box-shadow:
       0 6px 16px -4px rgba(var(--brand-rgb), 0.16),
       inset 0 0 0 1px rgba(var(--brand-rgb), 0.28);
@@ -649,7 +648,7 @@
     }
     .dd-table tbody tr:hover td,
     .dd-table tbody tr[data-selected="true"]:hover td {
-      transform: none;
+      box-shadow: none;
     }
   }
 
@@ -1022,6 +1021,186 @@
     color: hsl(var(--muted-foreground));
   }
 
+  /* ------------------------------------------------------------
+     新建订单抽屉分区 / 金额条 / 明细行卡（DESIGN.md 四条）
+     ------------------------------------------------------------ */
+  .dd-order-drawer {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .dd-order-drawer .ds-card {
+    /* 少边框堆叠：卡片已有边，内部控件不再套厚框 */
+    box-shadow: var(--ds-shadow-xs, 0 1px 2px rgba(15, 15, 30, 0.04));
+  }
+  .dd-order-drawer .ds-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .dd-order-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 0 16px;
+    border-radius: var(--ds-r-card, 12px);
+    border: 1px solid hsl(var(--border) / 0.7);
+    background: rgba(var(--brand-rgb), 0.04);
+    font-size: 13px;
+  }
+  .dd-order-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .dd-order-lines__head {
+    display: grid;
+    grid-template-columns: 28px 1fr 1fr 120px 36px;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    color: hsl(var(--muted-foreground));
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+  }
+  .dd-order-line {
+    display: grid;
+    grid-template-columns: 28px 1fr 1fr 120px 36px;
+    align-items: center;
+    gap: 8px;
+    min-height: 52px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid hsl(var(--border) / 0.55);
+    background:
+      radial-gradient(90% 80% at 100% 0%, rgba(var(--brand-rgb), 0.04) 0%, transparent 55%),
+      hsl(var(--card));
+    transition:
+      background-color 0.2s var(--ds-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+      border-color 0.2s var(--ds-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+      box-shadow 0.2s var(--ds-ease, cubic-bezier(0.22, 1, 0.36, 1));
+  }
+  .dd-order-line:hover {
+    border-color: rgba(var(--brand-rgb), 0.35);
+    background-color: rgba(var(--brand-rgb), 0.05);
+    box-shadow:
+      0 6px 16px -4px rgba(var(--brand-rgb), 0.12),
+      0 2px 6px rgba(15, 15, 30, 0.04);
+  }
+  .dd-order-lines__total {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 4px 12px 0;
+    font-size: 13px;
+    color: hsl(var(--muted-foreground));
+  }
+  .dd-order-lines__total strong {
+    font-size: 14px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: hsl(var(--foreground));
+  }
+  .dd-order-transfer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    padding: 12px;
+    border-radius: 10px;
+    background: rgba(var(--surface-hover-rgb), 0.45);
+    border: 1px dashed hsl(var(--border));
+  }
+  @media (max-width: 640px) {
+    .dd-order-transfer { grid-template-columns: 1fr; }
+    .dd-order-lines__head,
+    .dd-order-line {
+      grid-template-columns: 24px 1fr 1fr;
+      grid-template-rows: auto auto;
+    }
+  }
+  /* 金额条：吸在抽屉脚上方常显 */
+  .dd-drawer__summary {
+    flex-shrink: 0;
+    padding: 12px 20px;
+    border-top: 1px solid hsl(var(--border) / 0.7);
+    background:
+      radial-gradient(80% 120% at 100% 0%, rgba(var(--brand-rgb), 0.08) 0%, transparent 55%),
+      hsl(var(--card));
+  }
+  .dd-order-money {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 0;
+    border-radius: 12px;
+    border: 1px solid hsl(var(--border) / 0.65);
+    overflow: hidden;
+    background: hsl(var(--card));
+  }
+  .dd-order-money__cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 16px;
+    min-width: 0;
+    border-right: 1px solid hsl(var(--border) / 0.45);
+    transition: background-color 0.25s var(--ds-ease, cubic-bezier(0.22, 1, 0.36, 1));
+  }
+  .dd-order-money__cell:last-child { border-right: none; }
+  .dd-order-money__label {
+    font-size: 12px;
+    line-height: 16px;
+    color: hsl(var(--muted-foreground));
+    font-weight: 500;
+  }
+  .dd-order-money__value {
+    font-size: 18px;
+    line-height: 28px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: hsl(var(--foreground));
+    letter-spacing: -0.02em;
+    transition:
+      color 0.25s var(--ds-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+      transform 0.25s var(--ds-ease, cubic-bezier(0.22, 1, 0.36, 1));
+  }
+  .dd-order-money__cell--accent .dd-order-money__value {
+    color: hsl(var(--foreground) / 0.85);
+  }
+  .dd-order-money__cell--highlight {
+    background:
+      radial-gradient(120% 100% at 50% 0%, rgba(var(--brand-rgb), 0.14) 0%, transparent 60%),
+      rgba(var(--brand-rgb), 0.06);
+  }
+  .dd-order-money__cell--highlight .dd-order-money__value {
+    color: var(--brand-text-hex);
+  }
+  .dd-order-money__cell--highlight.dd-order-money__cell--pulse .dd-order-money__value {
+    animation: dd-order-money-pulse 0.45s var(--ds-ease, cubic-bezier(0.22, 1, 0.36, 1));
+  }
+  .dd-order-money__cell--breathe {
+    animation: ds-breathe 3.6s ease-in-out infinite;
+  }
+  .dd-order-money__value--void {
+    color: hsl(var(--muted-foreground)) !important;
+    font-weight: 600;
+  }
+  @keyframes dd-order-money-pulse {
+    0% { transform: translateY(0); opacity: 0.55; }
+    40% { transform: translateY(-2px); opacity: 1; }
+    100% { transform: none; opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dd-order-money__cell--breathe,
+    .dd-order-money__cell--highlight.dd-order-money__cell--pulse .dd-order-money__value {
+      animation: none !important;
+    }
+    .dd-order-line:hover { box-shadow: none; }
+  }
+
   .dd-drawer-panel {
     /* absolute：父级 portal 根已是 fixed inset-0 + --z-modal，
        再用 fixed+低 z 会跳出层叠，被遮罩盖住 */
@@ -1034,17 +1213,20 @@
   .dd-drawer-panel--left { left: 0; border-right: 1px solid hsl(var(--border)); }
   .dd-drawer__head {
     @apply flex items-center justify-between gap-3 font-semibold;
-    padding: var(--space-4) var(--space-5);
-    border-bottom: 1px solid hsl(var(--border));
+    padding: 16px 20px;
+    min-height: 56px;
+    border-bottom: 1px solid hsl(var(--border) / 0.7);
   }
   .dd-drawer__body {
     @apply flex-1 min-h-0;
-    padding: var(--space-5);
+    padding: 16px 20px 20px;
   }
   .dd-drawer__foot {
-    @apply flex items-center justify-end gap-3;
-    padding: var(--space-4) var(--space-5);
-    border-top: 1px solid hsl(var(--border));
+    @apply flex items-center justify-end gap-2;
+    padding: 12px 20px;
+    min-height: 64px;
+    border-top: 1px solid hsl(var(--border) / 0.7);
+    background: hsl(var(--card));
   }
 
   /* 通知条（右上角堆叠） */

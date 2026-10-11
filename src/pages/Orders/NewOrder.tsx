@@ -5,6 +5,7 @@ import { Plus, Trash2, UserRound } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { Drawer } from '@/components/ui/overlay'
 import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
 import { DatePicker } from '@/components/ui/DatePicker'
 import { Tag } from '@/components/ui/data'
 import {
@@ -118,6 +119,7 @@ function Inner({
   const [transferMode, setTransferMode] = useState<TransferMode>('ratio')
   const [transferPercent, setTransferPercent] = useState<number | null>(80)
   const [transferAmount, setTransferAmount] = useState<number | null>(null)
+  const [moneyPulse, setMoneyPulse] = useState(0)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const catalogCategories = useOrdersStore((s) => s.categories)
@@ -262,6 +264,12 @@ function Inner({
       }),
     [amount, feeRate, transferEnabled, transferMode, transferPercent, transferAmount],
   )
+
+  useEffect(() => {
+    if (!open) return
+    setMoneyPulse((n) => n + 1)
+  }, [amount, money.payoutAmount, money.feeAmount, money.transferOut, open])
+
 
   const resetForm = () => {
     setNickname('')
@@ -447,6 +455,32 @@ function Inner({
       }}
       title={title}
       width={720}
+      summary={
+        <div className="dd-order-money" key={moneyPulse}>
+          <MoneyCell label="订单金额" value={amount} voided={Boolean(editing && payoutVoid(editing))} />
+          {transferEnabled ? (
+            <MoneyCell
+              label="转出"
+              value={money.transferOut}
+              accent
+              voided={Boolean(editing && payoutVoid(editing))}
+            />
+          ) : null}
+          <MoneyCell
+            label={`手续费 (${feePercentLabel(feeRate)})`}
+            value={money.feeAmount}
+            voided={Boolean(editing && payoutVoid(editing))}
+          />
+          <MoneyCell
+            label={editing && payoutVoid(editing) ? '到手' : '预计到手'}
+            value={money.payoutAmount}
+            highlight
+            breathe
+            pulse
+            voided={Boolean(editing && payoutVoid(editing))}
+          />
+        </div>
+      }
       footer={
         <>
           {isEdit && editing ? (
@@ -499,154 +533,153 @@ function Inner({
         </>
       }
     >
-      <div className="flex flex-col gap-6">
-        {isEdit && editing && (
-          <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/50 px-4 h-10 text-sm">
+      <div className="dd-order-drawer">
+        {isEdit && editing ? (
+          <div className="dd-order-status">
             <span className="text-muted-foreground">当前状态</span>
             <Tag tone={statusTone[editing.status]}>{editing.status}</Tag>
-            {moneyLocked && (
-              <span className="text-xs text-muted-foreground">
-                {editing && payoutVoid(editing)
+            {moneyLocked ? (
+              <span className="ds-caption">
+                {payoutVoid(editing)
                   ? '终态订单：到手作废，金额不可改，可改客户与备注'
                   : '金额已锁定，可改客户与备注'}
               </span>
-            )}
-          </div>
-        )}
-
-        <section className="flex flex-col gap-4">
-        <h3 className="ds-section-title">客户与渠道</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-          <CustomerSuggestField
-            label="昵称"
-            required
-            placeholder="例：小北"
-            value={nickname}
-            error={errors.nickname}
-            active={suggestOpen && suggestField === 'nickname'}
-            hits={suggestField === 'nickname' ? customerHits : []}
-            onChange={(v) => {
-              setNickname(v)
-              openSuggest('nickname', v)
-            }}
-            onClear={() => {
-              setNickname('')
-              setSuggestOpen(false)
-            }}
-            onFocus={() => openSuggest('nickname', nickname)}
-            onBlur={() => setTimeout(() => setSuggestOpen(false), 150)}
-            onPick={pickCustomer}
-          />
-          <CustomerSuggestField
-            label="联系方式"
-            required
-            placeholder="手机号或邮箱"
-            value={contact}
-            error={errors.contact}
-            active={suggestOpen && suggestField === 'contact'}
-            hits={suggestField === 'contact' ? customerHits : []}
-            onChange={(v) => {
-              setContact(v)
-              openSuggest('contact', v)
-            }}
-            onClear={() => {
-              setContact('')
-              setSuggestOpen(false)
-            }}
-            onFocus={() => openSuggest('contact', contact)}
-            onBlur={() => setTimeout(() => setSuggestOpen(false), 150)}
-            onPick={pickCustomer}
-          />
-        </div>
-
-        {gamesSorted.length > 1 && !moneyLocked ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-            <FormSelect
-              label="游戏"
-              required
-              value={safeGameId}
-              onChange={(v) => {
-                if (!v || v === safeGameId) return
-                setGameId(v)
-                setServer(serversOf(catalogServers, v)[0]?.name ?? '官服')
-                setLines([{ key: 1, category: '', product: '', price: '' }])
-                setCustodyKind('')
-              }}
-              options={gamesSorted.map((g) => ({
-                value: g.id,
-                label: g.name,
-                hint: `单号前缀 ${g.orderPrefix}`,
-              }))}
-            />
+            ) : null}
           </div>
         ) : null}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-          <FormRadioGroup
-            label="订单类型"
-            required
-            disabled={moneyLocked}
-            value={orderType}
-            onChange={(v) => {
-              setOrderType(v as '普通' | '托管')
-              setLines([{ key: 1, category: '', product: '', price: '' }])
-            }}
-            options={[
-              { value: '普通', label: '普通单' },
-              { value: '托管', label: '托管单' },
-            ]}
-          />
-          <FormRadioGroup
-            label="渠道"
-            required
-            disabled={moneyLocked}
-            value={platform}
-            onChange={(v) => setPlatform(v as Platform)}
-            options={(channelFees.length
-              ? channelFees.map((f) => f.platform)
-              : (Object.keys(PLATFORM_FEE) as Platform[])
-            ).map((p) => {
-              const hit = channelFees.find((f) => f.platform === p)
-              const rate = hit ? hit.rate : (PLATFORM_FEE[p as Platform] ?? 0)
-              return { value: p, label: `${p}（${feePercentLabel(rate)}）` }
-            })}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-          <FormRadioGroup
-            label="服务器"
-            required
-            disabled={moneyLocked}
-            value={server}
-            onChange={setServer}
-            options={serverOptions.map((s) => ({ value: s, label: s }))}
-          />
-          {!isEdit ? (
-            <FormRadioGroup
-              label="状态"
+        <Card title="客户与渠道">
+          <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
+            <CustomerSuggestField
+              label="昵称"
               required
-              value={status}
-              onChange={(v) => setStatus(v as StatusCreate)}
+              placeholder="例：小北"
+              value={nickname}
+              error={errors.nickname}
+              active={suggestOpen && suggestField === 'nickname'}
+              hits={suggestField === 'nickname' ? customerHits : []}
+              onChange={(v) => {
+                setNickname(v)
+                openSuggest('nickname', v)
+              }}
+              onClear={() => {
+                setNickname('')
+                setSuggestOpen(false)
+              }}
+              onFocus={() => openSuggest('nickname', nickname)}
+              onBlur={() => setTimeout(() => setSuggestOpen(false), 150)}
+              onPick={pickCustomer}
+            />
+            <CustomerSuggestField
+              label="联系方式"
+              required
+              placeholder="手机号或邮箱"
+              value={contact}
+              error={errors.contact}
+              active={suggestOpen && suggestField === 'contact'}
+              hits={suggestField === 'contact' ? customerHits : []}
+              onChange={(v) => {
+                setContact(v)
+                openSuggest('contact', v)
+              }}
+              onClear={() => {
+                setContact('')
+                setSuggestOpen(false)
+              }}
+              onFocus={() => openSuggest('contact', contact)}
+              onBlur={() => setTimeout(() => setSuggestOpen(false), 150)}
+              onPick={pickCustomer}
+            />
+          </div>
+
+          {gamesSorted.length > 1 && !moneyLocked ? (
+            <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
+              <FormSelect
+                label="游戏"
+                required
+                value={safeGameId}
+                onChange={(v) => {
+                  if (!v || v === safeGameId) return
+                  setGameId(v)
+                  setServer(serversOf(catalogServers, v)[0]?.name ?? '官服')
+                  setLines([{ key: 1, category: '', product: '', price: '' }])
+                  setCustodyKind('')
+                }}
+                options={gamesSorted.map((g) => ({
+                  value: g.id,
+                  label: g.name,
+                  hint: `单号前缀 ${g.orderPrefix}`,
+                }))}
+              />
+            </div>
+          ) : null}
+
+          <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
+            <FormRadioGroup
+              label="订单类型"
+              required
+              disabled={moneyLocked}
+              value={orderType}
+              onChange={(v) => {
+                setOrderType(v as '普通' | '托管')
+                setLines([{ key: 1, category: '', product: '', price: '' }])
+              }}
               options={[
-                { value: '待处理', label: '待处理' },
-                { value: '进行中', label: '进行中' },
-                { value: '已完成', label: '已完成' },
+                { value: '普通', label: '普通单' },
+                { value: '托管', label: '托管单' },
               ]}
             />
-          ) : (
-            <div className="ds-caption self-end flex items-center h-9">
-              状态请在列表里「开始 / 完成 / 退款」切换
-            </div>
-          )}
-        </div>
-        </section>
+            <FormRadioGroup
+              label="渠道"
+              required
+              disabled={moneyLocked}
+              value={platform}
+              onChange={(v) => setPlatform(v as Platform)}
+              options={(channelFees.length
+                ? channelFees.map((f) => f.platform)
+                : (Object.keys(PLATFORM_FEE) as Platform[])
+              ).map((p) => {
+                const hit = channelFees.find((f) => f.platform === p)
+                const rate = hit ? hit.rate : (PLATFORM_FEE[p as Platform] ?? 0)
+                return { value: p, label: `${p}（${feePercentLabel(rate)}）` }
+              })}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
+            <FormRadioGroup
+              label="服务器"
+              required
+              disabled={moneyLocked}
+              value={server}
+              onChange={setServer}
+              options={serverOptions.map((s) => ({ value: s, label: s }))}
+            />
+            {!isEdit ? (
+              <FormRadioGroup
+                label="状态"
+                required
+                value={status}
+                onChange={(v) => setStatus(v as StatusCreate)}
+                options={[
+                  { value: '待处理', label: '待处理' },
+                  { value: '进行中', label: '进行中' },
+                  { value: '已完成', label: '已完成' },
+                ]}
+              />
+            ) : (
+              <div className="ds-caption flex h-9 items-center self-end">
+                状态请在列表里「开始 / 完成 / 退款」切换
+              </div>
+            )}
+          </div>
+        </Card>
 
         {orderType === '普通' ? (
-          <section className="flex flex-col gap-3">
-            <div className="flex h-8 items-center justify-between gap-2">
-              <h3 className="ds-section-title">项目明细</h3>
-              {!moneyLocked && (
+          <Card
+            title="项目明细"
+            extra={
+              !moneyLocked ? (
                 <div className="flex items-center gap-2">
                   <Button variant="ghost" size="sm" icon={Plus} onClick={() => openQuickAdd()}>
                     新建目录项
@@ -655,9 +688,10 @@ function Inner({
                     添加一行
                   </Button>
                 </div>
-              )}
-            </div>
-            {errors.lines && <p className="dd-error-text">{errors.lines}</p>}
+              ) : null
+            }
+          >
+            {errors.lines ? <p className="dd-error-text">{errors.lines}</p> : null}
             {!moneyLocked && categories.length === 0 ? (
               <p className="ds-caption">
                 当前游戏还没有普通单分类。
@@ -666,62 +700,52 @@ function Inner({
                 </button>
               </p>
             ) : null}
-            <div className="flex flex-col gap-2">
-              <div className="grid grid-cols-[24px_1fr_1fr_128px_32px] items-center gap-2 ds-caption">
+            <div className="dd-order-lines">
+              <div className="dd-order-lines__head">
                 <span className="text-center">#</span>
                 <span>分类</span>
                 <span>项目</span>
-                <span className="text-right pr-1">单价</span>
+                <span className="pr-1 text-right">单价</span>
                 <span />
               </div>
               {lines.map((line, i) => (
-                <div key={line.key} className="grid grid-cols-[24px_1fr_1fr_128px_32px] items-center gap-2">
-                  <span className="ds-caption text-center tabular-nums">
-                    {i + 1}
-                  </span>
-                  <div className="contents">
-                    <FormSelect
-                      placeholder="分类"
-                      disabled={moneyLocked}
-                      options={categories.map((c) => ({ label: c.name, value: c.name }))}
-                      value={line.category || null}
-                      onChange={(c) => updateLine(line.key, { category: c ?? '', product: '' })}
-                    />
-                    <FormSelect
-                      placeholder={line.category ? '项目' : '先选分类'}
-                      disabled={moneyLocked || !line.category}
-                      filterable
-                      options={(line.category ? productNamesOf(line.category) : []).map(
-                        (p) => ({ label: p.name, value: p.name }),
-                      )}
-                      value={line.product || null}
-                      onChange={(p) => {
-                        const hit = line.category
-                          ? productNamesOf(line.category).find((x) => x.name === p)
-                          : undefined
-                        updateLine(line.key, {
-                          product: p ?? '',
-                          price:
-                            hit?.price != null && !line.price
-                              ? String(hit.price)
-                              : line.price,
-                        })
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <FormNumberInput
-                      unit="元"
-                      min={0}
-                      controls={false}
-                      placeholder="单价"
-                      disabled={moneyLocked}
-                      value={line.price === '' ? null : parseFloat(line.price)}
-                      onChange={(v) =>
-                        updateLine(line.key, { price: v == null ? '' : String(v) })
-                      }
-                    />
-                  </div>
+                <div key={line.key} className="dd-order-line">
+                  <span className="ds-caption text-center tabular-nums">{i + 1}</span>
+                  <FormSelect
+                    placeholder="分类"
+                    disabled={moneyLocked}
+                    options={categories.map((c) => ({ label: c.name, value: c.name }))}
+                    value={line.category || null}
+                    onChange={(c) => updateLine(line.key, { category: c ?? '', product: '' })}
+                  />
+                  <FormSelect
+                    placeholder={line.category ? '项目' : '先选分类'}
+                    disabled={moneyLocked || !line.category}
+                    filterable
+                    options={(line.category ? productNamesOf(line.category) : []).map((p) => ({
+                      label: p.name,
+                      value: p.name,
+                    }))}
+                    value={line.product || null}
+                    onChange={(p) => {
+                      const hit = line.category
+                        ? productNamesOf(line.category).find((x) => x.name === p)
+                        : undefined
+                      updateLine(line.key, {
+                        product: p ?? '',
+                        price: hit?.price != null && !line.price ? String(hit.price) : line.price,
+                      })
+                    }}
+                  />
+                  <FormNumberInput
+                    unit="元"
+                    min={0}
+                    controls={false}
+                    placeholder="单价"
+                    disabled={moneyLocked}
+                    value={line.price === '' ? null : parseFloat(line.price)}
+                    onChange={(v) => updateLine(line.key, { price: v == null ? '' : String(v) })}
+                  />
                   <Button
                     variant="ghost"
                     size="sm"
@@ -734,18 +758,14 @@ function Inner({
                 </div>
               ))}
             </div>
-            <div className="grid grid-cols-[24px_1fr_1fr_128px_32px] items-center gap-2 text-sm">
-              <span />
-              <span />
-              <span className="text-right text-muted-foreground">合计</span>
-              <span className="text-right pr-3 font-medium tabular-nums">¥{linesTotal.toFixed(2)}</span>
-              <span />
+            <div className="dd-order-lines__total">
+              <span>合计</span>
+              <strong>¥{linesTotal.toFixed(2)}</strong>
             </div>
-          </section>
+          </Card>
         ) : (
-          <section className="flex flex-col gap-4">
-            <h3 className="ds-section-title">托管安排</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <Card title="托管安排">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
               <FormRadioGroup
                 label="托管类型"
                 required
@@ -785,34 +805,31 @@ function Inner({
                 />
               </Field>
             </div>
-          </section>
+            <FormNumberInput
+              label="客户付的金额"
+              required
+              unit="元"
+              thousandSeparator
+              min={0}
+              step={1}
+              controls={false}
+              disabled={moneyLocked}
+              value={manualAmount}
+              onChange={setManualAmount}
+              error={errors.amount}
+            />
+          </Card>
         )}
 
-        {orderType === '托管' && (
-          <FormNumberInput
-            label="客户付的金额"
-            required
-            unit="元"
-            thousandSeparator
-            min={0}
-            step={1}
-            controls={false}
-            disabled={moneyLocked}
-            value={manualAmount}
-            onChange={setManualAmount}
-            error={errors.amount}
-          />
-        )}
-
-        <section className="flex flex-col gap-4">
+        <Card title="转单与备注">
           <FormSwitch
             label="这单转给打手做"
             checked={transferEnabled}
             disabled={moneyLocked}
             onChange={setTransferEnabled}
           />
-          {transferEnabled && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 rounded-lg border border-border p-4">
+          {transferEnabled ? (
+            <div className="dd-order-transfer">
               <FormRadioGroup
                 label="转出方式"
                 required
@@ -851,39 +868,15 @@ function Inner({
                 />
               )}
             </div>
-          )}
-        </section>
-
-        <div className="grid grid-flow-col auto-cols-fr divide-x divide-border rounded-lg border border-border">
-          <MoneyCell label="订单金额" value={amount} voided={Boolean(editing && payoutVoid(editing))} />
-          {transferEnabled && (
-            <MoneyCell
-              label="转出"
-              value={money.transferOut}
-              accent
-              voided={Boolean(editing && payoutVoid(editing))}
-            />
-          )}
-          <MoneyCell
-            label={`手续费 (${feePercentLabel(feeRate)})`}
-            value={money.feeAmount}
-            voided={Boolean(editing && payoutVoid(editing))}
+          ) : null}
+          <FormTextarea
+            label="备注（选填）"
+            placeholder="这单的特殊情况"
+            rows={2}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
           />
-          <MoneyCell
-            label={editing && payoutVoid(editing) ? '到手' : '预计到手'}
-            value={money.payoutAmount}
-            highlight
-            voided={Boolean(editing && payoutVoid(editing))}
-          />
-        </div>
-
-        <FormTextarea
-          label="备注（选填）"
-          placeholder="这单的特殊情况"
-          rows={2}
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-        />
+        </Card>
       </div>
     </Drawer>
 
@@ -1037,22 +1030,39 @@ function MoneyCell({
   value,
   accent = false,
   highlight = false,
+  breathe = false,
+  pulse = false,
   voided = false,
 }: {
   label: string
   value: number
   accent?: boolean
   highlight?: boolean
+  breathe?: boolean
+  pulse?: boolean
   /** 退款/取消：显示 —，不算到手 */
   voided?: boolean
 }) {
   return (
-    <div className={'flex flex-col gap-1 px-4 py-3 ' + (highlight ? 'bg-brand/5' : accent ? '' : '')}>
-      <div className="ds-caption">{label}</div>
+    <div
+      className={[
+        'dd-order-money__cell',
+        accent ? 'dd-order-money__cell--accent' : '',
+        highlight ? 'dd-order-money__cell--highlight' : '',
+        highlight && breathe ? 'dd-order-money__cell--breathe' : '',
+        highlight && pulse ? 'dd-order-money__cell--pulse' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      <div className="dd-order-money__label">{label}</div>
       <div
-        className={`text-lg leading-7 font-semibold tabular-nums ${
-          voided ? 'text-muted-foreground' : highlight ? 'text-brand' : 'text-foreground'
-        }`}
+        className={[
+          'dd-order-money__value',
+          voided ? 'dd-order-money__value--void' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
       >
         {voided ? NO_PAYOUT : `¥${value.toFixed(2)}`}
       </div>
