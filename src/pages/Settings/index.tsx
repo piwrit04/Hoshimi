@@ -185,7 +185,7 @@ export default function Settings() {
         <div className="l2g-orders-head__title-group">
           <h1 className="l2g-orders-head__title title">设置</h1>
           <p className="l2g-orders-head__sub subtitle">
-            账本与系统分两栏：目录费率导入在左边，外观云同步在右边
+            账本目录与系统外观
           </p>
         </div>
       </div>

@@ -1,8 +1,19 @@
 import { useMemo, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
-import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ChevronRight, Download, GitMerge, MoreHorizontal, PenLine, Plus, PlusCircle, Search, Trash2, Users, X } from 'lucide-react'
-import { Card } from '@/components/ui/Card'
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import {
+  ChevronLeft,
+  Download,
+  GitMerge,
+  MoreHorizontal,
+  PenLine,
+  Plus,
+  PlusCircle,
+  Search,
+  Trash2,
+  Users,
+  X,
+} from 'lucide-react'
 import { yuan, yuan2 } from '@/lib/format'
 import { Button } from '@/components/ui/Button'
 import { DataTable, Avatar, Tag, type DataTableColumn } from '@/components/ui/data'
@@ -33,11 +44,43 @@ type Row = {
   orderCount: number
   spent: number
   last: string | null
+  lastOrder: Order | null
 }
 
 function letter(name: string) {
   return name.replace(/^【示例】/, '').trim().slice(0, 1) || '?'
 }
+
+function shortDateTime(iso?: string | null) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return '—'
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+function projectLabel(order: Order) {
+  if (order.type === '托管') {
+    return [order.custodyKind, order.settleKind].filter(Boolean).join(' · ') || '托管'
+  }
+  return order.items.map((i) => i.product).join('、') || '—'
+}
+
+function gameLabel(order: Order, games: { id: string; name: string }[]) {
+  if (order.gameId) {
+    const hit = games.find((g) => g.id === order.gameId)
+    if (hit?.name) return hit.name
+  }
+  return order.items[0]?.category || '—'
+}
+
+const statusTone = {
+  待处理: 'warning',
+  进行中: 'brand',
+  已完成: 'success',
+  已退款: 'danger',
+  已取消: 'danger',
+} as const
 
 function useCustomerRows(search: string, sort: SortKey): Row[] {
   const customers = useOrdersStore((s) => s.customers)
@@ -51,11 +94,13 @@ function useCustomerRows(search: string, sort: SortKey): Row[] {
       .map((customer) => {
         const mine = orders.filter((o) => o.customerId === customer.id)
         const active = mine.filter((o) => !payoutVoid(o))
-        const last = mine.map((o) => o.createdAt).sort().at(-1) ?? null
+        const lastOrder =
+          [...mine].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0] ?? null
+        const last = lastOrder?.createdAt ?? null
         const spent = active
           .filter((o) => o.status === '已完成')
           .reduce((s, o) => s + o.amount, 0)
-        return { customer, orderCount: active.length, spent, last }
+        return { customer, orderCount: active.length, spent, last, lastOrder }
       })
       .sort((a, b) =>
         sort === 'spent'
@@ -83,6 +128,7 @@ function CustomerList() {
   const rows = useCustomerRows(search, sort)
   const navigate = useNavigate()
   const openNew = useNewOrderStore((s) => s.open)
+  const openWithCustomer = useNewOrderStore((s) => s.openWithCustomer)
   const createCustomer = useOrdersStore((s) => s.createCustomer)
   const addToast = useToastStore((s) => s.addToast)
   const customers = useOrdersStore((s) => s.customers)
@@ -120,54 +166,118 @@ function CustomerList() {
       {
         key: 'customer',
         title: '客户',
+        width: '22%',
+        align: 'center',
         emphasis: 'primary',
         render: (r) => (
-          <div className="flex min-w-0 items-center gap-3">
-            <Avatar size="sm">{letter(r.customer.nickname)}</Avatar>
-            <div className="dd-cell-dual min-w-0 flex-1">
-              <div className="dd-cell-dual__top">
-                <span className="dd-cell-dual__title">{r.customer.nickname}</span>
-              </div>
-              <div className="dd-cell-dual__bot">
-                <span className="truncate">{r.customer.contact || '无联系方式'}</span>
-                {r.customer.note ? (
-                  <span className="truncate opacity-70">· {r.customer.note}</span>
-                ) : null}
-              </div>
+          <div className="dd-cell-dual">
+            <div className="dd-cell-dual__top">
+              <span className="dd-cell-dual__title">{r.customer.nickname}</span>
+            </div>
+            <div className="dd-cell-dual__bot truncate" title={r.customer.contact || undefined}>
+              {r.customer.contact || '无联系方式'}
             </div>
           </div>
         ),
+      },
+      {
+        key: 'recent',
+        title: '近单 · 状态',
+        width: '26%',
+        align: 'center',
+        render: (r) => {
+          const o = r.lastOrder
+          if (!o) {
+            return (
+              <div className="dd-cell-dual">
+                <div className="dd-cell-dual__top text-muted-foreground">暂无订单</div>
+                <div className="dd-cell-dual__bot">—</div>
+              </div>
+            )
+          }
+          const top =
+            o.type === '托管'
+              ? `托管 · ${projectLabel(o)}`
+              : projectLabel(o)
+          return (
+            <div className="dd-cell-dual">
+              <div className="dd-cell-dual__top">
+                <span className="truncate" title={top}>
+                  {top}
+                </span>
+              </div>
+              <div className="dd-cell-dual__bot flex items-center justify-center gap-1.5">
+                <Tag tone={statusTone[o.status]}>{o.status}</Tag>
+                <span className="truncate">{o.platform}</span>
+              </div>
+            </div>
+          )
+        },
       },
       {
         key: 'spent',
         title: '消费 · 已完成',
-        width: '148px',
-        align: 'right',
+        width: '16%',
+        align: 'center',
         emphasis: 'anchor',
         render: (r) => (
-          <div className="dd-cell-dual dd-cell-dual--right">
-            <div className="dd-cell-dual__top tabular-nums">{yuan2(r.spent)}</div>
-            <div className="dd-cell-dual__bot tabular-nums">
-              <span>{r.orderCount} 单</span>
-              <span>
-                {r.last
-                  ? new Date(r.last).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })
-                  : '—'}
-              </span>
+          <div className="dd-cell-dual">
+            <div className="dd-cell-dual__top tabular-nums dd-money-flow">{yuan2(r.spent)}</div>
+            <div className="dd-cell-dual__bot tabular-nums">{r.orderCount} 单</div>
+          </div>
+        ),
+      },
+      {
+        key: 'last',
+        title: '最近下单',
+        width: '18%',
+        align: 'center',
+        emphasis: 'secondary',
+        render: (r) => (
+          <div className="dd-cell-dual">
+            <div className="dd-cell-dual__top tabular-nums whitespace-nowrap">
+              {shortDateTime(r.last)}
+            </div>
+            <div className="dd-cell-dual__bot">
+              {r.customer.note ? (
+                <span className="truncate" title={r.customer.note}>
+                  {r.customer.note}
+                </span>
+              ) : (
+                '—'
+              )}
             </div>
           </div>
         ),
       },
       {
-        key: 'go',
-        title: '',
-        width: '56px',
-        align: 'right',
-        emphasis: 'secondary',
-        render: () => <ChevronRight size={16} className="ml-auto text-muted-foreground" />,
+        key: 'actions',
+        title: '操作',
+        width: '14%',
+        align: 'center',
+        render: (r) => (
+          <div
+            className="flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button
+              size="sm"
+              variant="secondary"
+              icon={PlusCircle}
+              onClick={() =>
+                openWithCustomer({
+                  nickname: r.customer.nickname,
+                  contact: r.customer.contact,
+                })
+              }
+            >
+              记一单
+            </Button>
+          </div>
+        ),
       },
     ],
-    [],
+    [openWithCustomer],
   )
 
   return (
@@ -403,18 +513,11 @@ function CustomerList() {
   )
 }
 
-const statusTone = {
-  待处理: 'warning',
-  进行中: 'brand',
-  已完成: 'success',
-  已退款: 'danger',
-  已取消: 'danger',
-} as const
-
 function CustomerDetail({ id }: { id: string }) {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const allCustomers = useOrdersStore((s) => s.customers)
+  const games = useOrdersStore((s) => s.games)
   const customer = useMemo(
     () => allCustomers.find((c) => c.id === id),
     [allCustomers, id],
@@ -440,7 +543,6 @@ function CustomerDetail({ id }: { id: string }) {
   const [note, setNote] = useState('')
   const mergeFromQuery = searchParams.get('merge') ?? ''
   const [mergeTarget, setMergeTarget] = useState(mergeFromQuery)
-  /* 合并提示条轻提示，不自动弹窗抢焦 */
   const [mergeOpen, setMergeOpen] = useState(false)
   const reduceMotion = useReducedMotion()
   const mergeHintCustomer = useMemo(
@@ -456,23 +558,113 @@ function CustomerDetail({ id }: { id: string }) {
   const openOrder = useNewOrderStore((s) => s.openEdit)
   const orderColumns: DataTableColumn<Order>[] = useMemo(
     () => [
-      { key: 'orderNo', title: '单号', width: '148px', emphasis: 'secondary', render: (o) => <span className="font-mono text-[13px]">{o.orderNo}</span> },
-      { key: 'createdAt', title: '日期', width: '72px', emphasis: 'secondary', render: (o) => <span className="tabular-nums">{new Date(o.createdAt).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}</span> },
       {
-        key: 'items',
-        title: '项目',
-        emphasis: 'primary',
+        key: 'orderNo',
+        title: '订单号',
+        width: '14%',
+        align: 'center',
+        emphasis: 'secondary',
         render: (o) => (
-          <span className="block truncate font-medium">
-            {o.type === '托管' ? `${o.custodyKind} · ${o.settleKind}` : o.items.map((i) => i.product).join('、') || '—'}
-          </span>
+          <span className="dd-order-no dd-order-no--always font-mono text-[13px]">{o.orderNo}</span>
         ),
       },
-      { key: 'platform', title: '渠道', width: '72px', emphasis: 'secondary' },
-      { key: 'amount', title: '金额', width: '112px', align: 'right', emphasis: 'anchor', render: (o) => yuan2(o.amount) },
-      { key: 'status', title: '状态', width: '104px', emphasis: 'anchor', render: (o) => <Tag tone={statusTone[o.status]}>{o.status}</Tag> },
+      {
+        key: 'content',
+        title: '订单内容',
+        width: '22%',
+        align: 'center',
+        emphasis: 'primary',
+        render: (o) => {
+          const game = gameLabel(o, games)
+          const project = projectLabel(o)
+          return (
+            <div className="dd-cell-dual">
+              <div className="dd-cell-dual__top">
+                {o.type === '托管' ? (
+                  <span className="font-semibold text-foreground">托管</span>
+                ) : (
+                  <span className="truncate" title={game}>
+                    {game}
+                  </span>
+                )}
+              </div>
+              <div className="dd-cell-dual__bot">
+                <span className="truncate" title={project}>
+                  {project}
+                </span>
+              </div>
+            </div>
+          )
+        },
+      },
+      {
+        key: 'platform',
+        title: '下单平台',
+        width: '12%',
+        align: 'center',
+        render: (o) => {
+          const transferHint = o.transferEnabled
+            ? o.transferMode === 'ratio'
+              ? `转单 ${Math.round(o.transferRatio * 100)}%`
+              : o.transferAmount > 0
+                ? `转单 ¥${o.transferAmount.toFixed(0)}`
+                : '转单'
+            : null
+          return (
+            <div className="dd-cell-dual">
+              <div className="dd-cell-dual__top">{o.platform}</div>
+              <div className="dd-cell-dual__bot">
+                {transferHint ? (
+                  <Tag tone="warning">{transferHint}</Tag>
+                ) : (
+                  <span className="text-muted-foreground">—</span>
+                )}
+              </div>
+            </div>
+          )
+        },
+      },
+      {
+        key: 'amount',
+        title: '金额 · 到手',
+        width: '14%',
+        align: 'center',
+        emphasis: 'anchor',
+        render: (o) => (
+          <div className="dd-cell-dual">
+            <div className="dd-cell-dual__top tabular-nums dd-money-flow">{yuan2(o.amount)}</div>
+            {payoutVoid(o) ? null : (
+              <div className="dd-cell-dual__bot tabular-nums dd-money-gold">{yuan2(o.payout)}</div>
+            )}
+          </div>
+        ),
+      },
+      {
+        key: 'dates',
+        title: '下单 · 完单',
+        width: '18%',
+        align: 'center',
+        render: (o) => (
+          <div className="dd-cell-dual">
+            <div className="dd-cell-dual__top tabular-nums whitespace-nowrap">
+              {shortDateTime(o.createdAt)}
+            </div>
+            <div className="dd-cell-dual__bot tabular-nums whitespace-nowrap">
+              {o.completedAt ? shortDateTime(o.completedAt) : '—'}
+            </div>
+          </div>
+        ),
+      },
+      {
+        key: 'status',
+        title: '状态',
+        width: '10%',
+        align: 'center',
+        emphasis: 'anchor',
+        render: (o) => <Tag tone={statusTone[o.status]}>{o.status}</Tag>,
+      },
     ],
-    [],
+    [games],
   )
 
   // 已合并：跳到保留客户（订单点进来的旧 id 也能落地）
@@ -486,12 +678,17 @@ function CustomerDetail({ id }: { id: string }) {
 
   if (!customer || customer.mergedIntoId) {
     return (
-      <div className="ds-page">
-        <div className="ds-card items-center py-16 text-center text-muted-foreground">
-          <p className="text-sm">客户不存在或已合并</p>
-          <Button className="mt-4" variant="secondary" onClick={() => navigate('/customers')}>
-            返回列表
-          </Button>
+      <div className="ds-page--console">
+        <div className="l2g-orders-head ds-rise">
+          <div className="l2g-orders-head__title-group">
+            <h1 className="l2g-orders-head__title title">客户不存在</h1>
+            <p className="l2g-orders-head__sub subtitle">可能已合并或删除</p>
+          </div>
+          <div className="l2g-orders-head__actions">
+            <Button variant="secondary" icon={ChevronLeft} onClick={() => navigate('/customers')}>
+              返回列表
+            </Button>
+          </div>
         </div>
       </div>
     )
@@ -551,57 +748,71 @@ function CustomerDetail({ id }: { id: string }) {
     setMergeTarget('')
   }
 
-  return (
-    <div className="ds-page">
-      <div className="dd-customers-header ds-rise">
-        <nav className="flex h-5 items-center gap-1 text-[13px] text-muted-foreground">
-          <Link to="/customers" className="hover:text-foreground transition-colors">
-            客户
-          </Link>
-          <ChevronRight size={14} />
-          <span className="text-foreground">{customer.nickname}</span>
-        </nav>
+  const subParts = [
+    customer.contact || '无联系方式',
+    tail ? `尾号 ${tail}` : null,
+    customer.note || null,
+  ].filter(Boolean)
 
-        <header className="ds-page-header">
+  return (
+    <div className="ds-page--console">
+      <div className="l2g-orders-head ds-rise">
+        <div className="l2g-orders-head__title-group min-w-0">
           <div className="flex min-w-0 items-center gap-3">
-            <Avatar size="lg">{letter(customer.nickname)}</Avatar>
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={ChevronLeft}
+              iconOnly
+              aria-label="返回客户列表"
+              onClick={() => navigate('/customers')}
+            />
+            <Avatar size="md">{letter(customer.nickname)}</Avatar>
             <div className="min-w-0">
-              <h1 className="ds-page-title truncate">{customer.nickname}</h1>
-              <p className="ds-page-desc truncate">
-                {customer.contact || '无联系方式'}
-                {tail ? ` · 尾号 ${tail}` : ''}
-                {customer.note ? ` · ${customer.note}` : ''}
+              <h1 className="l2g-orders-head__title title truncate">{customer.nickname}</h1>
+              <p className="l2g-orders-head__sub subtitle truncate" title={subParts.join(' · ')}>
+                {subParts.join(' · ')}
               </p>
             </div>
           </div>
-          <div className="ds-page-header__actions">
-            <Button variant="secondary" icon={Trash2} onClick={askDelete}>
-              删除
-            </Button>
-            <Button
-              variant="secondary"
-              icon={GitMerge}
-              onClick={() => {
+        </div>
+        <div className="l2g-orders-head__actions">
+          <Dropdown
+            align="end"
+            trigger={
+              <span className="inline-flex">
+                <Button
+                  variant="ghost"
+                  icon={MoreHorizontal}
+                  iconOnly
+                  aria-label="更多操作"
+                />
+              </span>
+            }
+            items={[
+              { key: 'edit', label: '编辑资料', icon: PenLine },
+              { key: 'merge', label: '合并到其他客户', icon: GitMerge },
+              { key: 'div', label: '', type: 'divider' },
+              { key: 'delete', label: '删除客户', icon: Trash2, danger: true },
+            ]}
+            onSelect={(key) => {
+              if (key === 'edit') openEdit()
+              else if (key === 'merge') {
                 setMergeTarget(mergeFromQuery || mergeTarget)
                 setMergeOpen(true)
-              }}
-            >
-              合并
-            </Button>
-            <Button
-              variant="secondary"
-              icon={PlusCircle}
-              onClick={() =>
-                openWithCustomer({ nickname: customer.nickname, contact: customer.contact })
-              }
-            >
-              记一单
-            </Button>
-            <Button variant="primary" icon={PenLine} onClick={openEdit}>
-              编辑资料
-            </Button>
-          </div>
-        </header>
+              } else if (key === 'delete') askDelete()
+            }}
+          />
+          <Button
+            variant="primary"
+            icon={PlusCircle}
+            onClick={() =>
+              openWithCustomer({ nickname: customer.nickname, contact: customer.contact })
+            }
+          >
+            记一单
+          </Button>
+        </div>
       </div>
 
       {mergeFromQuery && mergeHintCustomer ? (
@@ -642,7 +853,7 @@ function CustomerDetail({ id }: { id: string }) {
         <div className="ds-card ds-stat ds-rise">
           <div className="ds-stat__label">最近下单</div>
           <div className="ds-stat__value">
-            {last ? new Date(last).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) : '—'}
+            {last ? shortDateTime(last) : '—'}
           </div>
           <div className="ds-stat__foot">
             建档于 {new Date(customer.createdAt).toLocaleDateString('zh-CN')}
@@ -650,32 +861,37 @@ function CustomerDetail({ id }: { id: string }) {
         </div>
       </div>
 
-      <Card title="订单记录" flush className={reduceMotion ? undefined : 'ds-rise'}>
-        <DataTable
-          columns={orderColumns}
-          data={sorted}
-          rowKey={(o) => o.id}
-          onRowClick={(o) => openOrder(o.id)}
-          empty={
-            <div className="dd-customers-empty">
-              <p className="text-sm text-foreground/80">尚未下单</p>
-              <p className="ds-caption">点「记一单」会带上昵称和联系方式</p>
-              <Button
-                className="mt-3"
-                size="sm"
-                variant="primary"
-                icon={PlusCircle}
-                onClick={() =>
-                  openWithCustomer({ nickname: customer.nickname, contact: customer.contact })
-                }
-              >
-                记一单
-              </Button>
-            </div>
-          }
-        />
-      </Card>
-
+      <div className={reduceMotion ? undefined : 'ds-rise'}>
+        <div className="mb-2 flex items-baseline justify-between gap-2 px-0.5">
+          <h2 className="text-sm font-semibold text-foreground">订单记录</h2>
+          <span className="ds-caption">{sorted.length} 单</span>
+        </div>
+        <div className="table-container l2g-table">
+          <DataTable
+            columns={orderColumns}
+            data={sorted}
+            rowKey={(o) => o.id}
+            onRowClick={(o) => openOrder(o.id)}
+            empty={
+              <div className="dd-customers-empty">
+                <p className="text-sm text-foreground/80">尚未下单</p>
+                <p className="ds-caption">点「记一单」会带上昵称和联系方式</p>
+                <Button
+                  className="mt-3"
+                  size="sm"
+                  variant="primary"
+                  icon={PlusCircle}
+                  onClick={() =>
+                    openWithCustomer({ nickname: customer.nickname, contact: customer.contact })
+                  }
+                >
+                  记一单
+                </Button>
+              </div>
+            }
+          />
+        </div>
+      </div>
 
       <Modal
         isOpen={mergeOpen}
@@ -772,6 +988,7 @@ function CustomerDetail({ id }: { id: string }) {
             label="联系方式"
             value={contact}
             onChange={(e) => setContact(e.target.value)}
+            placeholder="手机 / 微信 / QQ"
           />
           <FormTextarea
             label="备注"
