@@ -33,7 +33,7 @@
 - 周结自动算结束日（+7）并有说明；转单默认打手 80% 有提示；保存 toast「已记下」
 - `openWithCustomer`：从客户「记一单」预填昵称/联系
 
-**深链：** `?mode=&period=&anchor=completed` — 概览「今日到手」用 `mode=已完成&period=today&anchor=completed`（按 **完成日**，非下单日）
+**深链：** `?mode=&period=&anchor=completed` — 概览「今日到手」用 `mode=已完成&period=today&anchor=completed`（按 **完成日**，非下单日）。`cc0fd44`：深链**覆盖**筛记忆；侧栏进订单清默认筛。文案口径：待处理 / 待收口 / 已完成消费。
 
 ---
 
@@ -53,7 +53,7 @@
 
 - 真实账本：催单（普通）+ **进行中**托管到期（与概览同口径；待处理未开工不进到期）
 - 完成 / 取消；侧栏角标
-- **自由待办**：角标=未完成数；有已完成行时副文案「含已完成」。本机 `localStorage`（`free-todos-storage`），不进 IndexedDB
+- **自由待办（密度对齐 `0d93fba`）**：角标=未完成数；有已完成行时副文案「含已完成」。本机 `localStorage`（`free-todos-storage`），不进 IndexedDB
 
 ---
 
