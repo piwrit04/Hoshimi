@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   ArrowRight,
@@ -28,9 +28,15 @@ import type { Order, OrderStatus } from '@/domain/order'
  * ── Linear 结构：今日要处理为主列；KPI / 占位模块为辅；走势后置。
  * ── 路由仍是 /dashboard，侧栏文案改为「工作台」。
  * ── 模块清单未定：右侧放占位卡，边看边改。
+ * ── 筛选 ?focus=all|chase|due 进 URL，刷新保持视图。
  */
 
 type FocusTab = 'all' | 'chase' | 'due'
+
+function parseFocus(raw: string | null): FocusTab {
+  if (raw === 'chase' || raw === 'due' || raw === 'all') return raw
+  return 'all'
+}
 
 const statusTone: Record<OrderStatus, 'brand' | 'warning' | 'success' | 'danger'> = {
   待处理: 'warning',
@@ -53,10 +59,22 @@ export default function Dashboard() {
   const openNewOrder = useNewOrderStore((s) => s.open)
   const openEdit = useNewOrderStore((s) => s.openEdit)
   const addToast = useToastStore((s) => s.addToast)
-  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const [clock, setClock] = useState(() => formatClock())
-  const [focusTab, setFocusTab] = useState<FocusTab>('all')
+  const focusTab = parseFocus(searchParams.get('focus'))
+
+  const setFocusTab = (tab: FocusTab) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        if (tab === 'all') next.delete('focus')
+        else next.set('focus', tab)
+        return next
+      },
+      { replace: true },
+    )
+  }
 
   const m = useMemo(() => dashboard({ orders, customers, settings }), [orders, customers, settings])
   const wb = useMemo(() => workbench(orders, settings, ''), [orders, settings])
@@ -82,7 +100,7 @@ export default function Dashboard() {
     money?: boolean
     foot: string
     warn?: boolean
-    onClick: () => void
+    to: string
   }[] = [
     {
       label: '今日到手',
@@ -90,14 +108,14 @@ export default function Dashboard() {
       value: k.payoutToday,
       money: true,
       foot: `本月 ${money(k.payoutThisMonth)}`,
-      onClick: () => navigate('/orders?mode=已完成&period=today&anchor=completed'),
+      to: '/orders?mode=已完成&period=today&anchor=completed',
     },
     {
       label: '进行中',
       icon: Hourglass,
       value: k.inProgress,
       foot: `待处理 ${k.waiting} 单`,
-      onClick: () => navigate('/orders?mode=进行中'),
+      to: '/orders?mode=进行中',
     },
     {
       label: '托管快到期',
@@ -105,14 +123,14 @@ export default function Dashboard() {
       value: k.expiringCount,
       foot: `托管中 ${k.custodyActive} · ${m.remindDays} 天内`,
       warn: k.expiringCount > 0,
-      onClick: () => setFocusTab('due'),
+      to: '/dashboard?focus=due',
     },
     {
       label: '本月新单',
       icon: ShoppingBag,
       value: k.newThisMonth,
       foot: `流水 ${money(k.newThisMonthAmount)}`,
-      onClick: () => navigate('/orders?period=month'),
+      to: '/orders?period=month',
     },
   ]
 
@@ -130,10 +148,10 @@ export default function Dashboard() {
       <div className="l2g-orders-head ds-rise">
         <div className="l2g-orders-head__title-group">
           <div className="flex items-center gap-2 mb-1">
-            <LayoutDashboard size={18} className="text-brand" strokeWidth={1.75} />
+            <LayoutDashboard size={18} aria-hidden="true" className="text-brand" strokeWidth={1.75} />
             <span className="text-xs font-medium text-muted-foreground tracking-wide">工作台</span>
           </div>
-          <h1 className="l2g-orders-head__title title">{m.hello}</h1>
+          <h1 className="l2g-orders-head__title title text-balance">{m.hello}</h1>
           <p className="l2g-orders-head__sub subtitle">
             {m.todayLabel}
             {m.usingTest ? ' · 当前为示例数据' : ''}
@@ -154,11 +172,10 @@ export default function Dashboard() {
         {kpiCards.map((slot) => {
           const Icon = slot.icon
           return (
-            <button
+            <Link
               key={slot.label}
-              type="button"
+              to={slot.to}
               className={cn('l2g-kpi-card l2g-kpi-card--link', slot.warn && 'l2g-kpi-card--warn')}
-              onClick={slot.onClick}
               title="点击查看"
             >
               <span className="l2g-kpi-card__icon" aria-hidden>
@@ -169,7 +186,7 @@ export default function Dashboard() {
               </div>
               <div className="l2g-kpi-card__label">{slot.label}</div>
               <div className="l2g-kpi-card__foot">{slot.foot}</div>
-            </button>
+            </Link>
           )
         })}
       </div>
@@ -183,7 +200,7 @@ export default function Dashboard() {
                 共 {wb.followCount} 条 · 催单 {wb.chaseCount} · 到期 {wb.dueCount}
               </p>
             </div>
-            <div className="flex items-center gap-1 flex-wrap">
+            <div className="flex items-center gap-1 flex-wrap" role="tablist" aria-label="处理筛选">
               {(
                 [
                   { id: 'all' as const, label: '全部' },
@@ -194,6 +211,8 @@ export default function Dashboard() {
                 <button
                   key={t.id}
                   type="button"
+                  role="tab"
+                  aria-selected={focusTab === t.id}
                   className={cn(
                     'l2g-capsule',
                     focusTab === t.id ? 'l2g-capsule--on' : 'l2g-capsule--ghost',
@@ -266,10 +285,10 @@ export default function Dashboard() {
 
           <div className="l2g-workbench__focus-foot">
             <Link to="/orders" className="l2g-capsule l2g-capsule--ghost inline-flex items-center gap-1">
-              去订单全列表 <ArrowRight size={14} />
+              去订单全列表 <ArrowRight size={14} aria-hidden="true" />
             </Link>
             <Link to="/todo" className="l2g-capsule l2g-capsule--ghost inline-flex items-center gap-1">
-              去待办 <ArrowRight size={14} />
+              去待办 <ArrowRight size={14} aria-hidden="true" />
             </Link>
           </div>
         </section>

@@ -778,6 +778,11 @@
   filter: brightness(1.06);
   transform: none;
 }
+.l2g-capsule:focus-visible {
+  outline: 2px solid var(--brand-hex);
+  outline-offset: 2px;
+}
+
 .l2g-capsule--muted {
   background: rgba(255, 255, 255, 0.12);
   color: rgba(255, 255, 255, 0.7);
@@ -1165,7 +1170,7 @@
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .l2g-seg__btn:hover,
 .l2g-seg button:hover {
@@ -1484,6 +1489,11 @@
   border-radius: 10px;
   cursor: pointer;
 }
+.l2g-workbench__row-main:focus-visible {
+  outline: 2px solid var(--brand-hex);
+  outline-offset: 2px;
+}
+
 .l2g-workbench__row-actions {
   display: flex;
   align-items: center;

@@ -1,5 +1,6 @@
+import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { TitleBar } from "@/components/layout/TitleBar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { AppWallpaper } from "@/components/layout/AppWallpaper";
@@ -20,6 +21,18 @@ import { HighlightsBootstrap } from "@/components/help/HighlightsBootstrap";
  */
 export default function MainLayout() {
   const location = useLocation();
+  const reduceMotion = useReducedMotion();
+  /* SSR/首帧前 useReducedMotion 可能为 null；再读一次 matchMedia 兜底 */
+  const [prefersReduce, setPrefersReduce] = useState(false);
+  useEffect(() => {
+    const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReduce(mql.matches);
+    const onChange = () => setPrefersReduce(mql.matches);
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+  const instant = reduceMotion === true || prefersReduce;
+
   return (
     <div className="l2g-shell relative h-screen w-screen flex overflow-hidden text-foreground font-sans transition-colors duration-300">
       <AppWallpaper />
@@ -39,10 +52,10 @@ export default function MainLayout() {
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, y: 4 }}
+              initial={instant ? false : { opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              exit={instant ? undefined : { opacity: 0 }}
+              transition={instant ? { duration: 0 } : { duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
               className="min-h-full"
             >
               <Outlet />

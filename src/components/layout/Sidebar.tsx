@@ -59,6 +59,7 @@ const NavItem = memo(function NavItem({
     const icon = (
       <item.icon
         size={16}
+        aria-hidden="true"
         className={cn(iconClass, isActive ? 'text-inherit' : 'text-muted-foreground group-hover:text-foreground')}
       />
     );
@@ -85,12 +86,13 @@ const NavItem = memo(function NavItem({
         <button
           type="button"
           onClick={openNewOrder}
+          aria-label={item.label}
           className={cn(
             'btn-base btn-primary w-full',
             isCollapsed ? '!px-0' : 'justify-start'
           )}
         >
-          <item.icon size={16} className="shrink-0" />
+          <item.icon size={16} aria-hidden="true" className="shrink-0" />
           {!isCollapsed && <span className="text-sm font-medium">{item.label}</span>}
         </button>
       </Tooltip>
@@ -101,6 +103,7 @@ const NavItem = memo(function NavItem({
     <Tooltip content={isCollapsed ? item.label : null} position="right">
       <NavLink
         to={item.path}
+        aria-label={isCollapsed ? item.label : undefined}
         className={({ isActive }) =>
           cn(
             'flex h-9 items-center px-3 rounded-full transition-colors duration-150 relative overflow-hidden group',
@@ -163,7 +166,7 @@ export function Sidebar({ showLogo = true }: { showLogo?: boolean }) {
   return (
     <div
       className={cn(
-        'h-full flex flex-col relative transition-all duration-300 ease-in-out z-50',
+        'h-full flex flex-col relative transition-[width] duration-300 ease-in-out z-50',
         /* ⚠️ 工具箱原文是写死的浅粉底 bg-[#FCFAFD]/92 + 边框 #E8E1F0 —— 深色模式不跟着变。
            这里换成主题变量。阴影保留原样（它本来就只是外侧一道柔影，不分模式）。 */
         'l2g-glass-aside',
@@ -174,7 +177,7 @@ export function Sidebar({ showLogo = true }: { showLogo?: boolean }) {
       {showLogo && (
         <button
           type="button"
-          aria-label={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+          aria-label={isCollapsed ? '展开侧栏' : '收起侧栏'}
           className="flex items-center justify-center shrink-0 cursor-pointer transition-colors duration-300 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary no-drag h-14 px-3 border-b border-white/10"
           onMouseEnter={() => setIsLogoHovered(true)}
           onMouseLeave={() => setIsLogoHovered(false)}
@@ -182,18 +185,18 @@ export function Sidebar({ showLogo = true }: { showLogo?: boolean }) {
         >
           <div
             className={cn(
-              'relative flex items-center justify-center h-full transition-all duration-300',
+              'relative flex items-center justify-center h-full transition-[width,padding] duration-300',
               isCollapsed ? 'w-16 px-0' : 'w-full px-1'
             )}
           >
             {/* 悬停时把 logo 换成展开/收起图标 */}
             <div
               className={cn(
-                'absolute transition-all duration-300 flex items-center justify-center',
+                'absolute transition-[opacity,transform] duration-300 flex items-center justify-center',
                 isLogoHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
               )}
             >
-              <Menu size={18} className="text-foreground" />
+              <Menu size={18} aria-hidden="true" className="text-foreground" />
             </div>
 
             {/* 品牌字标 —— **占位 LOGO**。
@@ -204,7 +207,7 @@ export function Sidebar({ showLogo = true }: { showLogo?: boolean }) {
                    内联 favicon 的汉字、electron/main.cjs 的 TITLE 一起改。 */}
             <div
               className={cn(
-                'flex w-full items-center gap-2 transition-all duration-300 select-none',
+                'flex w-full items-center gap-2 transition-[opacity,transform] duration-300 select-none',
                 isCollapsed ? 'justify-center' : 'justify-start',
                 isLogoHovered ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
               )}
