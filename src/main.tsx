@@ -2,7 +2,6 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { HashRouter } from "react-router-dom";
 import { App } from "./App";
-import "@fontsource-variable/inter/wght.css";
 import "./styles/fonts.css";
 import "./index.css";
 

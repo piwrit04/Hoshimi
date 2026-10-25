@@ -345,17 +345,15 @@ DS: --ds-r-control/--ds-r-tag = 999（胶囊）· --ds-r-card/--ds-r-row = 12
 
 ```
 --font-sans / --font-display:
-  "筑紫A丸ゴシック", "Tsukushi A Round Gothic", "M PLUS Rounded 1c",
-  PingFang SC / Microsoft YaHei / …
+  "Maple UI", Microsoft YaHei / PingFang SC / …
 
---font-num:  "Inter Variable", "Inter", …   （金额 / 统计数字，tabular-nums）
+--font-num:  "Maple UI", …   （金额 / 统计数字，tabular-nums）
 --font-mono: ui-monospace …
 ```
 
-- **目标字体**：筑紫A丸（工具箱同款二次元圆体）。Fontworks 商用，**不能随仓库分发**。
-- **过渡**：打包 OFL 开源圆体 `M PLUS Rounded 1c`（`@fontsource`，日文+拉丁子集 400/500/700）。
-- **本机切换**：把已授权的筑紫 `.otf/.ttf` 放到 `public/fonts/`（见该目录 README），`@font-face` 会优先加载。
-- 金额数字始终用 Inter，不用圆体。
+- **全局 UI 字体**：Maple UI（与 Rhythm Toolbox 同款），字重 400 / 700，文件在 `public/fonts/`。
+- 金额/统计数字同样用 Maple UI，配合 `font-variant-numeric: tabular-nums`。
+- 等宽（代码、kbd）仍走系统 `--font-mono`，不换成 Maple UI。
 
 ⚠️ **字重没有 token。** 被删除的旧规范里有一条「字重只有四档，不要写 550 / 650 / 750」，
 但**现行代码里没有任何 `--fw-*` 变量承载它**。规则本身仍然成立（浏览器会把 700 以上就近

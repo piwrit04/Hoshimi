@@ -236,13 +236,13 @@
   --color-brand-60: rgba(var(--brand-rgb), 0.6);
   --color-on-brand: var(--on-brand-hex);
 
-  /* UI：工具箱同款 Maple UI */
+  /* 全局 UI：Maple UI（含标题 / 正文 / 金额数字） */
   --font-sans: "Maple UI", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB",
     "Noto Sans SC", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --font-display: "Maple UI", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB",
     "Noto Sans SC", ui-sans-serif, system-ui, sans-serif;
-  /* 金额数字：Inter，不用圆体 */
-  --font-num: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+  /* 金额/统计：同 Maple UI，配合 tabular-nums */
+  --font-num: "Maple UI", "Microsoft YaHei", "PingFang SC", ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", monospace;
 
   /* 与 :root 对齐，避免 calc 把 lg 压成 10 */

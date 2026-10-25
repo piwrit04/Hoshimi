@@ -48,7 +48,7 @@
 
 /* Global Editor Classes */
 .ed-container {
-  font-family: -apple-system, BlinkMacSystemFont, "Maple UI", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-sans);
   color: var(--ed-text-primary);
   background-color: var(--ed-bg-primary);
 }

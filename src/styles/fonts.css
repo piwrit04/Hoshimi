@@ -1,6 +1,7 @@
 /*
- * 字体：UI 用工具箱同款 Maple UI；品牌英文用 Comfortaa；金额用 Inter。
- * 字体文件在 public/fonts/（从 Rhythm Toolbox 拷贝）。
+ * 字体：全局 UI 统一 Maple UI（与 Rhythm Toolbox 同款）。
+ * 字体文件在 public/fonts/。金额/统计数字仍用 tabular-nums，字族同 Maple UI。
+ * 等宽（代码/kbd）走 --font-mono，不改。
  */
 
 @font-face {
@@ -19,19 +20,12 @@
   font-display: swap;
 }
 
-@font-face {
-  font-family: "Comfortaa";
-  src: url("/fonts/Comfortaa-Regular.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
+/* 品牌英文等特殊类：与全局一致 */
 .font-brand {
-  font-family: "Comfortaa", "Maple UI", sans-serif;
+  font-family: var(--font-sans);
 }
 
-/* 金额 / 订单号等数字：Inter + tabular-nums */
+/* 金额 / 订单号等数字：Maple UI + tabular-nums */
 .ds-num,
 .tabular-nums,
 .tnum,
@@ -41,4 +35,5 @@
 }
 .ds-stat__value {
   font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
 }
