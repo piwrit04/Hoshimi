@@ -260,24 +260,26 @@ export default function Dashboard() {
                   />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="truncate text-sm font-medium text-foreground">
+                      <span className="l2g-workbench__row-title truncate">
                         {o.nickname || '未命名'}
                       </span>
-                      <Tag tone={statusTone[o.status]}>{o.status}</Tag>
+                      <Tag tone={statusTone[o.status]} className="l2g-workbench__tag">
+                        {o.status}
+                      </Tag>
                       {kind === 'due' ? (
-                        <span className="text-xs font-medium text-warning tabular-nums">
+                        <span className="l2g-workbench__row-kind l2g-workbench__row-kind--due">
                           {daysUntilLabel(wb.today, o.endDate)}
                         </span>
                       ) : (
-                        <span className="text-xs text-muted-foreground">催单</span>
+                        <span className="l2g-workbench__row-kind">催单</span>
                       )}
                     </div>
-                    <div className="truncate text-xs text-muted-foreground mt-0.5">
+                    <div className="l2g-workbench__row-sub truncate">
                       {orderTitle(o)}
                       {o.contact ? ` · ${o.contact}` : ''}
                     </div>
                   </div>
-                  <span className="shrink-0 text-sm tabular-nums font-medium dd-money-gold">
+                  <span className="l2g-workbench__row-amount dd-money-gold">
                     {yuan2(o.amount)}
                   </span>
                 </button>
