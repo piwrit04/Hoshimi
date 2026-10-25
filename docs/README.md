@@ -6,6 +6,7 @@
 |---|---|
 | [FEATURES.md](./FEATURES.md) | 与代码同步的功能现状 |
 | [PRD.md](./PRD.md) | 产品需求 |
+| [decisions-product-direction.md](./decisions-product-direction.md) | Grill 决策记录：产品方向 |
 | [prompts/](./prompts/) | UI 改版 Prompt（间距 / 表格 / 分段头） |
 | [archive/](./archive/) | 历史记录：审计、重构进度、Electron 修复、功能扫尾 |
 
