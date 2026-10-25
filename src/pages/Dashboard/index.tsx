@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   ArrowRight,
   CheckCircle2,
-  LayoutDashboard,
   PlusCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -19,12 +18,17 @@ import { Tag } from '@/components/ui/data'
 import type { Order, OrderStatus } from '@/domain/order'
 
 /*
- * 工作台：首页要简单直接。
- * —— 一张信息卡汇总关键数字；下方主区是待办订单列表。
- * —— 筛选 ?focus=all|chase|due 进 URL，刷新保持视图。
+ * 工作台（对标）：
+ * - Shopify Home：一个到手主数字，其余指标降权成次级条，不抢视觉
+ * - Linear Inbox：密列表、发丝分割线、整行悬停、安静 chrome
+ * - 闲鱼卖家：状态用小胶囊标签，不铺满彩色徽章
+ * 首页不翻页：只露最紧的几条，多了「查看全部」去订单页。
  */
 
 type FocusTab = 'all' | 'chase' | 'due'
+
+/** 首页一屏能看完，不放分页 */
+const HOME_LIST_LIMIT = 8
 
 function parseFocus(raw: string | null): FocusTab {
   if (raw === 'chase' || raw === 'due' || raw === 'all') return raw
@@ -40,17 +44,16 @@ const statusTone: Record<OrderStatus, 'brand' | 'warning' | 'success' | 'danger'
 }
 
 function orderTitle(o: Order) {
-  if (o.type === '托管') return `${o.custodyKind ?? '托管'} · ${o.settleKind ?? ''}`
+  if (o.type === '托管') return `${o.custodyKind ?? '托管'} · ${o.settleKind ?? ''}`.trim()
   return o.items.map((i) => i.product).join('、') || '—'
 }
 
-type Metric = {
+type RailMetric = {
   label: string
   value: number
   money?: boolean
   warn?: boolean
-  to?: string
-  hint?: string
+  to: string
 }
 
 export default function Dashboard() {
@@ -95,7 +98,10 @@ export default function Dashboard() {
     return [...due, ...chase]
   }, [focusTab, wb.openNormal, wb.expiring])
 
-  const metrics: Metric[] = [
+  const visibleList = focusList.slice(0, HOME_LIST_LIMIT)
+  const hiddenCount = Math.max(0, focusList.length - visibleList.length)
+
+  const rail: RailMetric[] = [
     {
       label: '今日到手',
       value: k.payoutToday,
@@ -105,7 +111,6 @@ export default function Dashboard() {
     {
       label: '进行中',
       value: k.inProgress,
-      hint: `等待中 ${k.waiting}`,
       to: '/orders?mode=进行中',
     },
     {
@@ -117,14 +122,7 @@ export default function Dashboard() {
       label: '快到期',
       value: k.expiringCount,
       warn: k.expiringCount > 0,
-      hint: `托管中 ${k.custodyActive}`,
       to: '/dashboard?focus=due',
-    },
-    {
-      label: '本月新单',
-      value: k.newThisMonth,
-      hint: money(k.newThisMonthAmount),
-      to: '/orders?period=month',
     },
   ]
 
@@ -137,14 +135,17 @@ export default function Dashboard() {
     }
   }
 
+  const viewAllTo =
+    focusTab === 'chase'
+      ? '/orders?mode=进行中'
+      : focusTab === 'due'
+        ? '/todo'
+        : '/orders'
+
   return (
     <div className="ds-page--console l2g-dash l2g-workbench">
       <div className="l2g-orders-head ds-rise">
         <div className="l2g-orders-head__title-group">
-          <div className="flex items-center gap-2 mb-1">
-            <LayoutDashboard size={18} aria-hidden="true" className="text-brand" strokeWidth={1.75} />
-            <span className="text-xs font-medium text-muted-foreground tracking-wide">工作台</span>
-          </div>
           <h1 className="l2g-orders-head__title title text-balance">{m.hello}</h1>
           <p className="l2g-orders-head__sub subtitle">
             {m.todayLabel}
@@ -162,67 +163,50 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* 一张信息卡：本月到手 + 若干关键数，去掉重复的 KPI 小卡 */}
-      <section className="l2g-glass-panel l2g-workbench__summary ds-rise" aria-label="本月概览">
-        <div className="l2g-workbench__summary-hero">
-          <div>
-            <p className="l2g-workbench__summary-kicker">本月到手</p>
-            <p className="l2g-workbench__summary-value dd-money-gold tabular-nums">
-              <CountUp value={k.payoutThisMonth} money />
-            </p>
-            <p className="l2g-workbench__summary-sub text-muted-foreground">
-              累计 {money(k.payoutTotal)} · 已成交 {k.completedTotal}
-            </p>
-          </div>
-          <div className="l2g-workbench__summary-actions">
-            <Button variant="secondary" size="sm" icon={PlusCircle} onClick={openNewOrder}>
-              新建异环单
-            </Button>
-            <Link to="/orders" className="l2g-capsule l2g-capsule--ghost inline-flex items-center gap-1">
-              订单列表 <ArrowRight size={14} aria-hidden="true" />
-            </Link>
-          </div>
+      {/* Shopify：主数字 + 次级指标条（不是等权小卡网格） */}
+      <section className="l2g-workbench__hero ds-rise" aria-label="本月概览">
+        <div className="l2g-workbench__hero-main">
+          <p className="l2g-workbench__hero-label">本月到手</p>
+          <p className="l2g-workbench__hero-value dd-money-gold tabular-nums">
+            <CountUp value={k.payoutThisMonth} money />
+          </p>
+          <p className="l2g-workbench__hero-meta text-muted-foreground">
+            累计 {money(k.payoutTotal)} · 已完成 {k.completedTotal} · 本月新单 {k.newThisMonth}
+          </p>
         </div>
-
-        <div className="l2g-workbench__summary-metrics" role="list">
-          {metrics.map((slot) => {
-            const body = (
-              <>
-                <span className={cn('l2g-workbench__metric-value', slot.money && 'dd-money-gold', slot.warn && 'text-warning')}>
-                  <CountUp value={slot.value} money={slot.money} />
-                </span>
-                <span className="l2g-workbench__metric-label">{slot.label}</span>
-                {slot.hint ? <span className="l2g-workbench__metric-hint">{slot.hint}</span> : null}
-              </>
-            )
-            if (slot.to) {
-              return (
-                <Link
-                  key={slot.label}
-                  to={slot.to}
-                  role="listitem"
-                  className={cn('l2g-workbench__metric', slot.warn && 'l2g-workbench__metric--warn')}
-                  title="点击查看"
-                >
-                  {body}
-                </Link>
-              )
-            }
-            return (
-              <div key={slot.label} role="listitem" className="l2g-workbench__metric">
-                {body}
-              </div>
-            )
-          })}
+        <div className="l2g-workbench__rail" role="list">
+          {rail.map((slot, i) => (
+            <Link
+              key={slot.label}
+              to={slot.to}
+              role="listitem"
+              className={cn(
+                'l2g-workbench__rail-item',
+                slot.warn && 'l2g-workbench__rail-item--warn',
+                i > 0 && 'l2g-workbench__rail-item--div',
+              )}
+            >
+              <span className="l2g-workbench__rail-label">{slot.label}</span>
+              <span
+                className={cn(
+                  'l2g-workbench__rail-value',
+                  slot.money && 'dd-money-gold',
+                  slot.warn && 'text-warning',
+                )}
+              >
+                <CountUp value={slot.value} money={slot.money} />
+              </span>
+            </Link>
+          ))}
         </div>
       </section>
 
-      {/* 主区：待办订单列表 */}
-      <section className="l2g-glass-panel l2g-workbench__focus ds-rise" aria-label="待办订单">
-        <div className="l2g-glass-panel__head">
-          <div>
-            <h2 className="l2g-datacenter__heading l2g-datacenter__heading--inline">待办订单</h2>
-            <p className="l2g-glass-panel__meta">
+      {/* Linear：密列表作主区；闲鱼：状态小胶囊 */}
+      <section className="l2g-workbench__focus ds-rise" aria-label="待办订单">
+        <div className="l2g-workbench__focus-head">
+          <div className="min-w-0">
+            <h2 className="l2g-workbench__focus-title">待办订单</h2>
+            <p className="l2g-workbench__focus-meta">
               共 {wb.followCount} 条 · 催单 {wb.chaseCount} · 到期 {wb.dueCount}
             </p>
           </div>
@@ -260,16 +244,25 @@ export default function Dashboard() {
           </Empty>
         ) : (
           <ul className="l2g-workbench__list">
-            {focusList.map(({ kind, order: o }) => (
+            {visibleList.map(({ kind, order: o }) => (
               <li key={`${kind}-${o.id}`} className="l2g-workbench__row">
                 <button
                   type="button"
                   className="l2g-workbench__row-main"
                   onClick={() => openEdit(o.id)}
                 >
+                  <span
+                    className={cn(
+                      'l2g-workbench__row-dot',
+                      kind === 'due' ? 'l2g-workbench__row-dot--due' : 'l2g-workbench__row-dot--chase',
+                    )}
+                    aria-hidden="true"
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="truncate text-sm font-medium">{o.nickname || '未命名'}</span>
+                      <span className="truncate text-sm font-medium text-foreground">
+                        {o.nickname || '未命名'}
+                      </span>
                       <Tag tone={statusTone[o.status]}>{o.status}</Tag>
                       {kind === 'due' ? (
                         <span className="text-xs font-medium text-warning tabular-nums">
@@ -289,9 +282,6 @@ export default function Dashboard() {
                   </span>
                 </button>
                 <div className="l2g-workbench__row-actions">
-                  <Button variant="secondary" size="sm" onClick={() => openEdit(o.id)} title="打开处理">
-                    开
-                  </Button>
                   {(o.status === '待处理' || o.status === '进行中') && (
                     <Button
                       variant="ghost"
@@ -299,6 +289,7 @@ export default function Dashboard() {
                       icon={CheckCircle2}
                       onClick={() => onComplete(o.id)}
                       title="标完成"
+                      aria-label="标完成"
                     >
                       完成
                     </Button>
@@ -310,12 +301,17 @@ export default function Dashboard() {
         )}
 
         <div className="l2g-workbench__focus-foot">
-          <Link to="/orders" className="l2g-capsule l2g-capsule--ghost inline-flex items-center gap-1">
-            去订单全列表 <ArrowRight size={14} aria-hidden="true" />
-          </Link>
-          <Link to="/todo" className="l2g-capsule l2g-capsule--ghost inline-flex items-center gap-1">
-            去待办 <ArrowRight size={14} aria-hidden="true" />
-          </Link>
+          {hiddenCount > 0 ? (
+            <Link to={viewAllTo} className="l2g-workbench__more">
+              还有 {hiddenCount} 条，查看全部
+              <ArrowRight size={14} aria-hidden="true" />
+            </Link>
+          ) : (
+            <Link to="/orders" className="l2g-workbench__more l2g-workbench__more--quiet">
+              订单列表
+              <ArrowRight size={14} aria-hidden="true" />
+            </Link>
+          )}
         </div>
       </section>
     </div>
@@ -323,7 +319,7 @@ export default function Dashboard() {
 }
 
 function Empty({ children }: { children: ReactNode }) {
-  return <div className="py-12 text-center text-sm text-muted-foreground">{children}</div>
+  return <div className="py-14 text-center text-sm text-muted-foreground">{children}</div>
 }
 
 function formatClock() {
