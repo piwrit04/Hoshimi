@@ -35,6 +35,9 @@ export default function MainLayout() {
 
   return (
     <div className="l2g-shell relative h-screen w-screen flex overflow-hidden text-foreground font-sans transition-colors duration-300">
+      <a href="#main-content" className="l2g-skip-link">
+        跳到主内容
+      </a>
       <AppWallpaper />
       <FloatingSearch />
 
@@ -58,7 +61,9 @@ export default function MainLayout() {
               transition={instant ? { duration: 0 } : { duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
               className="min-h-full"
             >
-              <Outlet />
+              <main id="main-content" className="min-h-full outline-none" tabIndex={-1}>
+                <Outlet />
+              </main>
             </motion.div>
           </AnimatePresence>
         </Scrollbar>

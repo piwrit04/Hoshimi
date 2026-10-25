@@ -1,5 +1,5 @@
 import { Link, useSearchParams } from 'react-router-dom'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type KeyboardEvent, type ReactNode } from 'react'
 import {
   ArrowRight,
   CheckCircle2,
@@ -26,6 +26,8 @@ import type { Order, OrderStatus } from '@/domain/order'
  */
 
 type FocusTab = 'all' | 'chase' | 'due'
+
+const FOCUS_TABS: FocusTab[] = ['all', 'chase', 'due']
 
 /** 首页一屏能看完，不放分页 */
 const HOME_LIST_LIMIT = 8
@@ -79,6 +81,21 @@ export default function Dashboard() {
       },
       { replace: true },
     )
+  }
+
+  const onFocusTabKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return
+    e.preventDefault()
+    const i = FOCUS_TABS.indexOf(focusTab)
+    let next = i
+    if (e.key === 'ArrowLeft') next = (i - 1 + FOCUS_TABS.length) % FOCUS_TABS.length
+    else if (e.key === 'ArrowRight') next = (i + 1) % FOCUS_TABS.length
+    else if (e.key === 'Home') next = 0
+    else if (e.key === 'End') next = FOCUS_TABS.length - 1
+    const nextTab = FOCUS_TABS[next]
+    setFocusTab(nextTab)
+    const tabs = e.currentTarget.querySelectorAll<HTMLElement>('[role="tab"]')
+    tabs[next]?.focus()
   }
 
   const m = useMemo(() => dashboard({ orders, customers, settings }), [orders, customers, settings])
@@ -210,7 +227,7 @@ export default function Dashboard() {
               共 {wb.followCount} 条 · 催单 {wb.chaseCount} · 到期 {wb.dueCount}
             </p>
           </div>
-          <div className="flex items-center gap-1 flex-wrap" role="tablist" aria-label="处理筛选">
+          <div className="flex items-center gap-1 flex-wrap" role="tablist" aria-label="待办筛选" onKeyDown={onFocusTabKeyDown}>
             {(
               [
                 { id: 'all' as const, label: '全部' },
@@ -223,6 +240,7 @@ export default function Dashboard() {
                 type="button"
                 role="tab"
                 aria-selected={focusTab === t.id}
+                tabIndex={focusTab === t.id ? 0 : -1}
                 className={cn(
                   'l2g-capsule',
                   focusTab === t.id ? 'l2g-capsule--on' : 'l2g-capsule--ghost',

@@ -40,17 +40,28 @@
    @reference 必须留在 layer 外。 */
 @layer components {
   .btn-base {
-    @apply inline-flex items-center justify-center font-semibold select-none transition-all duration-200;
-    white-space: nowrap; /* shadcn：按钮文字永不换行 */
+    @apply inline-flex items-center justify-center font-semibold select-none;
+    white-space: nowrap;
     border-radius: var(--radius-pill);
     min-height: 40px;
     min-width: 88px;
     padding: 0 var(--space-5);
     gap: 8px;
     position: relative;
-    outline: none;
     font-size: 14px;
     line-height: 20px;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      opacity 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .btn-base:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
   }
 
   /* 点击反馈：按下去轻微缩小 */
