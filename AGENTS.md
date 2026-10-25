@@ -271,15 +271,15 @@ npm run dev            # 或 npm run preview
 | H7 | 深色下 TitleBar 搜索框是写死的白色胶囊 | 换成 `bg-secondary/80` / `border-border` / `focus:ring-primary/20` 全套 token |
 | H8 | 浅色 Windows 首启闪一下 | `useThemeStore` 初始化改走 `getInitialTheme()`，与 `index.html` 预挂载脚本同一套判断 |
 
-**还没修的**：`AUDIT.md` 里 42 条中 + 70 条低严重度，绝大多数是**无障碍**（aria 标签、键盘导航、焦点管理）、
+**还没修的**：`docs/archive/AUDIT.md` 里 42 条中 + 70 条低严重度，绝大多数是**无障碍**（aria 标签、键盘导航、焦点管理）、
 浮层边缘情况（Tooltip 定位、滚动锁引用计数）和死代码清理。这些**不挡业务页面开发**，但做正式页面时遇到
-再按簇修。需要用户拍板的设计决定（D1–D10）仍列在 `AUDIT.md` 第 6 节。
+再按簇修。需要用户拍板的设计决定（D1–D10）仍列在 `docs/archive/AUDIT.md` 第 6 节。
 
 **`error` 与 `danger` 两套词汇现在是这样分的**：反馈面（notice / alert / result / toast）用 `error`，
 数据面（tag / badge-dot / stat / timeline / diffbar）用 `danger`。新增反馈类组件用 `FeedbackTone`，
 新增数据展示类用 `SemanticTone`，别混。
 
-**完整清单在 `AUDIT.md`** —— 高严重度已划掉，中低严重度未动。修之前先读第 1 节根因簇。
+**完整清单在 `docs/archive/AUDIT.md`** —— 高严重度已划掉，中低严重度未动。修之前先读第 1 节根因簇。
 
 ---
 

@@ -101,7 +101,7 @@
 
 ### Linear/Raycast 控制台 + 排版间距（客户原文入库）
 
-完整排版 Prompt（问题诊断 + 只改间距/层次、不动配色）见：[`docs/UI-SPACING-PROMPT.md`](docs/UI-SPACING-PROMPT.md)。**对照原文落地，禁止口头缩写成一句。**
+完整排版 Prompt（问题诊断 + 只改间距/层次、不动配色）见：[`docs/prompts/UI-SPACING-PROMPT.md`](docs/prompts/UI-SPACING-PROMPT.md)。**对照原文落地，禁止口头缩写成一句。**
 
 摘要清单：
 
@@ -116,7 +116,7 @@
 
 ### 表格全宽 + 筛选栏单行（客户原文）
 
-全文见 [`docs/UI-TABLE-WIDTH-FILTER-PROMPT.md`](docs/UI-TABLE-WIDTH-FILTER-PROMPT.md)。
+全文见 [`docs/prompts/UI-TABLE-WIDTH-FILTER-PROMPT.md`](docs/prompts/UI-TABLE-WIDTH-FILTER-PROMPT.md)。
 
 1. 表容器 / 主区 / 表：`width: 100%; max-width: none`
 2. 筛选栏：`nowrap` + `space-between`（分段左、搜索筛选右）
@@ -135,7 +135,7 @@
 
 ### 分段文字色 + 订单页头按钮布局（客户原文）
 
-全文见 [`docs/UI-SEG-HEADER-ACTIONS-PROMPT.md`](docs/UI-SEG-HEADER-ACTIONS-PROMPT.md)。
+全文见 [`docs/prompts/UI-SEG-HEADER-ACTIONS-PROMPT.md`](docs/prompts/UI-SEG-HEADER-ACTIONS-PROMPT.md)。
 
 1. 分段未激活：`foreground/0.6`（悬停 `/0.85`），勿用 muted 灰死
 2. 页头左右：`__title-group` | `__actions`（导出+新建），`gap: 0.75rem`

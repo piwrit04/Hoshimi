@@ -63,26 +63,35 @@ start.bat
 
 ```
 Hoshimi/
-├── electron/              # Electron 主进程
-│   ├── main.cjs          # 主进程入口
-│   ├── preload.cjs       # 预加载脚本
-│   └── build/            # 应用图标
-├── src/                  # React 渲染进程
-│   ├── components/       # UI 组件
-│   ├── pages/            # 页面组件
-│   ├── store/            # Zustand 状态管理
-│   ├── styles/           # 全局样式
-│   └── lib/              # 工具函数
-├── scripts/              # 构建脚本
-├── dist/                 # 构建输出（.gitignore）
-└── start.bat             # Windows 启动脚本
+├── electron/              # Electron 主进程（main / preload / 图标）
+├── src/                   # React 渲染进程
+│   ├── components/        # UI / layout / auth 等
+│   ├── pages/             # 订单、客户、仪表盘等页面
+│   ├── domain/            # 业务逻辑与领域模型
+│   ├── storage/           # 本地持久化（IndexedDB）
+│   ├── store/             # Zustand 状态
+│   ├── styles/            # 主题与全局样式
+│   └── lib/               # 工具与同步
+├── public/                # 静态资源（字体、壁纸）
+├── scripts/               # 构建与开发辅助脚本
+├── supabase/              # 云端迁移
+├── docs/                  # 产品 / 功能 / 归档文档
+│   ├── FEATURES.md
+│   ├── PRD.md
+│   ├── prompts/           # UI 改版 Prompt
+│   └── archive/           # 审计、重构进度、历史修复记录
+├── DESIGN.md              # 设计系统（改 UI 必读）
+├── AGENTS.md              # AI / 协作操作守则
+├── CLAUDE.md              # Claude 入口（指向 AGENTS）
+├── start.bat              # Windows 启动脚本
+└── package.json
 ```
 
 ## 特殊说明
 
 ### Windows 沙箱限制
 
-如果你的系统存在 `CodexSandboxUsers` 安全限制，应用已配置为使用 `--no-sandbox` 模式启动。详见 [ELECTRON-FIX-FINAL.md](./ELECTRON-FIX-FINAL.md)。
+如果你的系统存在 `CodexSandboxUsers` 安全限制，应用已配置为使用 `--no-sandbox` 模式启动。详见 [docs/archive/ELECTRON-FIX-FINAL.md](./docs/archive/ELECTRON-FIX-FINAL.md)。
 
 ### 中国镜像源
 
@@ -94,10 +103,12 @@ ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/
 
 ## 开发文档
 
-- [PRD.md](./PRD.md) - 产品需求文档
-- [DESIGN.md](./DESIGN.md) - 设计文档
-- [CLAUDE.md](./CLAUDE.md) - AI 协作指南
-- [ELECTRON-FIX-FINAL.md](./ELECTRON-FIX-FINAL.md) - Electron 问题修复记录
+- [DESIGN.md](./DESIGN.md) — 设计系统（改界面必读）
+- [AGENTS.md](./AGENTS.md) — AI / 协作操作守则
+- [CLAUDE.md](./CLAUDE.md) — Claude 入口
+- [docs/FEATURES.md](./docs/FEATURES.md) — 功能现状
+- [docs/PRD.md](./docs/PRD.md) — 产品需求
+- [docs/archive/](./docs/archive/) — 审计、重构进度、Electron 修复等历史记录
 
 ## 许可证
 

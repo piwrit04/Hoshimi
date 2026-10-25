@@ -1,7 +1,7 @@
 # 功能说明 · 星笺
 
-> 与代码同步的现状说明。UI Prompt 原文仍在 `docs/UI-*.md`；视觉规格见 `DESIGN.md`。
-> 扫尾纪要见 [`FEATURE-SWEEP-2026-10.md`](./FEATURE-SWEEP-2026-10.md)。
+> 与代码同步的现状说明。UI Prompt 原文仍在 `docs/prompts/UI-*.md`；视觉规格见 `DESIGN.md`。
+> 扫尾纪要见 [`FEATURE-SWEEP-2026-10.md`](./archive/FEATURE-SWEEP-2026-10.md)。
 
 ---
 

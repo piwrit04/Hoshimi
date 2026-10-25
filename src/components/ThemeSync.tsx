@@ -1,4 +1,4 @@
-﻿import { useEffect } from 'react'
+import { useEffect } from 'react'
 import { useThemeStore } from '@/store/useThemeStore'
 
 function applyTheme(theme: 'dark' | 'light') {

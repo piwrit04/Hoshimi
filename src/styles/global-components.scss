@@ -28,7 +28,7 @@
 */
 
 /* 簇 A 修复：组件规则进 @layer components，
-   让 Tailwind utilities 能覆盖同属性（见 AUDIT.md D1）。
+   让 Tailwind utilities 能覆盖同属性（见 docs/archive/AUDIT.md D1）。
    @reference 必须留在 layer 外。 */
 @layer components {
   .dd-control {
