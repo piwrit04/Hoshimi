@@ -1425,3 +1425,103 @@
   margin-top: 0;
   flex-shrink: 0;
 }
+
+/* ===== 工作台壳（第一视觉稿）===== */
+.l2g-capsule--on {
+  background: hsl(var(--primary) / 0.15);
+  color: var(--brand-hex);
+  border: 1px solid hsl(var(--primary) / 0.45);
+}
+:root[data-theme="light"] .l2g-capsule--on {
+  color: var(--brand-text-hex);
+}
+.l2g-workbench__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(240px, 0.9fr);
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 1024px) {
+  .l2g-workbench__grid { grid-template-columns: 1fr; }
+}
+.l2g-workbench__focus {
+  padding: 16px 18px 14px;
+}
+.l2g-workbench__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.l2g-workbench__row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.02);
+  padding: 6px 8px 6px 4px;
+  transition: border-color .15s ease, background .15s ease;
+}
+:root[data-theme="light"] .l2g-workbench__row {
+  border-color: #e2e8f0;
+  background: #fff;
+}
+.l2g-workbench__row:hover {
+  border-color: rgba(var(--brand-rgb), 0.4);
+  background: rgba(var(--brand-rgb), 0.06);
+}
+.l2g-workbench__row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.l2g-workbench__row-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.l2g-workbench__focus-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+:root[data-theme="light"] .l2g-workbench__focus-foot {
+  border-top-color: #e2e8f0;
+}
+.l2g-workbench__side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.l2g-workbench__side-card {
+  padding: 14px 16px;
+}
+.l2g-workbench__side-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin: 0;
+}
+.l2g-workbench__side-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-top: 6px;
+}
+.l2g-workbench__side-card--placeholder {
+  border-style: dashed;
+  opacity: 0.92;
+}

@@ -1,6 +1,6 @@
 import { useEffect, memo, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Boxes, Settings, Menu, PlusCircle, LayoutList, Users, ListTodo } from 'lucide-react';
+import { LayoutDashboard, Boxes, Settings, Menu, PlusCircle, LayoutList, Users, ListTodo } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSidebarStore } from '@/store/useSidebarStore';
 import { useNewOrderStore } from '@/store/useNewOrderStore';
@@ -19,8 +19,8 @@ import { workbench } from '@/domain/workbench';
  */
 
 type NavItemType =
-  | { icon: typeof Home; label: string; path: string; modal?: false; badge?: number }
-  | { icon: typeof Home; label: string; modal: true; badge?: number };
+  | { icon: typeof LayoutDashboard; label: string; path: string; modal?: false; badge?: number }
+  | { icon: typeof LayoutDashboard; label: string; modal: true; badge?: number };
 
 /* 分组参照 shadcn dashboard-01：顶部主操作「新建订单」，下面「工作台」「系统」两组 */
 const quickCreate: NavItemType = { icon: PlusCircle, label: '新建订单', modal: true };
@@ -28,7 +28,7 @@ const navGroups: { label: string; items: NavItemType[] }[] = [
   {
     label: '工作台',
     items: [
-      { icon: Home, label: '概览', path: '/dashboard' },
+      { icon: LayoutDashboard, label: '工作台', path: '/dashboard' },
       { icon: LayoutList, label: '订单', path: '/orders' },
       { icon: ListTodo, label: '待办', path: '/todo' },
       { icon: Users, label: '客户', path: '/customers' },
@@ -232,11 +232,11 @@ export function Sidebar({ showLogo = true }: { showLogo?: boolean }) {
               const withBadge =
                 !('modal' in item && item.modal) &&
                 'path' in item &&
-                item.path === '/todo' &&
+                item.path === '/dashboard' &&
                 todoBadge > 0
                   ? { ...item, badge: todoBadge }
                   : item;
-              return <NavItem key={item.label} item={withBadge} isCollapsed={isCollapsed} />;
+              return <NavItem key={'path' in item ? item.path : item.label} item={withBadge} isCollapsed={isCollapsed} />;
             })}
           </div>
         ))}

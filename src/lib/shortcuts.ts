@@ -12,7 +12,7 @@ export const SHORTCUT_ITEMS: ShortcutItem[] = [
   { group: '通用', keys: ['?'], label: '打开快捷键一览' },
   { group: '通用', keys: ['Esc'], label: '关闭浮层 / 收起侧栏' },
   { group: '账本', keys: ['N'], label: '新建订单' },
-  { group: '导航', keys: ['1'], label: '概览' },
+  { group: '导航', keys: ['1'], label: '工作台' },
   { group: '导航', keys: ['2'], label: '订单' },
   { group: '导航', keys: ['3'], label: '待办' },
   { group: '导航', keys: ['4'], label: '客户' },
