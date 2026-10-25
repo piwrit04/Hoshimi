@@ -17,7 +17,7 @@
 
 **风格源（已锁）**：`/workspace/liver2go`（Liver2Go）为首页 / 壳层 / 字体气质 / 表格表皮的主参考——粉→紫渐变、玻璃光晕、侧栏选中胶囊、表头粉紫条、粉光阴影。保留星笺粉色品牌与**控件胶囊**圆角；不做整页壁纸/樱花特效（桌面账本场景）。Cheezit 仅保留列信息架构（客户/单号/金额·到手/状态），表皮以 Liver2Go 为准。
 
-**参考：shadcn/ui Dashboard（blocks/dashboard-01）** 仅作信息架构起点；视觉以 Liver2Go + 本节「动效三原则」为准。规格写在 `src/styles/ds.css` / `theme.css`（品牌锚 `#F472B6`）。
+**参考：shadcn/ui Dashboard（blocks/dashboard-01）** 仅作信息架构起点；视觉以 Liver2Go + 本节「动效三原则」为准。规格写在 `src/styles/ds.css` / `theme.css`（品牌锚 `#FF6B9D`）。
 
 | 项 | 规格 |
 |---|---|
@@ -516,6 +516,6 @@ localStorage("theme-storage")  →  zustand useThemeStore.mode ('dark' | 'light'
 
 - 全站壁纸 + 暗玻璃侧栏/顶栏（`AppWallpaper` / `l2g-glass-*`）
 - 概览：全幅大问候（轻打字机）→ 下滚才见 KPI
-- 订单到手：`#F472B6` 粉强调（非绿、非 Cheezit 金）
+- 订单到手：`#FF6B9D` 粉强调（非绿、非 Cheezit 金）
 - 行悬停：粉描边（edge），不做粉底铺满
 - 氛围粒子默认关；设置「氛围粒子」/壁纸路径 stub
