@@ -3,9 +3,7 @@ import { useEffect, useMemo, useState, type KeyboardEvent, type ReactNode } from
 import {
   ArrowRight,
   CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
-  FlipHorizontal2,
+  PanelRightOpen,
   PlusCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -31,9 +29,6 @@ import type { Order, OrderStatus } from '@/domain/order'
 type FocusTab = 'all' | 'chase' | 'due'
 
 const FOCUS_TABS: FocusTab[] = ['all', 'chase', 'due']
-
-/** Visible compact cards per page */
-const CARDS_PER_PAGE = 4
 
 function parseFocus(raw: string | null): FocusTab {
   if (raw === 'chase' || raw === 'due' || raw === 'all') return raw
@@ -67,21 +62,6 @@ export default function Dashboard() {
 
   const [clock, setClock] = useState(() => formatClock())
   const focusTab = parseFocus(searchParams.get('focus'))
-  const [flippedIds, setFlippedIds] = useState<Record<string, boolean>>({})
-  const cardPageRaw = Number.parseInt(searchParams.get('page') ?? '1', 10)
-  const cardPage = Number.isFinite(cardPageRaw) && cardPageRaw > 0 ? cardPageRaw - 1 : 0
-
-  const setCardPage = (page: number) => {
-    setSearchParams(
-      (prev) => {
-        const next = new URLSearchParams(prev)
-        if (page <= 0) next.delete('page')
-        else next.set('page', String(page + 1))
-        return next
-      },
-      { replace: true },
-    )
-  }
 
   const setFocusTab = (tab: FocusTab) => {
     setSearchParams(
@@ -127,26 +107,6 @@ export default function Dashboard() {
     const due = wb.expiring.map((o) => ({ kind: 'due' as const, order: o }))
     return [...due, ...chase]
   }, [focusTab, wb.openNormal, wb.expiring])
-
-  const pageCount = focusList.length === 0 ? 0 : Math.ceil(focusList.length / CARDS_PER_PAGE)
-  const safeCardPage = pageCount === 0 ? 0 : Math.min(cardPage, pageCount - 1)
-  const pageItems = focusList.slice(
-    safeCardPage * CARDS_PER_PAGE,
-    safeCardPage * CARDS_PER_PAGE + CARDS_PER_PAGE,
-  )
-  useEffect(() => {
-    setFlippedIds({})
-  }, [focusTab])
-
-  useEffect(() => {
-    if (pageCount > 0 && cardPage >= pageCount) {
-      setCardPage(Math.max(0, pageCount - 1))
-    }
-  }, [pageCount, cardPage])
-
-  const toggleFlip = (id: string) => {
-    setFlippedIds((prev) => ({ ...prev, [id]: !prev[id] }))
-  }
 
   const onComplete = (id: string) => {
     const before = orders.find((o) => o.id === id)
@@ -276,196 +236,72 @@ export default function Dashboard() {
             </Button>
           </Empty>
         ) : (
-          <div
-            className="l2g-workbench__deck"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (pageCount <= 1) return
-              if (e.key === 'ArrowLeft' && safeCardPage > 0) {
-                e.preventDefault()
-                setCardPage(safeCardPage - 1)
-              } else if (e.key === 'ArrowRight' && safeCardPage < pageCount - 1) {
-                e.preventDefault()
-                setCardPage(safeCardPage + 1)
-              }
-            }}
-          >
+          <div className="l2g-workbench__deck">
             <div className="l2g-workbench__card-row" role="list">
-              {pageItems.map(({ kind, order: o }) => {
-                const flipKey = `${kind}-${o.id}`
-                const flipped = !!flippedIds[flipKey]
+              {focusList.map(({ kind, order: o }) => {
+                const key = `${kind}-${o.id}`
+                const canComplete = o.status === '待处理' || o.status === '进行中'
                 return (
-                  <div key={flipKey} className="l2g-workbench__flip" role="listitem">
-                    <div
-                      className={cn(
-                        'l2g-workbench__flip-inner',
-                        flipped && 'l2g-workbench__flip-inner--flipped',
-                      )}
-                    >
-                      <article
-                        className="l2g-workbench__card l2g-workbench__card--front"
-                        aria-hidden={flipped}
-                        inert={flipped || undefined}
-                      >
-                        <div className="l2g-workbench__card-head">
-                          <span
-                            className={cn(
-                              'l2g-workbench__row-dot',
-                              kind === 'due'
-                                ? 'l2g-workbench__row-dot--due'
-                                : 'l2g-workbench__row-dot--chase',
-                            )}
-                            aria-hidden="true"
-                          />
-                          <h3 className="l2g-workbench__card-title truncate">
-                            {o.nickname || '未命名'}
-                          </h3>
-                          <button
-                            type="button"
-                            className="l2g-workbench__flip-btn"
-                            onClick={() => toggleFlip(flipKey)}
-                            aria-label="翻面"
-                            aria-pressed={flipped}
-                            title="翻面"
-                          >
-                            <FlipHorizontal2 size={16} aria-hidden="true" />
-                          </button>
-                        </div>
-                        <div className="l2g-workbench__card-tags">
-                          <Tag tone={statusTone[o.status]} className="l2g-workbench__tag">
-                            {o.status}
-                          </Tag>
-                          {kind === 'due' ? (
-                            <span className="l2g-workbench__row-kind l2g-workbench__row-kind--due">
-                              {daysUntilLabel(wb.today, o.endDate)}
-                            </span>
-                          ) : (
-                            <span className="l2g-workbench__row-kind">催单</span>
-                          )}
-                        </div>
-                        <p className="l2g-workbench__card-amount dd-money-gold tabular-nums">
-                          {yuan2(o.amount)}
-                        </p>
-                      </article>
-
-                      <article
-                        className="l2g-workbench__card l2g-workbench__card--back"
-                        aria-hidden={!flipped}
-                        inert={!flipped || undefined}
-                      >
-                        <div className="l2g-workbench__card-back-body">
-                          <div className="l2g-workbench__card-head">
-                            <h3 className="l2g-workbench__card-title truncate">
-                              {o.nickname || '未命名'}
-                            </h3>
-                            <button
-                              type="button"
-                              className="l2g-workbench__flip-btn"
-                              onClick={() => toggleFlip(flipKey)}
-                              aria-label="翻回正面"
-                              aria-pressed={flipped}
-                              title="翻回正面"
-                            >
-                              <FlipHorizontal2 size={16} aria-hidden="true" />
-                            </button>
-                          </div>
-                          <p className="l2g-workbench__card-sub">
-                            {orderTitle(o)}
-                            {o.contact ? ` · ${o.contact}` : ''}
-                          </p>
-                          <p className="l2g-workbench__card-amount dd-money-gold tabular-nums">
-                            {yuan2(o.amount)}
-                          </p>
-                          <div className="l2g-workbench__card-actions">
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              onClick={() => openEdit(o.id)}
-                            >
-                              打开
-                            </Button>
-                            {(o.status === '待处理' ||
-                              o.status === '进行中') && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                icon={CheckCircle2}
-                                onClick={() => onComplete(o.id)}
-                                title="标完成"
-                                aria-label="标完成"
-                              >
-                                完成
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </article>
+                  <article key={key} className="l2g-workbench__card" role="listitem">
+                    <div className="l2g-workbench__card-head">
+                      <span
+                        className={cn(
+                          'l2g-workbench__row-dot',
+                          kind === 'due'
+                            ? 'l2g-workbench__row-dot--due'
+                            : 'l2g-workbench__row-dot--chase',
+                        )}
+                        aria-hidden="true"
+                      />
+                      <h3 className="l2g-workbench__card-title">
+                        {o.nickname || '未命名'}
+                      </h3>
                     </div>
-                  </div>
+                    <div className="l2g-workbench__card-tags">
+                      <Tag tone={statusTone[o.status]} className="l2g-workbench__tag">
+                        {o.status}
+                      </Tag>
+                      {kind === 'due' ? (
+                        <span className="l2g-workbench__row-kind l2g-workbench__row-kind--due">
+                          {daysUntilLabel(wb.today, o.endDate)}
+                        </span>
+                      ) : (
+                        <span className="l2g-workbench__row-kind">催单</span>
+                      )}
+                    </div>
+                    <p className="l2g-workbench__card-sub">
+                      {orderTitle(o)}
+                      {o.contact ? ` · ${o.contact}` : ''}
+                    </p>
+                    <p className="l2g-workbench__card-amount dd-money-gold tabular-nums">
+                      {yuan2(o.amount)}
+                    </p>
+                    <div className="l2g-workbench__card-actions">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        icon={PanelRightOpen}
+                        onClick={() => openEdit(o.id)}
+                      >
+                        打开
+                      </Button>
+                      {canComplete ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          icon={CheckCircle2}
+                          onClick={() => onComplete(o.id)}
+                          title="标完成"
+                          aria-label="标完成"
+                        >
+                          完成
+                        </Button>
+                      ) : null}
+                    </div>
+                  </article>
                 )
               })}
             </div>
-
-            {pageCount > 1 ? (
-              <div
-                className="l2g-workbench__pager"
-                role="navigation"
-                aria-label="待办翻页"
-                onKeyDown={(e) => {
-                  if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return
-                  const target = e.target as HTMLElement
-                  if (!target.closest('.l2g-workbench__pager-dots')) return
-                  e.preventDefault()
-                  let next = safeCardPage
-                  if (e.key === 'ArrowLeft') next = Math.max(0, safeCardPage - 1)
-                  else if (e.key === 'ArrowRight') next = Math.min(pageCount - 1, safeCardPage + 1)
-                  else if (e.key === 'Home') next = 0
-                  else if (e.key === 'End') next = pageCount - 1
-                  setCardPage(next)
-                  const dots = e.currentTarget.querySelectorAll<HTMLElement>('.l2g-workbench__pager-dot')
-                  dots[next]?.focus()
-                }}
-              >
-                <button
-                  type="button"
-                  className="l2g-workbench__pager-btn"
-                  disabled={safeCardPage <= 0}
-                  onClick={() => setCardPage(safeCardPage - 1)}
-                  aria-label="上一页"
-                >
-                  <ChevronLeft size={18} aria-hidden="true" />
-                </button>
-                <div className="l2g-workbench__pager-dots" role="tablist" aria-label="页码">
-                  {Array.from({ length: pageCount }, (_, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      role="tab"
-                      aria-selected={i === safeCardPage}
-                      aria-label={`第 ${i + 1} 页，共 ${pageCount} 页`}
-                      tabIndex={i === safeCardPage ? 0 : -1}
-                      className={cn(
-                        'l2g-workbench__pager-dot',
-                        i === safeCardPage && 'l2g-workbench__pager-dot--on',
-                      )}
-                      onClick={() => setCardPage(i)}
-                    />
-                  ))}
-                </div>
-                <span className="l2g-workbench__pager-pos tabular-nums" aria-live="polite">
-                  {safeCardPage + 1} / {pageCount}
-                </span>
-                <button
-                  type="button"
-                  className="l2g-workbench__pager-btn"
-                  disabled={safeCardPage >= pageCount - 1}
-                  onClick={() => setCardPage(safeCardPage + 1)}
-                  aria-label="下一页"
-                >
-                  <ChevronRight size={18} aria-hidden="true" />
-                </button>
-              </div>
-            ) : null}
           </div>
         )}
 
