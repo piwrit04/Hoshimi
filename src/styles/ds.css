@@ -1569,8 +1569,8 @@
   content: "";
   position: absolute;
   left: 0;
-  top: 2px;
-  bottom: 2px;
+  top: 0;
+  bottom: 0;
   width: 1px;
   background: rgba(255, 255, 255, 0.12);
   border-radius: 0;
@@ -1685,7 +1685,7 @@ a.l2g-workbench__rail-item:focus-visible {
   flex-direction: column;
   gap: 10px;
   min-height: 0;
-  padding: 16px 16px 10px;
+  padding: 16px 16px 6px;
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.09);
@@ -1760,7 +1760,7 @@ a.l2g-workbench__rail-item:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-top: auto;
+  margin-top: 2px;
   padding-top: 0;
   min-width: 0;
 }
