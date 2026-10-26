@@ -318,15 +318,15 @@ export default function Dashboard() {
                             aria-hidden="true"
                           />
                           <h3 className="l2g-workbench__card-title truncate">
-                            {o.nickname || '\u672a\u547d\u540d'}
+                            {o.nickname || '未命名'}
                           </h3>
                           <button
                             type="button"
                             className="l2g-workbench__flip-btn"
                             onClick={() => toggleFlip(flipKey)}
-                            aria-label="\u7ffb\u9762"
+                            aria-label="翻面"
                             aria-pressed={flipped}
-                            title="\u7ffb\u9762"
+                            title="翻面"
                           >
                             <FlipHorizontal2 size={16} aria-hidden="true" />
                           </button>
@@ -340,7 +340,7 @@ export default function Dashboard() {
                               {daysUntilLabel(wb.today, o.endDate)}
                             </span>
                           ) : (
-                            <span className="l2g-workbench__row-kind">\u50ac\u5355</span>
+                            <span className="l2g-workbench__row-kind">催单</span>
                           )}
                         </div>
                         <p className="l2g-workbench__card-amount dd-money-gold tabular-nums">
@@ -356,22 +356,22 @@ export default function Dashboard() {
                         <div className="l2g-workbench__card-back-body">
                           <div className="l2g-workbench__card-head">
                             <h3 className="l2g-workbench__card-title truncate">
-                              {o.nickname || '\u672a\u547d\u540d'}
+                              {o.nickname || '未命名'}
                             </h3>
                             <button
                               type="button"
                               className="l2g-workbench__flip-btn"
                               onClick={() => toggleFlip(flipKey)}
-                              aria-label="\u7ffb\u56de\u6b63\u9762"
+                              aria-label="翻回正面"
                               aria-pressed={flipped}
-                              title="\u7ffb\u56de\u6b63\u9762"
+                              title="翻回正面"
                             >
                               <FlipHorizontal2 size={16} aria-hidden="true" />
                             </button>
                           </div>
                           <p className="l2g-workbench__card-sub">
                             {orderTitle(o)}
-                            {o.contact ? ` \u00b7 ${o.contact}` : ''}
+                            {o.contact ? ` · ${o.contact}` : ''}
                           </p>
                           <p className="l2g-workbench__card-amount dd-money-gold tabular-nums">
                             {yuan2(o.amount)}
@@ -382,19 +382,19 @@ export default function Dashboard() {
                               size="sm"
                               onClick={() => openEdit(o.id)}
                             >
-                              \u6253\u5f00
+                              打开
                             </Button>
-                            {(o.status === '\u5f85\u5904\u7406' ||
-                              o.status === '\u8fdb\u884c\u4e2d') && (
+                            {(o.status === '待处理' ||
+                              o.status === '进行中') && (
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 icon={CheckCircle2}
                                 onClick={() => onComplete(o.id)}
-                                title="\u6807\u5b8c\u6210"
-                                aria-label="\u6807\u5b8c\u6210"
+                                title="标完成"
+                                aria-label="标完成"
                               >
-                                \u5b8c\u6210
+                                完成
                               </Button>
                             )}
                           </div>
@@ -410,7 +410,7 @@ export default function Dashboard() {
               <div
                 className="l2g-workbench__pager"
                 role="navigation"
-                aria-label="\u5f85\u529e\u7ffb\u9875"
+                aria-label="待办翻页"
                 onKeyDown={(e) => {
                   if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return
                   const target = e.target as HTMLElement
@@ -431,18 +431,18 @@ export default function Dashboard() {
                   className="l2g-workbench__pager-btn"
                   disabled={safeCardPage <= 0}
                   onClick={() => setCardPage(safeCardPage - 1)}
-                  aria-label="\u4e0a\u4e00\u9875"
+                  aria-label="上一页"
                 >
                   <ChevronLeft size={18} aria-hidden="true" />
                 </button>
-                <div className="l2g-workbench__pager-dots" role="tablist" aria-label="\u9875\u7801">
+                <div className="l2g-workbench__pager-dots" role="tablist" aria-label="页码">
                   {Array.from({ length: pageCount }, (_, i) => (
                     <button
                       key={i}
                       type="button"
                       role="tab"
                       aria-selected={i === safeCardPage}
-                      aria-label={`\u7b2c ${i + 1} \u9875\uff0c\u5171 ${pageCount} \u9875`}
+                      aria-label={`第 ${i + 1} 页，共 ${pageCount} 页`}
                       tabIndex={i === safeCardPage ? 0 : -1}
                       className={cn(
                         'l2g-workbench__pager-dot',
@@ -460,7 +460,7 @@ export default function Dashboard() {
                   className="l2g-workbench__pager-btn"
                   disabled={safeCardPage >= pageCount - 1}
                   onClick={() => setCardPage(safeCardPage + 1)}
-                  aria-label="\u4e0b\u4e00\u9875"
+                  aria-label="下一页"
                 >
                   <ChevronRight size={18} aria-hidden="true" />
                 </button>
