@@ -480,7 +480,6 @@
 .l2g-nav-active {
   background: rgba(var(--brand-rgb), 0.12) !important;
   color: var(--brand-hex) !important;
-  box-shadow: inset 2px 0 0 0 var(--brand-hex);
   border: 1px solid transparent;
   border-radius: 10px !important;
 }
@@ -488,7 +487,6 @@
 :root[data-theme="light"] .l2g-nav-active {
   background: rgba(var(--brand-rgb), 0.1) !important;
   color: var(--brand-text-hex) !important;
-  box-shadow: inset 2px 0 0 0 var(--brand-text-hex);
 }
 :root[data-theme="light"] .l2g-nav-active svg { color: var(--brand-text-hex) !important; }
 

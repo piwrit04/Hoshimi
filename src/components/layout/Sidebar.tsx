@@ -79,7 +79,7 @@ const NavItem = memo(function NavItem({
   const row = (isActive: boolean) => (
     <>
       {badgeCount && isCollapsed ? (
-        <Badge count={badgeCount} tone="warning">
+        <Badge count={badgeCount} tone="brand">
           {iconEl(isActive)}
         </Badge>
       ) : (
@@ -91,8 +91,8 @@ const NavItem = memo(function NavItem({
           className={cn(
             'ml-auto inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-[11px] font-medium tabular-nums',
             isActive
-              ? 'bg-brand/15 text-brand'
-              : 'bg-secondary text-muted-foreground group-hover:text-foreground',
+              ? 'bg-brand text-on-brand'
+              : 'bg-brand/15 text-brand',
           )}
         >
           {badgeCount > 99 ? '99+' : badgeCount}
