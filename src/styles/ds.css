@@ -1542,12 +1542,9 @@
   gap: 0;
   margin: 0;
   margin-left: 4px;
-  padding: 4px 0 4px 20px;
+  padding: 4px 0 4px 8px;
   list-style: none;
-  border-left: 1px solid rgba(255, 255, 255, 0.12);
-}
-:root[data-theme="light"] .l2g-workbench__rail {
-  border-left-color: hsl(var(--border));
+  border-left: none;
 }
 .l2g-workbench__rail-item {
   display: flex;
@@ -1590,8 +1587,13 @@ a.l2g-workbench__rail-item:focus-visible {
   outline-offset: 2px;
 }
 .l2g-workbench__rail-item--warn .l2g-workbench__rail-label {
-  color: hsl(var(--warning));
+  /* clear rose, brand-adjacent — avoid muddy amber warning */
+  color: #f07890;
   opacity: 1;
+  font-weight: 500;
+}
+:root[data-theme="light"] .l2g-workbench__rail-item--warn .l2g-workbench__rail-label {
+  color: #e05a74;
 }
 .l2g-workbench__rail-label {
   font-size: 12px;
@@ -1685,7 +1687,7 @@ a.l2g-workbench__rail-item:focus-visible {
   flex-direction: column;
   gap: 10px;
   min-height: 0;
-  padding: 16px 16px 6px;
+  padding: 16px 16px 10px;
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.09);
@@ -1760,9 +1762,11 @@ a.l2g-workbench__rail-item:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-top: 2px;
+  margin-top: auto;
   padding-top: 0;
   min-width: 0;
+  /* nudge amount+actions up without shrinking card */
+  transform: translateY(-3px);
 }
 .l2g-workbench__card-amount {
   margin: 0;
