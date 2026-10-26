@@ -1443,7 +1443,11 @@
 /* 工作台：Shopify 主数字 + Linear 密列表（一屏、无分页） */
 /* -- workbench hierarchy (structure fixed: hero strip + dense list <=8) -- */
 .l2g-workbench {
-  gap: 24px;
+  gap: 18px;
+}
+/* avoid stacking with .l2g-orders-head margin-bottom (was ~48px to hero) */
+.l2g-workbench > .l2g-orders-head {
+  margin-bottom: 0;
 }
 
 .l2g-workbench__hero {
