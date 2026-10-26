@@ -583,7 +583,7 @@ export function FloatButton({
       onClick={onClick}
       className={cn('dd-float-btn', brand && 'dd-float-btn--brand', className)}
     >
-      <Icon size={18} />
+      <Icon size={18} aria-hidden="true" />
     </button>
   )
 }

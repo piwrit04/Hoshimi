@@ -1,4 +1,5 @@
 import { useState, type ComponentType, type ReactNode } from 'react'
+import { EXTRA_FORM_DEMOS } from './extra-demos'
 import {
   Calendar,
   Clock,
@@ -1020,6 +1021,7 @@ export const FORM_DEMOS: Record<string, ComponentType> = {
   'c-upload': UploadDemo,
   'c-datepicker': DatePickerDemo,
   'c-timepicker': TimePickerDemo,
+  ...EXTRA_FORM_DEMOS,
 }
 
 /* 下面这些在这个文件里只用了一部分，其余留给别的 section 复用 */

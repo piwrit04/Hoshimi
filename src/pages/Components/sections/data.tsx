@@ -1,4 +1,5 @@
 import { useState, type ComponentType, type ReactNode } from 'react'
+import { EXTRA_DATA_DEMOS } from './extra-demos'
 import {
   CheckCircle2,
   ChevronRight,
@@ -986,4 +987,5 @@ export const DATA_DEMOS: Record<string, ComponentType> = {
   'c-skeleton': SkeletonDemo,
   'c-diffbar': DiffBarDemo,
   'c-ellipsis': EllipsisDemo,
+  ...EXTRA_DATA_DEMOS,
 }

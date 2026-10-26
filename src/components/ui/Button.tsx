@@ -73,6 +73,13 @@ export function Button({
   type = 'button',
   ...rest
 }: PropsWithChildren<ButtonProps>) {
+  if (import.meta.env.DEV && iconOnly) {
+    const labelled = rest['aria-label'] || rest['aria-labelledby']
+    if (!labelled) {
+      console.warn('[Button] iconOnly 必须提供 aria-label（或 aria-labelledby）')
+    }
+  }
+
   /* 加载中一律禁用：否则用户能连点两次「提交订单」 */
   const isDisabled = disabled || loading
 

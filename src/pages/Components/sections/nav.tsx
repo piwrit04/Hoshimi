@@ -1,4 +1,5 @@
 import { useRef, useState, type ComponentType, type ReactNode } from 'react'
+import { EXTRA_NAV_DEMOS, EXTRA_FEEDBACK_DEMOS } from './extra-demos'
 import {
   AlertTriangle,
   ArrowUp,
@@ -761,6 +762,7 @@ export const NAV_DEMOS: Record<string, ComponentType> = {
   'c-drawer': DrawerDemo,
   'c-popover': PopoverDemo,
   'c-backtotop': BackToTopDemo,
+  ...EXTRA_NAV_DEMOS,
 }
 
 
@@ -873,4 +875,5 @@ export const FEEDBACK_DEMOS: Record<string, ComponentType> = {
   'c-spin': SpinDemo,
   'c-loadingbar': LoadingBarDemo,
   'c-dialog': DialogDemo,
+  ...EXTRA_FEEDBACK_DEMOS,
 }

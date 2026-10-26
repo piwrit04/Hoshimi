@@ -1,4 +1,6 @@
 import { useState, type ComponentType, type ReactNode } from 'react'
+import { AffixLiveDemo, GlobalStyleLiveDemo } from './extra-demos'
+
 import {
   Archive,
   ArrowRight,
@@ -522,43 +524,11 @@ export function LayoutDemo() {
 /* ------------------------------------------------------------------ */
 
 export function AffixDemo() {
-  return (
-    <PlannedPreview
-      title="固钉 · 计划中"
-      mock={
-        <div className="relative w-full max-w-sm h-40 rounded-lg border border-border bg-background overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-9 bg-card border-b border-border flex items-center justify-between px-3 shadow-sm z-10">
-            <span className="text-xs text-foreground">操作条（钉住）</span>
-            <span className="text-[10px] text-brand">已固定</span>
-          </div>
-          <div className="pt-12 px-3 space-y-2">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-5 rounded bg-secondary" />
-            ))}
-          </div>
-        </div>
-      }
-    />
-  )
+  return <AffixLiveDemo />
 }
 
 export function GlobalStyleDemo() {
-  return (
-    <PlannedPreview
-      title="全局样式 · 计划中"
-      mock={
-        <div className="w-full max-w-sm rounded-lg border border-border p-3 space-y-2">
-          <div className="text-xs text-muted-foreground">挂在 body 上的浮层（抽屉 / 下拉）</div>
-          <div className="rounded-md border border-border bg-popover p-3 text-sm text-popover-foreground shadow-lg">
-            我应该和页面同一套颜色
-          </div>
-          <div className="text-[10px] text-muted-foreground">
-            没有全局同步时，深色模式下这一块会是浅色的
-          </div>
-        </div>
-      }
-    />
-  )
+  return <GlobalStyleLiveDemo />
 }
 
 /* ================================================================== */
