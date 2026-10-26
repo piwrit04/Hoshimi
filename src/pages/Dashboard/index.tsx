@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState, type KeyboardEvent, type ReactNode } from
 import {
   ArrowRight,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   PlusCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -29,9 +31,6 @@ type FocusTab = 'all' | 'chase' | 'due'
 
 const FOCUS_TABS: FocusTab[] = ['all', 'chase', 'due']
 
-/** 首页一屏能看完，不放分页 */
-const HOME_LIST_LIMIT = 8
-
 function parseFocus(raw: string | null): FocusTab {
   if (raw === 'chase' || raw === 'due' || raw === 'all') return raw
   return 'all'
@@ -50,13 +49,6 @@ function orderTitle(o: Order) {
   return o.items.map((i) => i.product).join('、') || '—'
 }
 
-type RailMetric = {
-  label: string
-  value: number
-  money?: boolean
-  warn?: boolean
-  to: string
-}
 
 export default function Dashboard() {
   const orders = useOrdersStore((s) => s.orders)
@@ -70,6 +62,7 @@ export default function Dashboard() {
 
   const [clock, setClock] = useState(() => formatClock())
   const focusTab = parseFocus(searchParams.get('focus'))
+  const [cardPage, setCardPage] = useState(0)
 
   const setFocusTab = (tab: FocusTab) => {
     setSearchParams(
@@ -115,33 +108,19 @@ export default function Dashboard() {
     return [...due, ...chase]
   }, [focusTab, wb.openNormal, wb.expiring])
 
-  const visibleList = focusList.slice(0, HOME_LIST_LIMIT)
-  const hiddenCount = Math.max(0, focusList.length - visibleList.length)
+  const cardCount = focusList.length
+  const safeCardPage = cardCount === 0 ? 0 : Math.min(cardPage, cardCount - 1)
+  const activeCard = cardCount > 0 ? focusList[safeCardPage] : null
 
-  const rail: RailMetric[] = [
-    {
-      label: '今日到手',
-      value: k.payoutToday,
-      money: true,
-      to: '/orders?mode=已完成&period=today&anchor=completed',
-    },
-    {
-      label: '进行中',
-      value: k.inProgress,
-      to: '/orders?mode=进行中',
-    },
-    {
-      label: '待催',
-      value: wb.chaseCount,
-      to: '/dashboard?focus=chase',
-    },
-    {
-      label: '快到期',
-      value: k.expiringCount,
-      warn: k.expiringCount > 0,
-      to: '/dashboard?focus=due',
-    },
-  ]
+  useEffect(() => {
+    setCardPage(0)
+  }, [focusTab])
+
+  useEffect(() => {
+    if (cardPage > 0 && cardPage >= cardCount) {
+      setCardPage(Math.max(0, cardCount - 1))
+    }
+  }, [cardCount, cardPage])
 
   const onComplete = (id: string) => {
     try {
@@ -151,13 +130,6 @@ export default function Dashboard() {
       addToast({ type: 'error', message: '这单暂时不能标完成' })
     }
   }
-
-  const viewAllTo =
-    focusTab === 'chase'
-      ? '/orders?mode=进行中'
-      : focusTab === 'due'
-        ? '/todo'
-        : '/orders'
 
   return (
     <div className="ds-page--console l2g-dash l2g-workbench">
@@ -190,35 +162,47 @@ export default function Dashboard() {
           <p className="l2g-workbench__hero-meta text-muted-foreground">
             累计 {money(k.payoutTotal)} · 已完成 {k.completedTotal} · 本月新单 {k.newThisMonth}
           </p>
-        </div>
-        <div className="l2g-workbench__rail" role="list">
-          {rail.map((slot, i) => (
+          <p className="l2g-workbench__hero-stats text-muted-foreground">
             <Link
-              key={slot.label}
-              to={slot.to}
-              role="listitem"
-              className={cn(
-                'l2g-workbench__rail-item',
-                slot.warn && 'l2g-workbench__rail-item--warn',
-                i > 0 && 'l2g-workbench__rail-item--div',
-              )}
+              to="/orders?mode=已完成&period=today&anchor=completed"
+              className="l2g-workbench__stat"
             >
-              <span className="l2g-workbench__rail-label">{slot.label}</span>
-              <span
-                className={cn(
-                  'l2g-workbench__rail-value',
-                  slot.money && 'dd-money-gold',
-                  slot.warn && 'text-warning',
-                )}
-              >
-                <CountUp value={slot.value} money={slot.money} />
+              今日到手{" "}
+              <span className="l2g-workbench__stat-val dd-money-gold tabular-nums">
+                <CountUp value={k.payoutToday} money />
               </span>
             </Link>
-          ))}
+            <span className="l2g-workbench__stat-sep" aria-hidden="true">
+              ·
+            </span>
+            <Link to="/orders?mode=进行中" className="l2g-workbench__stat">
+              进行中{" "}
+              <span className="l2g-workbench__stat-val tabular-nums">{k.inProgress}</span>
+            </Link>
+            <span className="l2g-workbench__stat-sep" aria-hidden="true">
+              ·
+            </span>
+            <Link to="/dashboard?focus=chase" className="l2g-workbench__stat">
+              待催{" "}
+              <span className="l2g-workbench__stat-val tabular-nums">{wb.chaseCount}</span>
+            </Link>
+            <span className="l2g-workbench__stat-sep" aria-hidden="true">
+              ·
+            </span>
+            <Link
+              to="/dashboard?focus=due"
+              className={cn(
+                'l2g-workbench__stat',
+                k.expiringCount > 0 && 'l2g-workbench__stat--warn',
+              )}
+            >
+              快到期{" "}
+              <span className="l2g-workbench__stat-val tabular-nums">{k.expiringCount}</span>
+            </Link>
+          </p>
         </div>
       </section>
 
-      {/* Linear：密列表作主区；闲鱼：状态小胶囊 */}
       <section className="l2g-workbench__focus ds-rise" aria-label="待办订单">
         <div className="l2g-workbench__focus-head">
           <div className="min-w-0">
@@ -257,82 +241,120 @@ export default function Dashboard() {
           <Empty>
             <p className="mb-2">今天没有要盯的单</p>
             <Button variant="secondary" size="sm" icon={PlusCircle} onClick={openNewOrder}>
-              录一单
+              录一笔
             </Button>
           </Empty>
-        ) : (
-          <ul className="l2g-workbench__list">
-            {visibleList.map(({ kind, order: o }) => (
-              <li key={`${kind}-${o.id}`} className="l2g-workbench__row">
-                <button
-                  type="button"
-                  className="l2g-workbench__row-main"
-                  onClick={() => openEdit(o.id)}
-                >
-                  <span
-                    className={cn(
-                      'l2g-workbench__row-dot',
-                      kind === 'due' ? 'l2g-workbench__row-dot--due' : 'l2g-workbench__row-dot--chase',
-                    )}
-                    aria-hidden="true"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="l2g-workbench__row-title truncate">
-                        {o.nickname || '未命名'}
-                      </span>
-                      <Tag tone={statusTone[o.status]} className="l2g-workbench__tag">
-                        {o.status}
-                      </Tag>
-                      {kind === 'due' ? (
-                        <span className="l2g-workbench__row-kind l2g-workbench__row-kind--due">
-                          {daysUntilLabel(wb.today, o.endDate)}
-                        </span>
-                      ) : (
-                        <span className="l2g-workbench__row-kind">催单</span>
+        ) : activeCard ? (
+          <div
+            className="l2g-workbench__deck" tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowLeft' && safeCardPage > 0) {
+                e.preventDefault()
+                setCardPage(safeCardPage - 1)
+              } else if (e.key === 'ArrowRight' && safeCardPage < cardCount - 1) {
+                e.preventDefault()
+                setCardPage(safeCardPage + 1)
+              }
+            }}
+          >
+            <article
+              key={`${activeCard.kind}-${activeCard.order.id}`}
+              className="l2g-workbench__card"
+              aria-roledescription="slide"
+              aria-label={`${safeCardPage + 1} / ${cardCount}`}
+            >
+              <div className="l2g-workbench__card-top">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span
+                      className={cn(
+                        'l2g-workbench__row-dot',
+                        activeCard.kind === 'due'
+                          ? 'l2g-workbench__row-dot--due'
+                          : 'l2g-workbench__row-dot--chase',
                       )}
-                    </div>
-                    <div className="l2g-workbench__row-sub truncate">
-                      {orderTitle(o)}
-                      {o.contact ? ` · ${o.contact}` : ''}
-                    </div>
+                      aria-hidden="true"
+                    />
+                    <h3 className="l2g-workbench__card-title truncate">
+                      {activeCard.order.nickname || '未命名'}
+                    </h3>
+                    <Tag tone={statusTone[activeCard.order.status]} className="l2g-workbench__tag">
+                      {activeCard.order.status}
+                    </Tag>
+                    {activeCard.kind === 'due' ? (
+                      <span className="l2g-workbench__row-kind l2g-workbench__row-kind--due">
+                        {daysUntilLabel(wb.today, activeCard.order.endDate)}
+                      </span>
+                    ) : (
+                      <span className="l2g-workbench__row-kind">催单</span>
+                    )}
                   </div>
-                  <span className="l2g-workbench__row-amount dd-money-gold">
-                    {yuan2(o.amount)}
-                  </span>
-                </button>
-                <div className="l2g-workbench__row-actions">
-                  {(o.status === '待处理' || o.status === '进行中') && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      icon={CheckCircle2}
-                      onClick={() => onComplete(o.id)}
-                      title="标完成"
-                      aria-label="标完成"
-                    >
-                      完成
-                    </Button>
-                  )}
+                  <p className="l2g-workbench__card-sub truncate">
+                    {orderTitle(activeCard.order)}
+                    {activeCard.order.contact ? ` · ${activeCard.order.contact}` : ''}
+                  </p>
                 </div>
-              </li>
-            ))}
-          </ul>
-        )}
+                <p className="l2g-workbench__card-amount dd-money-gold tabular-nums">
+                  {yuan2(activeCard.order.amount)}
+                </p>
+              </div>
+              <div className="l2g-workbench__card-actions">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => openEdit(activeCard.order.id)}
+                >
+                  打开
+                </Button>
+                {(activeCard.order.status === '待处理' ||
+                  activeCard.order.status === '进行中') && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    icon={CheckCircle2}
+                    onClick={() => onComplete(activeCard.order.id)}
+                    title="标完成"
+                    aria-label="标完成"
+                  >
+                    完成
+                  </Button>
+                )}
+              </div>
+            </article>
+
+            <div className="l2g-workbench__pager" role="navigation" aria-label="待办翻页">
+              <button
+                type="button"
+                className="l2g-workbench__pager-btn"
+                disabled={safeCardPage <= 0}
+                onClick={() => setCardPage(safeCardPage - 1)}
+                aria-label="上一单"
+              >
+                <ChevronLeft size={16} aria-hidden="true" />
+              </button>
+              <span className="l2g-workbench__pager-pos tabular-nums">
+                {safeCardPage + 1} / {cardCount}
+              </span>
+              <button
+                type="button"
+                className="l2g-workbench__pager-btn"
+                disabled={safeCardPage >= cardCount - 1}
+                onClick={() => setCardPage(safeCardPage + 1)}
+                aria-label="下一单"
+              >
+                <ChevronRight size={16} aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+        ) : null}
 
         <div className="l2g-workbench__focus-foot">
-          {hiddenCount > 0 ? (
-            <Link to={viewAllTo} className="l2g-workbench__more">
-              还有 {hiddenCount} 条，查看全部
-              <ArrowRight size={14} aria-hidden="true" />
-            </Link>
-          ) : (
-            <Link to="/orders" className="l2g-workbench__more l2g-workbench__more--quiet">
-              订单列表
-              <ArrowRight size={14} aria-hidden="true" />
-            </Link>
-          )}
+          <Link to="/orders" className="l2g-workbench__more l2g-workbench__more--quiet">
+            订单列表
+            <ArrowRight size={14} aria-hidden="true" />
+          </Link>
         </div>
+
       </section>
     </div>
   )
