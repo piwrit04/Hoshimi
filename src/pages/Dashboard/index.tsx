@@ -23,12 +23,12 @@ import type { Order, OrderStatus } from '@/domain/order'
  * - Shopify Home：一个到手主数字，其余指标降权成次级条，不抢视觉
  * - Linear Inbox：密列表、发丝分割线、整行悬停、安静 chrome
  * - 闲鱼卖家：状态用小胶囊标签，不铺满彩色徽章
- * 待办卡全量展示：托管/普通分组；打开·完成纯图标右下角。
+ * 待办卡全量展示：托管单/普通单筛选与分组；打开·完成纯图标右下角（完成带底）。
  */
 
 type FocusTab = 'all' | 'chase' | 'due'
 
-const FOCUS_TABS: FocusTab[] = ['all', 'chase', 'due']
+const FOCUS_TABS: FocusTab[] = ['all', 'due', 'chase']
 
 function parseFocus(raw: string | null): FocusTab {
   if (raw === 'chase' || raw === 'due' || raw === 'all') return raw
@@ -109,8 +109,8 @@ export default function Dashboard() {
   )
 
   const focusSections = useMemo(() => {
-    const due = { id: 'due' as const, label: '托管到期', items: dueItems }
-    const chase = { id: 'chase' as const, label: '普通催单', items: chaseItems }
+    const due = { id: 'due' as const, label: '托管单', items: dueItems }
+    const chase = { id: 'chase' as const, label: '普通单', items: chaseItems }
     if (focusTab === 'chase') return [chase].filter((s) => s.items.length > 0)
     if (focusTab === 'due') return [due].filter((s) => s.items.length > 0)
     return [due, chase].filter((s) => s.items.length > 0)
@@ -200,15 +200,15 @@ export default function Dashboard() {
           <div className="min-w-0">
             <h2 className="l2g-workbench__focus-title">待办订单</h2>
             <p className="l2g-workbench__focus-meta">
-              共 {wb.followCount} 条 · 催单 {wb.chaseCount} · 到期 {wb.dueCount}
+              共 {wb.followCount} 条 · 托管 {wb.dueCount} · 普通 {wb.chaseCount}
             </p>
           </div>
           <div className="flex items-center gap-1 flex-wrap" role="tablist" aria-label="待办筛选" onKeyDown={onFocusTabKeyDown}>
             {(
               [
                 { id: 'all' as const, label: '全部' },
-                { id: 'chase' as const, label: `催单 ${wb.chaseCount}` },
-                { id: 'due' as const, label: `到期 ${wb.dueCount}` },
+                { id: 'due' as const, label: `托管单 ${wb.dueCount}` },
+                { id: 'chase' as const, label: `普通单 ${wb.chaseCount}` },
               ] as const
             ).map((t) => (
               <button
@@ -304,7 +304,7 @@ export default function Dashboard() {
                             />
                             {canComplete ? (
                               <Button
-                                variant="ghost"
+                                variant="secondary"
                                 size="sm"
                                 icon={CheckCircle2}
                                 iconOnly

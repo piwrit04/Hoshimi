@@ -1541,8 +1541,13 @@
   align-items: stretch;
   gap: 0;
   margin: 0;
-  padding: 0;
+  margin-left: 4px;
+  padding: 4px 0 4px 20px;
   list-style: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+:root[data-theme="light"] .l2g-workbench__rail {
+  border-left-color: hsl(var(--border));
 }
 .l2g-workbench__rail-item {
   display: flex;
