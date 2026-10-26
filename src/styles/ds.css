@@ -480,15 +480,15 @@
 .l2g-nav-active {
   background: rgba(var(--brand-rgb), 0.12) !important;
   color: var(--brand-hex) !important;
-  box-shadow: inset 3px 0 0 0 var(--brand-hex);
+  box-shadow: inset 2px 0 0 0 var(--brand-hex);
   border: 1px solid transparent;
   border-radius: 10px !important;
 }
 .l2g-nav-active svg { color: var(--brand-hex) !important; }
 :root[data-theme="light"] .l2g-nav-active {
-  background: rgba(var(--brand-rgb), 0.12) !important;
+  background: rgba(var(--brand-rgb), 0.1) !important;
   color: var(--brand-text-hex) !important;
-  box-shadow: inset 3px 0 0 0 var(--brand-text-hex);
+  box-shadow: inset 2px 0 0 0 var(--brand-text-hex);
 }
 :root[data-theme="light"] .l2g-nav-active svg { color: var(--brand-text-hex) !important; }
 
@@ -500,6 +500,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .dd-greeting__hello::after { animation: none !important; opacity: 1; }
+  [data-testid="sidebar"] {
+    transition: none !important;
+  }
 }
 
 

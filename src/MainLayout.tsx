@@ -41,7 +41,7 @@ export default function MainLayout() {
       <AppWallpaper />
       <FloatingSearch />
 
-      <aside className="hidden md:flex md:flex-col shrink-0 h-full relative z-20">
+      <aside aria-label="应用导航" className="hidden md:flex md:flex-col shrink-0 h-full relative z-20">
         <Sidebar showLogo={true} />
       </aside>
 
