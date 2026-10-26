@@ -93,9 +93,11 @@ export function Button({
       {...rest}
     >
       {loading ? (
-        <Loader2 size={size === 'sm' ? 14 : 16} className="animate-spin shrink-0" />
+        <Loader2 size={size === 'sm' ? 14 : 16} className="animate-spin shrink-0" aria-hidden="true" />
       ) : (
-        Icon && <Icon size={size === 'sm' ? 14 : 16} className="shrink-0" />
+        Icon && (
+          <Icon size={size === 'sm' ? 14 : 16} className="shrink-0" aria-hidden="true" />
+        )
       )}
       {!iconOnly && children}
     </button>

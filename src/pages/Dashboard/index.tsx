@@ -23,7 +23,7 @@ import type { Order, OrderStatus } from '@/domain/order'
  * - Shopify Home：一个到手主数字，其余指标降权成次级条，不抢视觉
  * - Linear Inbox：密列表、发丝分割线、整行悬停、安静 chrome
  * - 闲鱼卖家：状态用小胶囊标签，不铺满彩色徽章
- * 首页不翻页：只露最紧的几条，多了「查看全部」去订单页。
+ * 待办卡全量展示：托管/普通分组；打开·完成纯图标右下角。
  */
 
 type FocusTab = 'all' | 'chase' | 'due'
@@ -69,7 +69,6 @@ export default function Dashboard() {
         const next = new URLSearchParams(prev)
         if (tab === 'all') next.delete('focus')
         else next.set('focus', tab)
-        next.delete('page')
         return next
       },
       { replace: true },
@@ -100,13 +99,24 @@ export default function Dashboard() {
     return () => window.clearInterval(id)
   }, [])
 
-  const focusList = useMemo(() => {
-    if (focusTab === 'chase') return wb.openNormal.map((o) => ({ kind: 'chase' as const, order: o }))
-    if (focusTab === 'due') return wb.expiring.map((o) => ({ kind: 'due' as const, order: o }))
-    const chase = wb.openNormal.map((o) => ({ kind: 'chase' as const, order: o }))
-    const due = wb.expiring.map((o) => ({ kind: 'due' as const, order: o }))
-    return [...due, ...chase]
-  }, [focusTab, wb.openNormal, wb.expiring])
+  const dueItems = useMemo(
+    () => wb.expiring.map((o) => ({ kind: 'due' as const, order: o })),
+    [wb.expiring],
+  )
+  const chaseItems = useMemo(
+    () => wb.openNormal.map((o) => ({ kind: 'chase' as const, order: o })),
+    [wb.openNormal],
+  )
+
+  const focusSections = useMemo(() => {
+    const due = { id: 'due' as const, label: '托管到期', items: dueItems }
+    const chase = { id: 'chase' as const, label: '普通催单', items: chaseItems }
+    if (focusTab === 'chase') return [chase].filter((s) => s.items.length > 0)
+    if (focusTab === 'due') return [due].filter((s) => s.items.length > 0)
+    return [due, chase].filter((s) => s.items.length > 0)
+  }, [focusTab, dueItems, chaseItems])
+
+  const focusCount = dueItems.length + chaseItems.length
 
   const onComplete = (id: string) => {
     const before = orders.find((o) => o.id === id)
@@ -153,45 +163,36 @@ export default function Dashboard() {
           <p className="l2g-workbench__hero-meta text-muted-foreground">
             累计 {money(k.payoutTotal)} · 已完成 {k.completedTotal} · 本月新单 {k.newThisMonth}
           </p>
-          <p className="l2g-workbench__hero-stats text-muted-foreground">
-            <Link
-              to="/orders?mode=已完成&period=today&anchor=completed"
-              className="l2g-workbench__stat"
-            >
-              今日到手{" "}
-              <span className="l2g-workbench__stat-val dd-money-gold tabular-nums">
-                <CountUp value={k.payoutToday} money />
-              </span>
-            </Link>
-            <span className="l2g-workbench__stat-sep" aria-hidden="true">
-              ·
-            </span>
-            <Link to="/orders?mode=进行中" className="l2g-workbench__stat">
-              进行中{" "}
-              <span className="l2g-workbench__stat-val tabular-nums">{k.inProgress}</span>
-            </Link>
-            <span className="l2g-workbench__stat-sep" aria-hidden="true">
-              ·
-            </span>
-            <Link to="/dashboard?focus=chase" className="l2g-workbench__stat">
-              待催{" "}
-              <span className="l2g-workbench__stat-val tabular-nums">{wb.chaseCount}</span>
-            </Link>
-            <span className="l2g-workbench__stat-sep" aria-hidden="true">
-              ·
-            </span>
-            <Link
-              to="/dashboard?focus=due"
-              className={cn(
-                'l2g-workbench__stat',
-                k.expiringCount > 0 && 'l2g-workbench__stat--warn',
-              )}
-            >
-              快到期{" "}
-              <span className="l2g-workbench__stat-val tabular-nums">{k.expiringCount}</span>
-            </Link>
-          </p>
         </div>
+        <nav className="l2g-workbench__rail" aria-label="快捷指标">
+          <Link
+            to="/orders?mode=已完成&period=today&anchor=completed"
+            className="l2g-workbench__rail-item"
+          >
+            <span className="l2g-workbench__rail-label">今日到手</span>
+            <span className="l2g-workbench__rail-value dd-money-gold tabular-nums">
+              <CountUp value={k.payoutToday} money />
+            </span>
+          </Link>
+          <Link to="/orders?mode=进行中" className="l2g-workbench__rail-item l2g-workbench__rail-item--div">
+            <span className="l2g-workbench__rail-label">进行中</span>
+            <span className="l2g-workbench__rail-value tabular-nums">{k.inProgress}</span>
+          </Link>
+          <Link to="/dashboard?focus=chase" className="l2g-workbench__rail-item l2g-workbench__rail-item--div">
+            <span className="l2g-workbench__rail-label">待催</span>
+            <span className="l2g-workbench__rail-value tabular-nums">{wb.chaseCount}</span>
+          </Link>
+          <Link
+            to="/dashboard?focus=due"
+            className={cn(
+              'l2g-workbench__rail-item l2g-workbench__rail-item--div',
+              k.expiringCount > 0 && 'l2g-workbench__rail-item--warn',
+            )}
+          >
+            <span className="l2g-workbench__rail-label">快到期</span>
+            <span className="l2g-workbench__rail-value tabular-nums">{k.expiringCount}</span>
+          </Link>
+        </nav>
       </section>
 
       <section className="l2g-workbench__focus ds-rise" aria-label="待办订单">
@@ -228,7 +229,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {focusList.length === 0 ? (
+        {focusCount === 0 ? (
           <Empty>
             <p className="mb-2">今天没有要盯的单</p>
             <Button variant="secondary" size="sm" icon={PlusCircle} onClick={openNewOrder}>
@@ -237,71 +238,89 @@ export default function Dashboard() {
           </Empty>
         ) : (
           <div className="l2g-workbench__deck">
-            <div className="l2g-workbench__card-row" role="list">
-              {focusList.map(({ kind, order: o }) => {
-                const key = `${kind}-${o.id}`
-                const canComplete = o.status === '待处理' || o.status === '进行中'
-                return (
-                  <article key={key} className="l2g-workbench__card" role="listitem">
-                    <div className="l2g-workbench__card-head">
-                      <span
-                        className={cn(
-                          'l2g-workbench__row-dot',
-                          kind === 'due'
-                            ? 'l2g-workbench__row-dot--due'
-                            : 'l2g-workbench__row-dot--chase',
-                        )}
-                        aria-hidden="true"
-                      />
-                      <h3 className="l2g-workbench__card-title">
-                        {o.nickname || '未命名'}
-                      </h3>
-                    </div>
-                    <div className="l2g-workbench__card-tags">
-                      <Tag tone={statusTone[o.status]} className="l2g-workbench__tag">
-                        {o.status}
-                      </Tag>
-                      {kind === 'due' ? (
-                        <span className="l2g-workbench__row-kind l2g-workbench__row-kind--due">
-                          {daysUntilLabel(wb.today, o.endDate)}
-                        </span>
-                      ) : (
-                        <span className="l2g-workbench__row-kind">催单</span>
-                      )}
-                    </div>
-                    <p className="l2g-workbench__card-sub">
-                      {orderTitle(o)}
-                      {o.contact ? ` · ${o.contact}` : ''}
-                    </p>
-                    <p className="l2g-workbench__card-amount dd-money-gold tabular-nums">
-                      {yuan2(o.amount)}
-                    </p>
-                    <div className="l2g-workbench__card-actions">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        icon={PanelRightOpen}
-                        onClick={() => openEdit(o.id)}
-                      >
-                        打开
-                      </Button>
-                      {canComplete ? (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          icon={CheckCircle2}
-                          onClick={() => onComplete(o.id)}
-                          title="标完成"
-                          aria-label="标完成"
-                        >
-                          完成
-                        </Button>
-                      ) : null}
-                    </div>
-                  </article>
-                )
-              })}
-            </div>
+            {focusSections.map((section) => (
+              <div key={section.id} className="l2g-workbench__group">
+                {focusTab === 'all' ? (
+                  <h3 className="l2g-workbench__group-title">
+                    {section.label}
+                    <span className="l2g-workbench__group-count tabular-nums">
+                      {section.items.length}
+                    </span>
+                  </h3>
+                ) : null}
+                <ul className="l2g-workbench__card-row">
+                  {section.items.map(({ kind, order: o }) => {
+                    const key = `${kind}-${o.id}`
+                    const canComplete = o.status === '待处理' || o.status === '进行中'
+                    return (
+                      <li key={key} className="l2g-workbench__card">
+                        <div className="l2g-workbench__card-head">
+                          <span
+                            className={cn(
+                              'l2g-workbench__row-dot',
+                              kind === 'due'
+                                ? 'l2g-workbench__row-dot--due'
+                                : 'l2g-workbench__row-dot--chase',
+                            )}
+                            aria-hidden="true"
+                          />
+                          <p className="l2g-workbench__card-title">
+                            <span className="l2g-workbench__card-name">
+                              {o.nickname || '未命名'}
+                            </span>
+                            {o.contact ? (
+                              <span className="l2g-workbench__card-contact" translate="no">
+                                {o.contact}
+                              </span>
+                            ) : null}
+                          </p>
+                        </div>
+                        <div className="l2g-workbench__card-tags">
+                          <Tag tone={statusTone[o.status]} className="l2g-workbench__tag">
+                            {o.status}
+                          </Tag>
+                          {kind === 'due' ? (
+                            <span className="l2g-workbench__row-kind l2g-workbench__row-kind--due">
+                              {daysUntilLabel(wb.today, o.endDate)}
+                            </span>
+                          ) : (
+                            <span className="l2g-workbench__row-kind">催单</span>
+                          )}
+                        </div>
+                        <p className="l2g-workbench__card-sub">{orderTitle(o)}</p>
+                        <div className="l2g-workbench__card-foot">
+                          <p className="l2g-workbench__card-amount dd-money-gold tabular-nums">
+                            {yuan2(o.amount)}
+                          </p>
+                          <div className="l2g-workbench__card-actions">
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              icon={PanelRightOpen}
+                              iconOnly
+                              onClick={() => openEdit(o.id)}
+                              aria-label="打开"
+                              title="打开"
+                            />
+                            {canComplete ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                icon={CheckCircle2}
+                                iconOnly
+                                onClick={() => onComplete(o.id)}
+                                aria-label="标完成"
+                                title="标完成"
+                              />
+                            ) : null}
+                          </div>
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            ))}
           </div>
         )}
 
