@@ -110,7 +110,7 @@ const NavItem = memo(function NavItem({
           aria-label={item.label}
           className={cn(
             'btn-base btn-primary w-full shadow-none',
-            isCollapsed ? '!h-8 !w-8 !min-w-0 !justify-center !px-0 mx-auto' : 'justify-start !h-8',
+            isCollapsed ? '!h-8 !w-8 !min-h-8 !min-w-0 !justify-center !px-0 mx-auto' : 'justify-start !h-8 !min-h-8',
           )}
         >
           <item.icon size={16} strokeWidth={1.75} aria-hidden="true" className="shrink-0" />
